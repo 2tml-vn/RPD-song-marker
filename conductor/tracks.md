@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Stabilize and Optimize Song Recognition Pipeline**
+- [~] **Track: Stabilize and Optimize Song Recognition Pipeline**
   *Link: [./tracks/stabilize_pipeline_20260119/](./tracks/stabilize_pipeline_20260119/)*

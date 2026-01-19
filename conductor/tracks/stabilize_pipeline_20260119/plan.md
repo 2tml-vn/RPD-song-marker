@@ -1,9 +1,9 @@
 # Implementation Plan - Stabilize and Optimize Song Recognition Pipeline
 
 ## Phase 1: Robust Audio Acquisition
-- [ ] Task: Implement unit tests for `ensure_audio` duration validation.
-- [ ] Task: Refactor `ensure_audio` to strictly use YouTube duration vs local duration for all files (existing and new).
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Robust Audio Acquisition' (Protocol in workflow.md)
+- [x] Task: Implement unit tests for `ensure_audio` duration validation.
+- [x] Task: Refactor `ensure_audio` to strictly use YouTube duration vs local duration for all files (existing and new).
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Robust Audio Acquisition' (Protocol in workflow.md)
 
 ## Phase 2: Processing Loop Resilience
 - [ ] Task: Write tests for the marker selection logic (Processing... vs Unidentified).
