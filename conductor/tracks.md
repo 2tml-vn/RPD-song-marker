@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Disable Auto-Dimming Logic**
+- [x] **Track: Disable Auto-Dimming Logic**
   *Link: [./tracks/disable_autodim_20260119/](./tracks/disable_autodim_20260119/)*
