@@ -3,7 +3,7 @@
 ## Phase 1: Robust Audio Acquisition
 - [x] Task: Implement unit tests for `ensure_audio` duration validation.
 - [x] Task: Refactor `ensure_audio` to strictly use YouTube duration vs local duration for all files (existing and new).
-- [x] Task: Conductor - User Manual Verification 'Phase 1: Robust Audio Acquisition' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Robust Audio Acquisition' (Protocol in workflow.md) [checkpoint: 910e4a0]
 
 ## Phase 2: Processing Loop Resilience
 - [ ] Task: Write tests for the marker selection logic (Processing... vs Unidentified).
