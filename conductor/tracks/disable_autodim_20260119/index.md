@@ -1,4 +1,4 @@
-# Track stabilize_pipeline_20260119 Context
+# Track disable_autodim_20260119 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

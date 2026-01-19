@@ -13,7 +13,7 @@
     'use strict';
 
     let marks = [];
-    let isLocked = false;
+    let isLocked = true;
     let vid = "";
 
     function showToast(text, color) {
@@ -82,7 +82,7 @@
         container.style.backdropFilter = "blur(12px) brightness(0.6)";
         container.style.webkitBackdropFilter = "blur(12px) brightness(0.6)";
         container.style.transition = "border-color 0.3s ease, box-shadow 0.3s ease, opacity 0.6s ease";
-        container.style.opacity = "0.2";
+        container.style.opacity = "1";
 
         const title = document.createElement('div');
         title.id = "jrpd-handle";
