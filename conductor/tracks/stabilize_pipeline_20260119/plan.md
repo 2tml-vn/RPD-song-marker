@@ -13,7 +13,7 @@
 ## Phase 3: Song Naming & Localization
 - [x] Task: Create tests for `format_song_entry` covering Japanese mapping and long artist names.
 - [x] Task: Refine `format_song_entry` to consistently apply the 60-character artist limit and custom mappings.
-- [x] Task: Conductor - User Manual Verification 'Phase 3: Song Naming & Localization' (Protocol in workflow.md) *
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Song Naming & Localization' (Protocol in workflow.md) * [checkpoint: f041b35]
 
 ## Phase 4: Signal Optimization
 - [ ] Task: Standardize FFmpeg filters (`loudnorm`, `soxr`, `lowpass`) across all recognition attempts.
