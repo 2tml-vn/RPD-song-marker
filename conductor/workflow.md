@@ -104,8 +104,9 @@ All tasks follow a strict lifecycle:
         (Keep existing format below)
 
 5.  **Await Explicit User Feedback:**
-    -   After presenting the detailed plan, ask the user for confirmation: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**"
-    -   **PAUSE** and await the user's response. Do not proceed without an explicit yes or confirmation.
+    -   **Manual Case:** After presenting a manual verification plan, ask the user for confirmation: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**"
+    -   **Automated Case:** If the phase was verified automatically (Step 4), you **must** proceed directly to the checkpoint commit (Step 6) without waiting for user confirmation, as objective proof has been established.
+    -   **PAUSE** only for the Manual Case. Do not proceed without an explicit yes or confirmation.
 
 6.  **Create Checkpoint Commit:**
     -   Stage all changes. If no changes occurred in this step, proceed with an empty commit.
