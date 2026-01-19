@@ -35,19 +35,6 @@ STEP = 4
 MAX_ATTEMPTS = 12
 PORT = 5000
 
-def get_dynamic_durations(gap=None):
-    start = float(min(START_DURATION, gap) if gap else START_DURATION)
-    dynamic_step = float(max(2.0, gap / 5.0) if gap else STEP)
-    highs, lows = [], []
-    for i in range(1, MAX_ATTEMPTS):
-        high = start + (i * dynamic_step)
-        if (gap and high <= gap) or (not gap and high <= 45): highs.append(round(high, 3))
-        low = start - (i * dynamic_step)
-        if low >= 3: lows.append(round(low, 3))
-        elif lows and lows[-1] > 3: lows.append(3.0); break
-        elif not lows and start > 3: lows.append(3.0); break
-    return [round(start, 3)] + highs + lows
-
 def get_optimal_sliding_windows(gap_size):
     """
     Calculates a list of (start_offset, duration) tuples for sliding windows.
@@ -236,6 +223,49 @@ class BridgeHandler(BaseHTTPRequestHandler):
 def start_server():
     HTTPServer(('localhost', PORT), BridgeHandler).serve_forever()
 
+async def identify_song(shazam, audio_path, current_sec, gap, snippets_dir):
+    """
+    Attempts to identify a song using a sliding window strategy.
+    Returns the found song name or "Unidentified".
+    """
+    found_name = None
+    sliding_windows = get_optimal_sliding_windows(gap)
+
+    for offset, d in sliding_windows:
+        print(f"  [DEBUG] Attempt {sliding_windows.index((offset, d)) + 1}/{len(sliding_windows)}: offset +{offset}s, duration {d}s...")
+        temp_name = snippets_dir / f"seg_{int(time.time())}.wav"
+        # Enhanced ffmpeg params for better Shazam matching
+        cmd = [
+            "ffmpeg", "-y", "-ss", str(current_sec + offset), "-t", str(d), "-i", str(audio_path),
+            "-vn", "-ac", "1", "-ar", "16000", "-acodec", "pcm_s16le", 
+            "-af", "highpass=f=100,lowpass=f=8000,loudnorm=I=-16:TP=-1.5:LRA=11",
+            "-resampler", "soxr",
+            "-f", "wav", "-loglevel", "error", str(temp_name)
+        ]
+        try:
+            subprocess.run(cmd, check=True, timeout=15)
+            if not temp_name.exists() or temp_name.stat().st_size < 1000:
+                continue
+
+            try:
+                out = await asyncio.wait_for(shazam.recognize_song(str(temp_name)), timeout=15)
+            except (AttributeError, Exception):
+                out = await asyncio.wait_for(shazam.recognize(str(temp_name)), timeout=15)
+                
+            if out and 'track' in out:
+                found_name = f"{out['track']['title']} - {out['track']['subtitle']}"
+                print(f"[MATCH] {found_name}")
+                break
+            else:
+                print(f"  [NO MATCH] Window {offset}s - {offset+d}s")
+        except Exception as e:
+            print(f"  [ERROR] Window processing failed: {e}")
+        finally:
+            if temp_name.exists(): temp_name.unlink()
+        if found_name: break
+    
+    return found_name if found_name else "Unidentified"
+
 async def main():
 
     global VIDEO_ID
@@ -329,61 +359,24 @@ async def main():
         if target:
             idx = sorted_keys.index(target)
             current_sec = parse_ts(target)
-            gap = (parse_ts(sorted_keys[idx + 1]) - current_sec) if idx + 1 < len(sorted_keys) else None
-            print(f"\n[TARGET] {target} (Gap: {gap})")
             
-            found_name = None
-            active_durations = get_dynamic_durations(gap)
+            # Get video duration for the last marker gap calculation
+            video_duration = 0
+            try:
+                probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)]
+                video_duration = float(subprocess.check_output(probe_cmd).decode('utf-8').strip())
+            except: pass
 
-            for d in active_durations:
-                print(f"  [DEBUG] Processing duration {d}s...")
-                temp_name = snippets_dir / f"seg_{int(time.time())}.wav"
-                # Enhanced ffmpeg params for better Shazam matching:
-                # - loudnorm: normalizes loudness to a target level
-                # - resampler=soxr: higher quality resampling to 16k
-                # - lowpass=8000: remove high frequency noise
-                # - highpass=100: remove low frequency rumble
-                cmd = [
-                    "ffmpeg", "-y", "-ss", str(current_sec), "-t", str(d), "-i", str(audio_path),
-                    "-vn", "-ac", "1", "-ar", "16000", "-acodec", "pcm_s16le", 
-                    "-af", "highpass=f=100,lowpass=f=8000,loudnorm=I=-16:TP=-1.5:LRA=11",
-                    "-resampler", "soxr",
-                    "-f", "wav", "-loglevel", "error", str(temp_name)
-                ]
-                try:
-                    print(f"  [DEBUG] Running ffmpeg cut...")
-                    subprocess.run(cmd, check=True, timeout=15)
-                    
-                    if not temp_name.exists() or temp_name.stat().st_size < 1000:
-                        print(f"  [ERROR] ffmpeg produced an empty or invalid file for {d}s.")
-                        continue
-
-                    print(f"  [DEBUG] ffmpeg done. Sending to Shazam...")
-                    try:
-                        out = await asyncio.wait_for(shazam.recognize_song(str(temp_name)), timeout=15)
-                    except AttributeError:
-                        out = await asyncio.wait_for(shazam.recognize(str(temp_name)), timeout=15)
-                    print(f"  [DEBUG] Shazam response received.")
-                        
-                    if out and 'track' in out:
-                        found_name = f"{out['track']['title']} - {out['track']['subtitle']}"
-                        print(f"[MATCH] {found_name}")
-                        break
-                    else:
-                        print(f"[NO MATCH] {d}s")
-                except Exception as e:
-                    print(f"  [ERROR] Processing failed for {d}s: {e}")
-                    # If this was the last attempt and we still haven't found anything,
-                    # we'll mark it as empty later in the code.
-                finally:
-                    if temp_name.exists(): temp_name.unlink()
-                if found_name: break
+            gap = (parse_ts(sorted_keys[idx + 1]) - current_sec) if idx + 1 < len(sorted_keys) else (video_duration - current_sec if video_duration > current_sec else 120.0)
+            print(f"\n[TARGET] {target} (Gap: {gap:.1f}s)")
+            
+            found_name = await identify_song(shazam, audio_path, current_sec, gap, snippets_dir)
 
             # Verify the target hasn't been UNDONE during processing
             if target in results:
                 # If we found a name, save it. 
                 # If we tried all durations and found nothing (or errored), save as "Unidentified" to stop retries
-                results[target] = found_name if found_name else "Unidentified"
+                results[target] = found_name if found_name and found_name != "Unidentified" else "Unidentified"
                 with progress_file.open("w", encoding="utf-8") as f: json.dump(results, f, ensure_ascii=False, indent=2)
                 with youtube_out.open("w", encoding="utf-8", newline='') as f:
                     current_keys = sorted(results.keys(), key=parse_ts)
