@@ -5,6 +5,7 @@ import json
 import re
 import time
 import subprocess
+import math
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
@@ -46,6 +47,30 @@ def get_dynamic_durations(gap=None):
         elif lows and lows[-1] > 3: lows.append(3.0); break
         elif not lows and start > 3: lows.append(3.0); break
     return [round(start, 3)] + highs + lows
+
+def get_optimal_sliding_windows(gap_size):
+    """
+    Calculates a list of (start_offset, duration) tuples for sliding windows.
+    Matches the logic defined in the specification.
+    """
+    if gap_size <= 12:
+        return [(0.0, gap_size)]
+    
+    # Calculate N (Number of tries)
+    # N = clamp(ceil(GapSize / 10), 2, 10)
+    n = max(2, min(10, math.ceil(gap_size / 10)))
+    
+    # Calculate S (Step Size)
+    # Step = (GapSize - 12) / (N - 1)
+    step = (gap_size - 12) / (n - 1)
+    
+    windows = []
+    for i in range(n):
+        start_offset = i * step
+        duration = 12.0
+        windows.append((round(start_offset, 3), round(duration, 3)))
+    
+    return windows
 
 MARK_QUEUE = asyncio.Queue()
 VIDEO_ID = "default"
