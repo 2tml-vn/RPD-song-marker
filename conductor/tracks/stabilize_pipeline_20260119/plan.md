@@ -8,7 +8,7 @@
 ## Phase 2: Processing Loop Resilience
 - [x] Task: Write tests for the marker selection logic (Processing... vs Unidentified).
 - [x] Task: Update core loop to prevent infinite retries by explicitly saving "Unidentified" status on failure.
-- [x] Task: Conductor - User Manual Verification 'Phase 2: Processing Loop Resilience' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Processing Loop Resilience' (Protocol in workflow.md) [checkpoint: 47d4797]
 
 ## Phase 3: Song Naming & Localization
 - [ ] Task: Create tests for `format_song_entry` covering Japanese mapping and long artist names.
