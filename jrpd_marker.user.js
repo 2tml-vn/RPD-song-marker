@@ -306,7 +306,21 @@
 
         // Drag Logic
         let isDragging = false, offsetX, offsetY;
-        title.onmousedown = (e) => { isDragging = true; offsetX = e.clientX - container.offsetLeft; offsetY = e.clientY - container.offsetTop; };
+        
+        container.onmousedown = (e) => {
+            // Prevent drag if clicking on interactive elements
+            if (e.target.tagName === 'BUTTON' || 
+                e.target === minBtn || 
+                e.target === dockBtn || 
+                e.target === lockBtn) {
+                return;
+            }
+            
+            isDragging = true;
+            offsetX = e.clientX - container.offsetLeft;
+            offsetY = e.clientY - container.offsetTop;
+        };
+
         document.onmousemove = (e) => { if (isDragging) { container.style.left = (e.clientX - offsetX) + 'px'; container.style.top = (e.clientY - offsetY) + 'px'; container.style.right = 'auto'; } };
         document.onmouseup = () => {
             if (isDragging) {
