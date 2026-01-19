@@ -1,0 +1,9 @@
+﻿// ==UserScript==
+// @name         JRPD Local Link
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @match        *://*.youtube.com/*
+// @match        *://*.bilibili.com/video/*
+// @require      file:///D:/rpd/jrpd_marker.user.js
+// @grant        none
+// ==/UserScript==

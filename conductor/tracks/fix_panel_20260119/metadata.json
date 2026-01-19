@@ -1,0 +1,8 @@
+{
+  "track_id": "fix_panel_20260119",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-01-19T19:49:00Z",
+  "updated_at": "2026-01-19T19:49:00Z",
+  "description": "Fix panel positioning and drag usability issues."
+}
