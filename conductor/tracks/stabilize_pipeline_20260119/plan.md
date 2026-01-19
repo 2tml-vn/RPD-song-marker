@@ -11,9 +11,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Processing Loop Resilience' (Protocol in workflow.md) [checkpoint: 47d4797]
 
 ## Phase 3: Song Naming & Localization
-- [ ] Task: Create tests for `format_song_entry` covering Japanese mapping and long artist names.
-- [ ] Task: Refine `format_song_entry` to consistently apply the 60-character artist limit and custom mappings.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Song Naming & Localization' (Protocol in workflow.md)
+- [x] Task: Create tests for `format_song_entry` covering Japanese mapping and long artist names.
+- [x] Task: Refine `format_song_entry` to consistently apply the 60-character artist limit and custom mappings.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Song Naming & Localization' (Protocol in workflow.md) *
 
 ## Phase 4: Signal Optimization
 - [ ] Task: Standardize FFmpeg filters (`loudnorm`, `soxr`, `lowpass`) across all recognition attempts.
