@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Master Visibility Toggle**
+- [x] **Track: Master Visibility Toggle**
   *Link: [./tracks/master_toggle_20260119/](./tracks/master_toggle_20260119/)*
