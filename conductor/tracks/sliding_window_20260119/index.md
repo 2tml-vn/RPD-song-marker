@@ -1,4 +1,4 @@
-# Track disable_autodim_20260119 Context
+# Track sliding_window_20260119 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)
