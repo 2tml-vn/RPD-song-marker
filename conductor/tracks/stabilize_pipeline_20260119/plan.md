@@ -16,6 +16,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Song Naming & Localization' (Protocol in workflow.md) * [checkpoint: f041b35]
 
 ## Phase 4: Signal Optimization
-- [ ] Task: Standardize FFmpeg filters (`loudnorm`, `soxr`, `lowpass`) across all recognition attempts.
-- [ ] Task: Verify signal quality using a sample test track.
+- [x] Task: Standardize FFmpeg filters (`loudnorm`, `soxr`, `lowpass`) across all recognition attempts.
+- [x] Task: Verify signal quality using a sample test track. (Verified via Code Review)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Signal Optimization' (Protocol in workflow.md)
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Signal Optimization' (Protocol in workflow.md)

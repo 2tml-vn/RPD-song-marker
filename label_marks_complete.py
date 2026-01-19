@@ -316,11 +316,13 @@ async def main():
                 # Enhanced ffmpeg params for better Shazam matching:
                 # - loudnorm: normalizes loudness to a target level
                 # - resampler=soxr: higher quality resampling to 16k
-                # - lowpass=8000: remove high frequency noise that can't be used by the 16k sample rate anyway
+                # - lowpass=8000: remove high frequency noise
+                # - highpass=100: remove low frequency rumble
                 cmd = [
                     "ffmpeg", "-y", "-ss", str(current_sec), "-t", str(d), "-i", str(audio_path),
                     "-vn", "-ac", "1", "-ar", "16000", "-acodec", "pcm_s16le", 
-                    "-af", "loudnorm=I=-16:TP=-1.5:LRA=11,lowpass=f=8000",
+                    "-af", "highpass=f=100,lowpass=f=8000,loudnorm=I=-16:TP=-1.5:LRA=11",
+                    "-resampler", "soxr",
                     "-f", "wav", "-loglevel", "error", str(temp_name)
                 ]
                 try:

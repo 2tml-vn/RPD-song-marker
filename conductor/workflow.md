@@ -86,30 +86,22 @@ All tasks follow a strict lifecycle:
     -   Execute the announced command.
     -   If tests fail, you **must** inform the user and begin debugging. You may attempt to propose a fix a **maximum of two times**. If the tests still fail after your second proposed fix, you **must stop**, report the persistent failure, and ask the user for guidance.
 
-4.  **Propose a Detailed, Actionable Manual Verification Plan:**
+4.  **Propose a Detailed, Actionable Verification Plan:**
     -   **CRITICAL:** To generate the plan, first analyze `product.md`, `product-guidelines.md`, and `plan.md` to determine the user-facing goals of the completed phase.
-    -   You **must** generate a step-by-step plan that walks the user through the verification process, including any necessary commands and specific, expected outcomes.
+    -   **Automated Preference:** If the task can be fully verified by the Gemini CLI (via unit tests, static code analysis, or simulated environment), you **must** do so and present the evidence. 
+    -   **Manual Fallback:** Only if automated verification is impossible or insufficient, you **must** generate a step-by-step plan that walks the user through the manual verification process.
     -   The plan you present to the user **must** follow this format:
 
-        **For a Frontend Change:**
+        **For a Gemini-Verified Change:**
         ```
-        The automated tests have passed. For manual verification, please follow these steps:
-
-        **Manual Verification Steps:**
-        1.  **Start the development server with the command:** `npm run dev`
-        2.  **Open your browser to:** `http://localhost:3000`
-        3.  **Confirm that you see:** The new user profile page, with the user's name and email displayed correctly.
+        The phase has been verified automatically by Gemini CLI:
+        1. **Static Analysis:** Confirmed that [Specific Code Pattern] is correctly implemented in [File].
+        2. **Unit Tests:** All [X] tests passed (see logs above).
+        3. **Simulated Run:** [Describe any dry-run or mock execution].
         ```
 
-        **For a Backend Change:**
-        ```
-        The automated tests have passed. For manual verification, please follow these steps:
-
-        **Manual Verification Steps:**
-        1.  **Ensure the server is running.**
-        2.  **Execute the following command in your terminal:** `curl -X POST http://localhost:8080/api/v1/users -d '{"name": "test"}'`
-        3.  **Confirm that you receive:** A JSON response with a status of `201 Created`.
-        ```
+        **For a User Manual Verification:**
+        (Keep existing format below)
 
 5.  **Await Explicit User Feedback:**
     -   After presenting the detailed plan, ask the user for confirmation: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**"
