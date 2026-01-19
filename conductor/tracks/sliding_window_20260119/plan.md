@@ -2,8 +2,8 @@
 
 ## Phase 1: Logic Engine Implementation
 - [x] Task: Create unit tests for the sliding window calculation (calculating N and Step). f74261f
-- [ ] Task: Implement `get_optimal_sliding_windows(gap_size)` helper function in `label_marks_complete.py`.
-- [ ] Task: Refactor the core processing loop to iterate through the dynamically generated windows.
+- [x] Task: Implement `get_optimal_sliding_windows(gap_size)` helper function in `label_marks_complete.py`. f74261f
+- [x] Task: Refactor the core processing loop to iterate through the dynamically generated windows. 144e2c2
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Logic Engine Implementation' (Protocol in workflow.md)
 
 ## Phase 2: Integration & Robustness
