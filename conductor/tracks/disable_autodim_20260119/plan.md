@@ -10,4 +10,4 @@
 - [x] Task: Write tests for the "Eye" icon click handler to ensure correct opacity toggling.
 - [x] Task: Verify the `lockBtn.onclick` logic ensures `isLocked` and `opacity` are updated correctly and consistently.
 - [x] Task: Ensure the `isLocked` state is initialized to `true` (Visible) by default.
-- [x] Task: Conductor - User Manual Verification 'Phase 2: Manual Toggle Reinforcement' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Manual Toggle Reinforcement' (Protocol in workflow.md) [checkpoint: 2d0239c]
