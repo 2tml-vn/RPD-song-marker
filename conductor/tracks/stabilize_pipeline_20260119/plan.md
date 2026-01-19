@@ -18,5 +18,5 @@
 ## Phase 4: Signal Optimization
 - [x] Task: Standardize FFmpeg filters (`loudnorm`, `soxr`, `lowpass`) across all recognition attempts.
 - [x] Task: Verify signal quality using a sample test track. (Verified via Code Review)
-- [x] Task: Conductor - User Manual Verification 'Phase 4: Signal Optimization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Signal Optimization' (Protocol in workflow.md) [checkpoint: db1404c]
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Signal Optimization' (Protocol in workflow.md)
