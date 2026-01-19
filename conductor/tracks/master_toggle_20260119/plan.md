@@ -10,4 +10,4 @@
 - [x] Task: Update `initUI` to check the saved visibility state on startup.
 - [x] Task: Ensure keyboard listeners remain globally active (not children of the container).
 - [x] Task: Style the toggle button to match native YouTube SVG icons.
-- [x] Task: Conductor - User Manual Verification 'Phase 2: Refactoring & Polish' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Refactoring & Polish' (Protocol in workflow.md) [checkpoint: 933f804]
