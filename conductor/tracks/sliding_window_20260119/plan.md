@@ -6,8 +6,8 @@
 - [x] Task: Refactor the core processing loop to iterate through the dynamically generated windows. 144e2c2
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Logic Engine Implementation' (Protocol in workflow.md)
 
-## Phase 2: Integration & Robustness
+## Phase 2: Integration & Robustness [checkpoint: 9fc14a8]
 - [x] Task: Update the `ffmpeg` cutting logic to use the dynamic `start_offset` and `duration` for each try. 144e2c2
 - [x] Task: Ensure the "Immediate Exit" logic works (stopping retries the moment Shazam returns a match). 144e2c2
 - [x] Task: Verify that short gaps (<12s) are handled correctly without exceeding boundaries. f74261f
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Integration & Robustness' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Integration & Robustness' (Protocol in workflow.md)
