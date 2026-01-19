@@ -44,27 +44,10 @@ All tasks follow a strict lifecycle:
    - Add dated note explaining the change
    - Resume implementation
 
-8. **Commit Code Changes:**
-   - Stage all code changes related to the task.
-   - Propose a clear, concise commit message e.g, `feat(ui): Create basic HTML structure for calculator`.
-   - Perform the commit.
-
-9. **Attach Task Summary with Git Notes:**
-   - **Step 9.1: Get Commit Hash:** Obtain the hash of the *just-completed commit* (`git log -1 --format="%H"`).
-   - **Step 9.2: Draft Note Content:** Create a detailed summary for the completed task. This should include the task name, a summary of changes, a list of all created/modified files, and the core "why" for the change.
-   - **Step 9.3: Attach Note:** Use the `git notes` command to attach the summary to the commit.
-     ```bash
-     # The note content from the previous step is passed via the -m flag.
-     git notes add -m "<note content>" <commit_hash>
-     ```
-
-10. **Get and Record Task Commit SHA:**
-    - **Step 10.1: Update Plan:** Read `plan.md`, find the line for the completed task, update its status from `[~]` to `[x]`, and append the first 7 characters of the *just-completed commit's* commit hash.
-    - **Step 10.2: Write Plan:** Write the updated content back to `plan.md`.
-
-11. **Commit Plan Update:**
-    - **Action:** Stage the modified `plan.md` file.
-    - **Action:** Commit this change with a descriptive message (e.g., `conductor(plan): Mark task 'Create user model' as complete`).
+8.  **Record Task Completion in Plan:**
+    -   **Step 8.1: Update Plan:** Read `plan.md`, find the line for the completed task, and update its status from `[~]` to `[x]`.
+    -   **Step 8.2: Write Plan:** Write the updated content back to `plan.md`.
+    -   **Note:** No Git commit is performed at this stage.
 
 ### Phase Completion Verification and Checkpointing Protocol
 
@@ -73,59 +56,36 @@ All tasks follow a strict lifecycle:
 1.  **Announce Protocol Start:** Inform the user that the phase is complete and the verification and checkpointing protocol has begun.
 
 2.  **Ensure Test Coverage for Phase Changes:**
-    -   **Step 2.1: Determine Phase Scope:** To identify the files changed in this phase, you must first find the starting point. Read `plan.md` to find the Git commit SHA of the *previous* phase's checkpoint. If no previous checkpoint exists, the scope is all changes since the first commit.
-    -   **Step 2.2: List Changed Files:** Execute `git diff --name-only <previous_checkpoint_sha> HEAD` to get a precise list of all files modified during this phase.
-    -   **Step 2.3: Verify and Create Tests:** For each file in the list:
-        -   **CRITICAL:** First, check its extension. Exclude non-code files (e.g., `.json`, `.md`, `.yaml`).
-        -   For each remaining code file, verify a corresponding test file exists.
-        -   If a test file is missing, you **must** create one. Before writing the test, **first, analyze other test files in the repository to determine the correct naming convention and testing style.** The new tests **must** validate the functionality described in this phase's tasks (`plan.md`).
+    -   **Step 2.1: Determine Phase Scope:** To identify the files changed in this phase, find the starting point. Read `plan.md` to find the Git commit SHA of the *previous* phase's checkpoint. If no previous checkpoint exists, the scope is all changes since the first commit.
+    -   **Step 2.2: Verify and Create Tests:** For each code file modified during this phase, verify a corresponding test file exists or create one based on project conventions.
 
 3.  **Execute Automated Tests with Proactive Debugging:**
-    -   Before execution, you **must** announce the exact shell command you will use to run the tests.
-    -   **Example Announcement:** "I will now run the automated test suite to verify the phase. **Command:** `CI=true npm test`"
-    -   Execute the announced command.
-    -   If tests fail, you **must** inform the user and begin debugging. You may attempt to propose a fix a **maximum of two times**. If the tests still fail after your second proposed fix, you **must stop**, report the persistent failure, and ask the user for guidance.
+    -   Announce and run the test command (e.g., `pytest`).
+    -   Debug up to two times if tests fail.
 
 4.  **Propose a Detailed, Actionable Verification Plan:**
-    -   **CRITICAL:** To generate the plan, first analyze `product.md`, `product-guidelines.md`, and `plan.md` to determine the user-facing goals of the completed phase.
-    -   **Automated Preference:** If the task can be fully verified by the Gemini CLI (via unit tests, static code analysis, or simulated environment), you **must** do so and present the evidence. 
-    -   **Manual Fallback:** Only if automated verification is impossible or insufficient, you **must** generate a step-by-step plan that walks the user through the manual verification process.
-    -   The plan you present to the user **must** follow this format:
-
-        **For a Gemini-Verified Change:**
-        ```
-        The phase has been verified automatically by Gemini CLI:
-        1. **Static Analysis:** Confirmed that [Specific Code Pattern] is correctly implemented in [File].
-        2. **Unit Tests:** All [X] tests passed (see logs above).
-        3. **Simulated Run:** [Describe any dry-run or mock execution].
-        ```
-
-        **For a User Manual Verification:**
-        (Keep existing format below)
+    -   Analyze goals and provide an automated or manual verification report.
 
 5.  **Await Explicit User Feedback:**
-    -   **Manual Case:** After presenting a manual verification plan, ask the user for confirmation: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**"
-    -   **Automated Case:** If the phase was verified automatically (Step 4), you **must** proceed directly to the checkpoint commit (Step 6) without waiting for user confirmation, as objective proof has been established.
-    -   **PAUSE** only for the Manual Case. Do not proceed without an explicit yes or confirmation.
+    -   Proceed directly to checkpointing for automated cases; wait for confirmation for manual cases.
 
 6.  **Create Checkpoint Commit:**
-    -   Stage all changes. If no changes occurred in this step, proceed with an empty commit.
-    -   Perform the commit with a clear and concise message (e.g., `conductor(checkpoint): Checkpoint end of Phase X`).
+    -   **Action:** Stage all code changes and the updated `plan.md`.
+    -   **Action:** Perform the commit with a message like `feat(logic): Complete Phase X - [Phase Name]`.
 
-7.  **Attach Auditable Verification Report using Git Notes:**
-    -   **Step 7.1: Draft Note Content:** Create a detailed verification report including the automated test command, the manual verification steps, and the user's confirmation.
-    -   **Step 7.2: Attach Note:** Use the `git notes` command and the full commit hash from the previous step to attach the full report to the checkpoint commit.
+7.  **Attach Phase Summary with Git Notes:**
+    -   **Step 7.1: Get Commit Hash:** Obtain the hash of the *just-completed checkpoint commit*.
+    -   **Step 7.2: Draft Note Content:** Create a detailed summary for the completed phase, including all tasks performed and files modified.
+    -   **Step 7.3: Attach Note:** Use `git notes add` to attach the summary.
 
 8.  **Get and Record Phase Checkpoint SHA:**
-    -   **Step 8.1: Get Commit Hash:** Obtain the hash of the *just-created checkpoint commit* (`git log -1 --format="%H"`).
-    -   **Step 8.2: Update Plan:** Read `plan.md`, find the heading for the completed phase, and append the first 7 characters of the commit hash in the format `[checkpoint: <sha>]`.
-    -   **Step 8.3: Write Plan:** Write the updated content back to `plan.md`.
+    -   **Step 8.1: Update Plan:** Read `plan.md`, find the heading for the completed phase, and append the first 7 characters of the commit hash: `[checkpoint: <sha>]`.
+    -   **Step 8.2: Write Plan:** Write the updated content back to `plan.md`.
 
-9. **Commit Plan Update:**
-    - **Action:** Stage the modified `plan.md` file.
-    - **Action:** Commit this change with a descriptive message following the format `conductor(plan): Mark phase '<PHASE NAME>' as complete`.
+9. **Commit Final Plan Update:**
+    - **Action:** Stage and commit the updated `plan.md` with message `conductor(plan): Mark phase '<PHASE NAME>' as complete`.
 
-10.  **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
+10.  **Announce Completion:** Inform the user that the phase is complete and the checkpoint is created.
 
 ### Synchronize Project Documentation Protocol
 
