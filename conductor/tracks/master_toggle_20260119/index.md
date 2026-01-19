@@ -1,4 +1,4 @@
-# Track sliding_window_20260119 Context
+# Track master_toggle_20260119 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

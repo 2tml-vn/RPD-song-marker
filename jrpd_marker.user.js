@@ -336,6 +336,66 @@
             title.style.borderBottom = "none";
             minBtn.textContent = "+";
         }
+
+        // Apply saved visibility state
+        if (localStorage.getItem("jrpd-panel-hidden") === "true") {
+            container.style.display = "none";
+        }
+    }
+
+    function togglePanel() {
+        const container = document.getElementById("jrpd-marker-container");
+        if (!container) return;
+        
+        const isHidden = container.style.display === "none";
+        container.style.display = isHidden ? "block" : "none";
+        localStorage.setItem("jrpd-panel-hidden", !isHidden);
+        
+        const toggleBtn = document.getElementById("jrpd-master-toggle");
+        if (toggleBtn) {
+            toggleBtn.style.opacity = isHidden ? "1" : "0.5";
+        }
+    }
+
+    function injectToggleBtn() {
+        if (document.getElementById("jrpd-master-toggle")) return;
+        
+        const controlBar = document.querySelector(".ytp-left-controls");
+        if (!controlBar) return;
+
+        const button = document.createElement("button");
+        button.id = "jrpd-master-toggle";
+        button.className = "ytp-button";
+        button.title = "Toggle JRPD Marker Pro";
+        button.style.marginLeft = "8px"; // Spacing from the timer
+        button.style.opacity = localStorage.getItem("jrpd-panel-hidden") === "true" ? "0.5" : "1";
+        
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.setAttribute("viewBox", "0 0 36 36");
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("class", "ytp-svg-fill");
+        path.setAttribute("d", "M18,11c-3.3,0-6,2.7-6,6c0,3.3,6,10,6,10s6-6.7,6-10C24,13.7,21.3,11,18,11z M18,19c-1.7,0-3-1.3-3-3s1.3-3,3-3s3,1.3,3,3S19.7,19,18,19z");
+        path.setAttribute("fill", "#fff");
+        
+        svg.appendChild(path);
+        button.appendChild(svg);
+        
+        button.onclick = (e) => {
+            e.preventDefault();
+            togglePanel();
+        };
+
+        // Find the timer (usually .ytp-time-display) and insert after it
+        const timeDisplay = controlBar.querySelector(".ytp-time-display");
+        if (timeDisplay) {
+            timeDisplay.parentNode.insertBefore(button, timeDisplay.nextSibling);
+        } else {
+            controlBar.appendChild(button);
+        }
+        console.log("JRPD: Master Toggle Button Injected");
     }
 
     const checkInterval = setInterval(() => {
@@ -351,6 +411,7 @@
 
         if (window.location.href.includes("watch") && document.querySelector('video') && document.body) {
             initUI();
+            injectToggleBtn();
         }
     }, 500);
 })();
