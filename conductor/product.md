@@ -11,7 +11,7 @@ A seamless, semi-automated workflow for timestamping and identifying music track
 - **Viewers & Music Enthusiasts:** Enabling users to identify songs in real-time while watching a video and save them for later.
 
 ## Core Features
-- **Real-Time Browser Marking:** A lightweight userscript UI with keyboard shortcuts (like pressing 'A') to pin-point song transitions directly in the YouTube player.
+- **Real-Time Browser Marking:** A lightweight userscript UI with keyboard shortcuts (like pressing 'A') to pin-point song transitions directly in the YouTube player. Includes a **Master Visibility Toggle** integrated into the YouTube control bar for zero-obstruction viewing while maintaining background marking functionality.
 - **Variable Speed Compensation:** Intelligent timestamp calculation that accounts for playback speed adjustments (e.g., watching at 2x or using Jumpcutter) to ensure marker accuracy.
 - **Automated Audio Pipeline:** Robust backend that handles video downloading, integrity validation (detecting truncated files), and high-precision audio cutting using FFmpeg.
 - **AI-Powered Identification:** Integration with the reverse-engineered Shazam API (via ShazamIO) using an **Optimal Dynamic Sliding Window** strategy. This ensures 100% coverage of the song timeline by sliding 12-second search windows across the available gap, maximizing identification chances while bypassing transition noise.
