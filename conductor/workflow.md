@@ -127,6 +127,24 @@ All tasks follow a strict lifecycle:
 
 10.  **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
 
+### Synchronize Project Documentation Protocol
+
+**Trigger:** This protocol MUST only be executed when a track has reached a `[x]` status in the tracks file.
+
+1.  **Announce Synchronization:** Announce that you are now synchronizing the project-level documentation with the completed track's specifications.
+
+2.  **Load Track Specification:** Read the track's **Specification**.
+
+3.  **Analyze and Update Project Documents:**
+    -   **Automatic Synchronization:** Carefully analyze the **Specification** to identify any new features, changes in functionality, or updates to the technology stack. You **must** update the **Product Definition**, **Tech Stack**, and **Product Guidelines** to reflect the new state of the project.
+    -   **Derived Approval:** Since the specification for the track was already approved by the user, these documentation updates are considered "derived approvals" and should be applied directly to keep the project context current without a secondary confirmation loop.
+    -   **Constraint:** Routine bug fixes that don't change functionality or branding should not trigger documentation updates. Only functional enhancements, architectural changes, or strategic shifts (for Guidelines) should be synchronized.
+
+4.  **Final Report and Commit:**
+    -   Announce the completion of the synchronization process and provide a summary of the actions taken.
+    -   If any files were changed, you **must** stage them and commit them.
+    -   **Commit Message:** `docs(conductor): Synchronize docs for track '<track_description>'`
+
 ### Quality Gates
 
 Before marking any task complete, verify:
