@@ -27,11 +27,10 @@ if sys.platform == "win32":
 
 # Use local library version
 sys.path.insert(0, "./shazamio_lib")
-from shazamio import Shazam
+from shazamio import Shazam, Serialize
 
 # --- Configuration ---
-START_DURATION = 15
-STEP = 4
+WINDOW_DURATION = 12
 MAX_ATTEMPTS = 12
 PORT = 5000
 
@@ -40,7 +39,7 @@ def get_optimal_sliding_windows(gap_size):
     Calculates a list of (start_offset, duration) tuples for sliding windows.
     Matches the logic defined in the specification.
     """
-    if gap_size <= 12:
+    if gap_size <= WINDOW_DURATION:
         return [(0.0, gap_size)]
     
     # Calculate N (Number of tries)
@@ -48,13 +47,13 @@ def get_optimal_sliding_windows(gap_size):
     n = max(2, min(10, math.ceil(gap_size / 10)))
     
     # Calculate S (Step Size)
-    # Step = (GapSize - 12) / (N - 1)
-    step = (gap_size - 12) / (n - 1)
+    # Step = (GapSize - WINDOW_DURATION) / (N - 1)
+    step = (gap_size - WINDOW_DURATION) / (n - 1)
     
     windows = []
     for i in range(n):
         start_offset = i * step
-        duration = 12.0
+        duration = float(WINDOW_DURATION)
         windows.append((round(start_offset, 3), round(duration, 3)))
     
     return windows
@@ -86,7 +85,10 @@ def format_song_entry(song_info):
     # Format: "original name": "replacement name"
     mappings = {
         "nightcord - deaya": "キャットラビング - 25時、ナイトコードで。",
-        "deaya - nightcord": "キャットラビング - 25時、ナイトコードで。"
+        "deaya - nightcord": "キャットラビング - 25時、ナイトコードで。",
+        "Humancity - t'Awi": "極楽浄土",
+        "Day Dreamer - Ashraf Hamzi": "無理すぎオタクハート",
+        "Bend - Ultrademon": "えれくとりっく・えんじぇぅ (Electric Angel)"
     }
 
     # Check for exact or normalized match
@@ -97,7 +99,7 @@ def format_song_entry(song_info):
     if ' - ' in song_info:
         parts = song_info.split(' - ', 1)
         # parts[0] is title, parts[1] is artist
-        title = re.sub(r'\s*(\([^)]*\)|\[[^\]]*\])$', '', parts[0].strip())
+        title = parts[0].strip()
         artist = parts[1].strip().replace('.', '')
         
         # If artist name is absurdly long (e.g. huge cast lists), keep only title
@@ -223,7 +225,7 @@ class BridgeHandler(BaseHTTPRequestHandler):
 def start_server():
     HTTPServer(('localhost', PORT), BridgeHandler).serve_forever()
 
-async def identify_song(shazam, audio_path, current_sec, gap, snippets_dir):
+async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippets_dir):
     """
     Attempts to identify a song using a sliding window strategy.
     Returns the found song name or "Unidentified".
@@ -234,11 +236,10 @@ async def identify_song(shazam, audio_path, current_sec, gap, snippets_dir):
     for offset, d in sliding_windows:
         print(f"  [DEBUG] Attempt {sliding_windows.index((offset, d)) + 1}/{len(sliding_windows)}: offset +{offset}s, duration {d}s...")
         temp_name = snippets_dir / f"seg_{int(time.time())}.wav"
-        # Enhanced ffmpeg params for better Shazam matching
+        # Enhanced ffmpeg params for better Shazam matching (using raw audio)
         cmd = [
             "ffmpeg", "-y", "-ss", str(current_sec + offset), "-t", str(d), "-i", str(audio_path),
             "-vn", "-ac", "1", "-ar", "16000", "-acodec", "pcm_s16le", 
-            "-af", "highpass=f=100,lowpass=f=8000,loudnorm=I=-16:TP=-1.5:LRA=11",
             "-resampler", "soxr",
             "-f", "wav", "-loglevel", "error", str(temp_name)
         ]
@@ -253,7 +254,28 @@ async def identify_song(shazam, audio_path, current_sec, gap, snippets_dir):
                 out = await asyncio.wait_for(shazam.recognize(str(temp_name)), timeout=15)
                 
             if out and 'track' in out:
-                found_name = f"{out['track']['title']} - {out['track']['subtitle']}"
+                track = out['track']
+                original_title = track['title']
+                artist = track['subtitle']
+                track_id = track.get('key')
+                
+                # English Lookup
+                if track_id:
+                    try:
+                        en_data = await shazam_en.track_about(int(track_id))
+                        en_track = Serialize.track(data=en_data)
+                        if en_track.title and en_track.title != original_title:
+                            # Only add if different to avoid redundancy
+                            title = f"{original_title} ({en_track.title})"
+                        else:
+                            title = original_title
+                    except Exception as e:
+                        print(f"  [WARN] English title lookup failed for track ID {track_id}: {e}")
+                        title = original_title # Fallback to original title
+                else:
+                    title = original_title
+                
+                found_name = f"{title} - {artist}"
                 print(f"[MATCH] {found_name}")
                 break
             else:
@@ -309,7 +331,8 @@ async def main():
         for m in results:
             if results[m] in ["", "Unidentified"]: results[m] = "Processing..."
 
-    shazam = Shazam(language='ja-JP', endpoint_country='JP')
+    shazam = Shazam(language='ja-JP', endpoint_country='JP', segment_duration_seconds=WINDOW_DURATION)
+    shazam_en = Shazam(language='en-US', endpoint_country='US', segment_duration_seconds=WINDOW_DURATION)
     
     # 3. Download audio
     audio_path = ensure_audio(VIDEO_ID, video_dir)
@@ -370,7 +393,7 @@ async def main():
             gap = (parse_ts(sorted_keys[idx + 1]) - current_sec) if idx + 1 < len(sorted_keys) else (video_duration - current_sec if video_duration > current_sec else 120.0)
             print(f"\n[TARGET] {target} (Gap: {gap:.1f}s)")
             
-            found_name = await identify_song(shazam, audio_path, current_sec, gap, snippets_dir)
+            found_name = await identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippets_dir)
 
             # Verify the target hasn't been UNDONE during processing
             if target in results:
