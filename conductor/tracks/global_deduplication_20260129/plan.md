@@ -7,13 +7,13 @@
     - [x] Alter the table to add a UNIQUE constraint/index on `fingerprint`.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database Cleanup & Schema Update' (Protocol in workflow.md)
 
-## Phase 2: Logic and Reporting Update
+## Phase 2: Logic and Reporting Update [checkpoint: 25c9c4b]
 - [x] Task: Update `SongMemoryManager.add_song` in `song_memory_manager.py`.
     - [x] Change `INSERT` to `INSERT OR IGNORE`.
     - [x] Update the return value or track the count of successful vs ignored inserts.
 - [x] Task: Update `learn_songs.py` to report new vs skipped signatures.
     - [x] Log "Added X new signatures, Skipped Y existing" for each song.
-- [~] Task: Conductor - User Manual Verification 'Phase 2: Logic and Reporting Update' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Logic and Reporting Update' (Protocol in workflow.md)
 
 ## Phase 3: Verification & Integration Test
 - [ ] Task: Create `tests/test_global_deduplication.py` to:
