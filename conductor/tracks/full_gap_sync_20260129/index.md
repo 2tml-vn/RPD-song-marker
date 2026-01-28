@@ -1,4 +1,4 @@
-# Track db_editor_20260129 Context
+# Track full_gap_sync_20260129 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

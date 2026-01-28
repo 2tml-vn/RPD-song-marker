@@ -1,0 +1,8 @@
+{
+  "track_id": "full_gap_sync_20260129",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-29T04:30:00Z",
+  "updated_at": "2026-01-29T04:30:00Z",
+  "description": "for both shazam and database matching, final attempt should whole duration of gap. also about learning songs, make it also learn whole duration specificed in unidentifed.json"
+}
