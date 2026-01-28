@@ -1,0 +1,13 @@
+numpy>=1.23.5,<2.3.0
+scipy
+pydub
+shazamio
+yt-dlp
+aiohttp
+pathlib
+scikit-learn
+joblib
+matplotlib
+pytest
+pytest-asyncio
+pytest-cov
