@@ -1,0 +1,8 @@
+{
+  "track_id": "persistent_audio_20260129",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-29T02:36:00Z",
+  "updated_at": "2026-01-29T02:36:00Z",
+  "description": "make sure when pressing finish, the audio is not deleted, because i will be running learn_song.py"
+}

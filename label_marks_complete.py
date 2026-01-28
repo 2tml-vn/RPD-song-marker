@@ -93,24 +93,6 @@ def format_timestamp_for_youtube(total_seconds):
     h, m = divmod(m, 60)
     return f"{h}:{m:02d}:{s:02d}" if h > 0 else f"{m}:{s:02d}"
 
-def format_song_entry(song_info):
-    if not song_info: return ""
-    
-    # Handle standard dash splitting
-    parts = re.split(r'\s*[\-\–\—\－]\s*', song_info, 1)
-    
-    if len(parts) == 2:
-        title = parts[0].strip()
-        artist = parts[1].strip()
-        
-        # If artist name is absurdly long, return only the title
-        if len(artist) > 60:
-            return title
-            
-        return f"{title} - {artist}"
-        
-    return song_info.strip()
-
 def ensure_audio(video_id, video_dir):
     # Get true duration from YouTube first to validate existing/new files
     true_duration = 0
@@ -230,56 +212,47 @@ def start_server():
 async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippets_dir):
     """
     Attempts to identify a song using temporary files.
-    Tries Shazam first, then falls back to Local Memory.
+    Phase 1: Try Shazam for all windows.
+    Phase 2: If Shazam fails, try Local Memory for all windows.
     """
-    found_name = None
     sliding_windows = shared_utils.get_optimal_sliding_windows(gap)
 
+    # --- Phase 1: Shazam ---
+    logger.debug(f"Starting Phase 1: Shazam Identification ({len(sliding_windows)} windows)")
     for offset, d in sliding_windows:
-        logger.debug(f"  Attempt {sliding_windows.index((offset, d)) + 1}/{len(sliding_windows)}: offset +{offset}s, duration {d}s...")
+        logger.debug(f"  Shazam Attempt {sliding_windows.index((offset, d)) + 1}/{len(sliding_windows)}: offset +{offset}s...")
         
-        # Optimized Robust Pass
-        passes = [
-            ("Robust", ["highpass=f=100,equalizer=f=3000:t=q:w=1:g=6,loudnorm=I=-16:TP=-1.5:LRA=11"])
+        temp_name = snippets_dir / f"seg_{int(time.time())}_shazam.wav"
+        cmd = [
+            "ffmpeg", "-y", "-ss", str(current_sec + offset), "-t", str(d), "-i", str(audio_path),
+            "-vn", "-ar", "16000", "-ac", "1", "-acodec", "pcm_s16le",
+            "-f", "wav", "-loglevel", "error", str(temp_name)
         ]
+        
+        try:
+            subprocess.run(cmd, check=True)
+            if not temp_name.exists() or temp_name.stat().st_size < 1000:
+                continue
 
-        for pass_name, filters in passes:
-            temp_name = snippets_dir / f"seg_{int(time.time())}_{pass_name}.wav"
-            cmd = [
-                "ffmpeg", "-y", "-ss", str(current_sec + offset), "-t", str(d), "-i", str(audio_path),
-                "-vn", "-ar", "16000", "-ac", "1", "-acodec", "pcm_s16le",
-                "-af", ",".join(filters),
-                "-f", "wav", "-loglevel", "error", str(temp_name)
-            ]
-            
-            try:
-                subprocess.run(cmd, check=True)
-                if not temp_name.exists() or temp_name.stat().st_size < 1000:
-                    continue
+            async def recognize_with_retry(client, file_path):
+                try:
+                    return await asyncio.wait_for(client.recognize(file_path), timeout=15)
+                except:
+                    return None
 
-                async def recognize_with_retry(client, file_path):
-                    try:
-                        # Use modern recognize method with file path
-                        return await asyncio.wait_for(client.recognize(file_path), timeout=15)
-                    except:
-                        return None
+            out = await recognize_with_retry(shazam, str(temp_name))
+            if not (out and 'track' in out):
+                out = await recognize_with_retry(shazam_en, str(temp_name))
 
-                logger.debug(f"  [{pass_name} Pass] Trying Shazam...")
-                out = await recognize_with_retry(shazam, str(temp_name))
-                if not (out and 'track' in out):
-                    out = await recognize_with_retry(shazam_en, str(temp_name))
+            if out and 'track' in out:
+                track = out['track']
+                original_title = track['title']
+                artist = track['subtitle']
+                track_id = track.get('key')
 
-                # 1. SHAZAM MATCH
-                if out and 'track' in out:
-                    track = out['track']
-                    original_title = track['title']
-                    artist = track['subtitle']
-                    track_id = track.get('key')
-
-                    if artist.lower() in ["moonbooter", "generic artist"]:
-                        logger.debug(f"  Discarding suspected false positive: {original_title} - {artist}")
-                        continue
-
+                if artist.lower() in ["moonbooter", "generic artist"]:
+                    logger.debug(f"  Discarding false positive: {original_title} - {artist}")
+                else:
                     title = clean_title(original_title)
                     en_name = None
 
@@ -301,35 +274,44 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
 
                     found_name = f"{title} - {artist}"
                     logger.info(f"  [MATCH] {found_name}")
-                    break
+                    return found_name
 
-                # 2. LOCAL MEMORY FALLBACK
-                else:
-                    logger.debug(f"  [{pass_name} Pass] Shazam: No match. Checking Local Memory...")
-                    try:
-                        sr_in, data_in = wav.read(str(temp_name))
-                        # Normalize to float32
-                        y_in = data_in.astype(np.float32) / 32768.0
-                        fp_in = compute_fingerprint(y_in, sr_in)
-                        local_name, score = dna_matcher.find_match(fp_in)
-                        if local_name:
-                            logger.info(f"  [LOCAL MATCH] {local_name} (Similarity: {score:.3f})")
-                            found_name = local_name
-                            break
-                    except Exception as local_err:
-                        logger.debug(f"    Local check failed: {local_err}")
-                    
-                    logger.debug(f"  [{pass_name} Pass] No match.")
+        except Exception as e:
+            logger.error(f"  Shazam window failed: {e}")
+        finally:
+            if temp_name.exists(): temp_name.unlink()
 
-            except Exception as e:
-                logger.error(f"  Pass {pass_name} failed: {e}")
-            finally:
-                if temp_name.exists(): temp_name.unlink()
-            
-            if found_name: break
-        if found_name: break
+    # --- Phase 2: Local Memory ---
+    logger.debug("Starting Phase 2: Local Memory Fallback")
+    for offset, d in sliding_windows:
+        logger.debug(f"  Local Attempt {sliding_windows.index((offset, d)) + 1}/{len(sliding_windows)}: offset +{offset}s...")
+        
+        temp_name = snippets_dir / f"seg_{int(time.time())}_local.wav"
+        cmd = [
+            "ffmpeg", "-y", "-ss", str(current_sec + offset), "-t", str(d), "-i", str(audio_path),
+            "-vn", "-ar", "16000", "-ac", "1", "-acodec", "pcm_s16le",
+            "-f", "wav", "-loglevel", "error", str(temp_name)
+        ]
+        
+        try:
+            subprocess.run(cmd, check=True)
+            if not temp_name.exists() or temp_name.stat().st_size < 1000:
+                continue
+
+            sr_in, data_in = wav.read(str(temp_name))
+            y_in = data_in.astype(np.float32) / 32768.0
+            fp_in = compute_fingerprint(y_in, sr_in)
+            local_name, score = dna_matcher.find_match(fp_in)
+            if local_name:
+                logger.info(f"  [LOCAL MATCH] {local_name} (Similarity: {score:.3f})")
+                return local_name
+
+        except Exception as local_err:
+            logger.debug(f"    Local window failed: {local_err}")
+        finally:
+            if temp_name.exists(): temp_name.unlink()
     
-    return found_name if found_name else "Unidentified"
+    return "Unidentified"
 
 async def main():
 
@@ -377,7 +359,7 @@ async def main():
                 results[m] = "Processing..."
             else:
                 # Apply filter to existing entries but keep them if already identified/failed
-                results[m] = format_song_entry(results[m])
+                results[m] = shared_utils.format_song_entry(results[m])
             # For loaded files, we assume they are "old enough" to process immediately
             marker_arrival_times[m] = 0 
 
@@ -419,7 +401,7 @@ async def main():
             with youtube_out.open("w", encoding="utf-8", newline='') as f:
                 current_keys = sorted(results.keys(), key=shared_utils.parse_ts)
                 for m in current_keys:
-                    f.write(f"{m} {format_song_entry(results[m])}\n")
+                    f.write(f"{m} {shared_utils.format_song_entry(results[m])}\n")
 
         sorted_keys = sorted(results.keys(), key=shared_utils.parse_ts)
         target = None
@@ -459,7 +441,7 @@ async def main():
             # Verify the target hasn't been UNDONE during processing
             if target in results:
                 # Format before saving to results so JSON is also clean
-                cleaned_name = format_song_entry(found_name) if found_name and found_name != "Unidentified" else "Unidentified"
+                cleaned_name = shared_utils.format_song_entry(found_name) if found_name and found_name != "Unidentified" else "Unidentified"
                 results[target] = cleaned_name
                 
                 with progress_file.open("w", encoding="utf-8") as f: 

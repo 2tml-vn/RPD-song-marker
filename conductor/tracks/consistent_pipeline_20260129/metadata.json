@@ -1,0 +1,8 @@
+{
+  "track_id": "consistent_pipeline_20260129",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-29T02:30:00Z",
+  "updated_at": "2026-01-29T02:30:00Z",
+  "description": "Unify the order of attempts (sliding window logic) across the identification and learning modules to ensure deterministic behavior and reinforcement learning."
+}

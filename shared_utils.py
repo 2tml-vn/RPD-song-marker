@@ -1,7 +1,7 @@
 import math
 import re
 
-WINDOW_DURATION = 10
+WINDOW_DURATION = 10.0
 
 def parse_ts(ts):
     try:
@@ -12,6 +12,25 @@ def parse_ts(ts):
         return float(ts)
     except: return 0.0
 
+def format_song_entry(song_info):
+    if not song_info: return ""
+    
+    # Handle standard dash splitting
+    # Supporting various dash types: -, –, —, －
+    parts = re.split(r'\s*[\-\–\—\－]\s*', song_info, 1)
+    
+    if len(parts) == 2:
+        title = parts[0].strip()
+        artist = parts[1].strip()
+        
+        # If artist name is absurdly long, return only the title
+        if len(artist) > 60:
+            return title
+            
+        return f"{title} - {artist}"
+        
+    return song_info.strip()
+
 def get_optimal_sliding_windows(gap_size):
     """
     Calculates sliding windows starting at 0.0 and adds a final full-gap attempt.
@@ -21,7 +40,7 @@ def get_optimal_sliding_windows(gap_size):
     
     # 1. Generate Standard Linear Windows
     if gap_size <= WINDOW_DURATION:
-        windows.append((0.0, gap_size))
+        windows.append((0.0, float(round(gap_size, 3))))
     else:
         # High density (divide by 7)
         n = max(2, min(20, math.ceil(gap_size / 7)))

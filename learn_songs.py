@@ -3,10 +3,12 @@ import sys
 import json
 import numpy as np
 from pathlib import Path
-from pydub import AudioSegment
 from song_memory_manager import SongMemoryManager
 from audio_fingerprinter import compute_fingerprint
 import shared_utils
+import time
+import subprocess
+import scipy.io.wavfile as wav
 
 def learn_songs(video_id):
     video_dir = Path("runs") / video_id
@@ -32,10 +34,6 @@ def learn_songs(video_id):
         return
 
     print(f"Loading audio: {audio_path}")
-    audio = AudioSegment.from_file(str(audio_path))
-    # Normalize to standard sr for fingerprinting
-    audio = audio.set_frame_rate(22050).set_channels(1)
-    sr = 22050
     
     manager = SongMemoryManager()
     
@@ -50,27 +48,42 @@ def learn_songs(video_id):
         
         # Calculate gap size
         if end_ts == "END":
-            gap_size = audio.duration_seconds - start_sec
+            # Get duration via ffprobe
+            probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)]
+            video_duration = float(subprocess.check_output(probe_cmd).decode('utf-8').strip())
+            gap_size = video_duration - start_sec
         else:
             gap_size = shared_utils.parse_ts(end_ts) - start_sec
             
         print(f"Learning '{name}' at {start_ts} (Gap: {gap_size:.1f}s)...")
         
-        # Get symmetric windows
+        # Get symmetric windows (Center-Out strategy from shared_utils)
         windows = shared_utils.get_optimal_sliding_windows(gap_size)
         
         fingerprints = []
         for offset, duration in windows:
-            start_ms = int((start_sec + offset) * 1000)
-            end_ms = int((start_sec + offset + duration) * 1000)
-            clip = audio[start_ms:end_ms]
+            tmp_wav = video_dir / f"learn_tmp_{int(time.time())}.wav"
+            # EXTRACT RAW (NO FILTERS) - Matches Phase 2 of identification
+            cmd = [
+                "ffmpeg", "-y", "-ss", str(start_sec + offset), "-t", str(duration), "-i", str(audio_path),
+                "-vn", "-ar", "16000", "-ac", "1", "-acodec", "pcm_s16le",
+                "-f", "wav", "-loglevel", "error", str(tmp_wav)
+            ]
             
-            # Convert to numpy array
-            y_slice = np.array(clip.get_array_of_samples(), dtype=np.float32) / 32768.0
-            
-            if len(y_slice) > 0:
-                fp = compute_fingerprint(y_slice, sr)
+            try:
+                subprocess.run(cmd, check=True)
+                
+                # Load the filtered wav
+                sr_in, data_in = wav.read(str(tmp_wav))
+                y_slice = data_in.astype(np.float32) / 32768.0
+                
+                fp = compute_fingerprint(y_slice, sr_in)
                 fingerprints.append(fp)
+                time.sleep(0.01) # Small sleep to avoid same-second filename collision if running fast
+            except Exception as e:
+                print(f"    Failed to process window: {e}")
+            finally:
+                if tmp_wav.exists(): tmp_wav.unlink()
         
         if fingerprints:
             manager.add_song(name, fingerprints)

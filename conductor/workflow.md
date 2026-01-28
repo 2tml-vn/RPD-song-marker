@@ -105,7 +105,17 @@ All tasks follow a strict lifecycle:
     -   If any files were changed, you **must** stage them and commit them.
     -   **Commit Message:** `docs(conductor): Synchronize docs for track '<track_description>'`
 
-### Quality Gates
+### Track Cleanup Protocol
+
+**Trigger:** This protocol MUST only be executed after the current track has been successfully implemented and the `Synchronize Project Documentation` step is complete.
+
+1.  **Automatic Archiving:** Completed tracks **must** be archived automatically to preserve project history and decisions.
+2.  **Archive Steps:**
+    -   Create `conductor/archive/` if it does not exist.
+    -   Move the track's folder from `conductor/tracks/` to `conductor/archive/`.
+    -   Remove the track's entry from `conductor/tracks.md`.
+    -   Commit the archive action with message `chore(conductor): Archive track '<track_description>'`.
+3.  **Final Report:** Announce that the track has been archived.
 
 Before marking any task complete, verify:
 
