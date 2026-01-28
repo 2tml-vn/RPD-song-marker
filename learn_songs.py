@@ -96,9 +96,9 @@ def learn_songs(video_id):
                 if tmp_wav.exists(): tmp_wav.unlink()
         
         if fingerprints:
-            manager.add_song(name, fingerprints)
+            added, skipped = manager.add_song(name, fingerprints)
             learned_count += 1
-            print(f"  Added {len(fingerprints)} signatures for '{name}'")
+            print(f"  Result: Added {added} new signatures, Skipped {skipped} duplicates for '{name}'")
 
     print(f"\nSUCCESS: Learned {learned_count} songs from {video_id}")
 

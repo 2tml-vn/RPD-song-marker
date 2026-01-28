@@ -20,14 +20,19 @@ class SongMemoryManager:
                 CREATE TABLE IF NOT EXISTS signatures (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     song_id INTEGER,
-                    fingerprint TEXT,
+                    fingerprint TEXT UNIQUE,
                     FOREIGN KEY (song_id) REFERENCES songs (id)
                 )
             """)
             conn.commit()
 
     def add_song(self, name, fingerprints):
-        """Adds a song and its associated fingerprints."""
+        """
+        Adds a song and its associated fingerprints.
+        Returns a tuple of (added_count, skipped_count).
+        """
+        added_count = 0
+        skipped_count = 0
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             try:
@@ -38,9 +43,14 @@ class SongMemoryManager:
                 song_id = cursor.fetchone()[0]
 
             for fp in fingerprints:
-                cursor.execute("INSERT INTO signatures (song_id, fingerprint) VALUES (?, ?)", 
+                cursor.execute("INSERT OR IGNORE INTO signatures (song_id, fingerprint) VALUES (?, ?)", 
                              (song_id, json.dumps(fp)))
+                if cursor.rowcount > 0:
+                    added_count += 1
+                else:
+                    skipped_count += 1
             conn.commit()
+        return added_count, skipped_count
 
     def get_all_songs(self):
         with sqlite3.connect(self.db_path) as conn:
