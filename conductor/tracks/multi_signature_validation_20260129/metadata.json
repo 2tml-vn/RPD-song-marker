@@ -1,8 +1,0 @@
-{
-  "track_id": "multi_signature_validation_20260129",
-  "type": "chore",
-  "status": "new",
-  "created_at": "2026-01-29T04:20:00Z",
-  "updated_at": "2026-01-29T04:20:00Z",
-  "description": "can the ML learning handle the same song but maybe different version, different singer, mixes. i plan to only have song names without artist in the local database. i don't think this will occur much , let's just be safe"
-}

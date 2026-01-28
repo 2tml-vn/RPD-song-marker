@@ -16,8 +16,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Logic and Reporting Update' (Protocol in workflow.md)
 
 ## Phase 3: Verification & Integration Test
-- [ ] Task: Create `tests/test_global_deduplication.py` to:
-    - [ ] Mock a learning session.
-    - [ ] Run it twice.
-    - [ ] Assert the DB only contains one set of entries.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Verification & Integration Test' (Protocol in workflow.md)
+- [x] Task: Create `tests/test_global_deduplication.py` to:
+    - [x] Mock a learning session.
+    - [x] Run it twice.
+    - [x] Assert the DB only contains one set of entries.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Verification & Integration Test' (Protocol in workflow.md)

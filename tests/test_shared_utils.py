@@ -55,5 +55,17 @@ class TestSharedUtils(unittest.TestCase):
         self.assertEqual(len(windows), 1)
         self.assertEqual(windows[0], (0.0, 10.0))
 
+    def test_get_optimal_sliding_windows_guaranteed_full_gap(self):
+        # Gap 11.0 > WINDOW_DURATION (10.0)
+        # Previous logic would NOT add (0.0, 11.0) because 11.0 <= 10.0 + 2.0
+        # New logic SHOULD add it as the final window.
+        windows = shared_utils.get_optimal_sliding_windows(11.0)
+        
+        # We expect at least 2 windows (linear ones + 1 full gap)
+        # For 11s: n = ceil(11/7) = 2. Linear: (0, 10), (1, 10).
+        # Plus final full gap (0, 11).
+        self.assertEqual(len(windows), 3)
+        self.assertEqual(windows[-1], (0.0, 11.0))
+
 if __name__ == '__main__':
     unittest.main()

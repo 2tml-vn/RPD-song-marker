@@ -71,9 +71,9 @@ def get_optimal_sliding_windows(gap_size):
         windows = reordered
 
     # 3. FINAL ATTEMPT: The full gap duration (Always last)
-    full_gap_win = (0.0, round(float(gap_size), 3))
-    # Only add full gap if it's significantly different from the windows we just made
-    if gap_size > WINDOW_DURATION + 2.0:
+    # Only add full gap if it's different from the windows we just made (i.e. gap > WINDOW_DURATION)
+    if gap_size > WINDOW_DURATION:
+        full_gap_win = (0.0, round(float(gap_size), 3))
         windows.append(full_gap_win)
         
     return windows
