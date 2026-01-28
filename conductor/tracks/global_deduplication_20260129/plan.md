@@ -1,11 +1,11 @@
 # Implementation Plan - Global Database Deduplication
 
-## Phase 1: Database Cleanup & Schema Update
+## Phase 1: Database Cleanup & Schema Update [checkpoint: 42fed70]
 - [x] Task: Execute a SQL script to deduplicate current data and add the `UNIQUE` index.
     - [x] Create a backup of `song_memory.db`.
     - [x] Run SQL to delete duplicates based on the `fingerprint` column.
     - [x] Alter the table to add a UNIQUE constraint/index on `fingerprint`.
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Database Cleanup & Schema Update' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database Cleanup & Schema Update' (Protocol in workflow.md)
 
 ## Phase 2: Logic and Reporting Update
 - [ ] Task: Update `SongMemoryManager.add_song` in `song_memory_manager.py`.
