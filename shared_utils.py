@@ -12,6 +12,36 @@ def parse_ts(ts):
         return float(ts)
     except: return 0.0
 
+def clean_title(t):
+    """
+    Cleans up song titles by removing junk tags and ensuring balanced parentheses.
+    """
+    if not t: return ""
+    
+    # 1. Remove specific common junk patterns first
+    junk_patterns = [
+        r'[\(\[]\s*(?:feat\.|with|prod\.|cover|Short|Version|20\d{2}).*?[\)\]]',
+        r'\s*-\s*Topic$', # YouTube Topic channel suffixes
+    ]
+    for pattern in junk_patterns:
+        t = re.sub(pattern, '', t, flags=re.IGNORECASE)
+
+    # 2. Fix duplicated translations: If the string is "Title (Title)", reduce to "Title"
+    # Matches "Anything (Anything)"
+    match = re.search(r'^(.*?)\s*\((.*?)\)$', t.strip())
+    if match:
+        base, paren = match.groups()
+        if base.strip().lower() == paren.strip().lower():
+            t = base
+
+    # 3. Clean up loose/empty parens or trailing delimiters
+    t = re.sub(r'\s*[\(\[]\s*[\)\]]', '', t)
+    t = t.replace(' )', ')').replace('( ', '(')
+    
+    # 4. Final safety: If the title ends with a loose paren, strip it
+    t = t.strip().strip(')]').strip()
+    return t
+
 def format_song_entry(song_info):
     if not song_info: return ""
     
@@ -76,4 +106,32 @@ def get_optimal_sliding_windows(gap_size):
         full_gap_win = (0.0, round(float(gap_size), 3))
         windows.append(full_gap_win)
         
+    return windows
+
+def get_local_matching_windows(gap_size):
+    """
+    Returns high-density 5s windows with 50% overlap (2.5s step).
+    Used specifically for local database matching to ensure precise hits.
+    """
+    local_duration = 5.0
+    local_step = 2.5
+    
+    if gap_size <= local_duration:
+        return [(0.0, float(round(gap_size, 3)))]
+        
+    windows = []
+    # 1. Generate sequential windows with 50% overlap
+    current = 0.0
+    while current + local_duration <= gap_size:
+        windows.append((round(current, 3), local_duration))
+        current += local_step
+        
+    # 2. Ensure the very end is covered
+    last_start = max(0.0, gap_size - local_duration)
+    if not windows or last_start > windows[-1][0] + 0.1:
+        windows.append((round(last_start, 3), local_duration))
+        
+    # 3. Add final full gap attempt as the ultimate fallback
+    windows.append((0.0, float(round(gap_size, 3))))
+    
     return windows

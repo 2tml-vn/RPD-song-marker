@@ -61,26 +61,11 @@ JAPANESE_TO_ENGLISH_MAP = {
     "えれくとりっく・えんじぇぅ": "Electric Angel",
     "輝夜の城で踊りたい": "Kaguya no Shiro de Odoritai",
     "虹色Passions!": "Nijiiro Passions!",
-    "僕らは今のなかで": "Bokura wa Ima no Naka de"
+    "僕らは今のなかで": "Bokura wa Ima no Naka de",
+    "アイドル活動!": "Idol Activity!",
+    "OIDEMASE!!〜極楽〜": "OIDEMASE!!〜gokuraku〜" 
 }
 
-
-# Tags to strip from titles (Case insensitive, Partial match)
-JUNK_TAGS = [
-    "TeddyLoid", "A", "feat.", "cover", "2018"
-]
-
-def clean_title(t):
-    """Cleans up song titles by removing ALL content in parentheses/brackets."""
-    # 1. Build regex from the list: (tag1|tag2|...) inside () or []
-    tags_pattern = "|".join(map(re.escape, JUNK_TAGS))
-    pattern = r'[\[\(](?:' + tags_pattern + r').*?[\)\]]' # Corrected regex for clarity and robustness
-    t = re.sub(pattern, '', t, flags=re.IGNORECASE)
-    
-    # 2. Cleanup loose empty parens/brackets
-    t = re.sub(r'\s*\(\s*\)', '', t)
-    t = re.sub(r'\s*\[\s*\]', '', t)
-    return t.strip()
 
 MARK_QUEUE = asyncio.Queue()
 VIDEO_ID = "default"
@@ -253,7 +238,7 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
                 if artist.lower() in ["moonbooter", "generic artist"]:
                     logger.debug(f"  Discarding false positive: {original_title} - {artist}")
                 else:
-                    title = clean_title(original_title)
+                    title = shared_utils.clean_title(original_title)
                     en_name = None
 
                     if track_id:
@@ -261,7 +246,8 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
                             en_data = await shazam_en.track_about(int(track_id))
                             en_track = Serialize.track(data=en_data)
                             if en_track.title:
-                                cleaned_shazam_en = clean_title(en_track.title)
+                                cleaned_shazam_en = shared_utils.clean_title(en_track.title)
+                                # Only keep en_name if it's actually different from the Japanese title
                                 if cleaned_shazam_en.lower() != title.lower():
                                     en_name = cleaned_shazam_en
                         except: pass
@@ -269,7 +255,8 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
                     if title in JAPANESE_TO_ENGLISH_MAP:
                         en_name = JAPANESE_TO_ENGLISH_MAP[title]
 
-                    if en_name:
+                    # Only append en_name if it's not already contained in the title
+                    if en_name and en_name.lower() not in title.lower():
                         title = f"{title} ({en_name})"
 
                     found_name = f"{title} - {artist}"
@@ -282,9 +269,10 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
             if temp_name.exists(): temp_name.unlink()
 
     # --- Phase 2: Local Memory ---
-    logger.debug("Starting Phase 2: Local Memory Fallback")
-    for offset, d in sliding_windows:
-        logger.debug(f"  Local Attempt {sliding_windows.index((offset, d)) + 1}/{len(sliding_windows)}: offset +{offset}s...")
+    logger.debug("Starting Phase 2: Local Memory Fallback (High-Density 5s Scan)")
+    local_windows = shared_utils.get_local_matching_windows(gap)
+    for offset, d in local_windows:
+        logger.debug(f"  Local Attempt {local_windows.index((offset, d)) + 1}/{len(local_windows)}: offset +{offset}s...")
         
         temp_name = snippets_dir / f"seg_{int(time.time())}_local.wav"
         cmd = [
@@ -301,10 +289,14 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
             sr_in, data_in = wav.read(str(temp_name))
             y_in = data_in.astype(np.float32) / 32768.0
             fp_in = compute_fingerprint(y_in, sr_in)
-            local_name, score = dna_matcher.find_match(fp_in)
+            local_name, score, top = dna_matcher.find_match(fp_in)
+            
             if local_name:
                 logger.info(f"  [LOCAL MATCH] {local_name} (Similarity: {score:.3f})")
                 return local_name
+            elif top:
+                top_str = ", ".join([f"{n} ({s:.3f})" for n, s in top])
+                logger.debug(f"    No match. Top candidates: {top_str}")
 
         except Exception as local_err:
             logger.debug(f"    Local window failed: {local_err}")

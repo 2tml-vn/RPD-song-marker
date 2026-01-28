@@ -67,8 +67,8 @@ def learn_songs(video_id):
             
         print(f"Learning '{name}' at {start_ts} (Gap: {gap_size:.1f}s)...")
         
-        # Get symmetric windows (Center-Out strategy from shared_utils)
-        windows = shared_utils.get_optimal_sliding_windows(gap_size)
+        # Get symmetric windows (High-Density 5s strategy)
+        windows = shared_utils.get_local_matching_windows(gap_size)
         
         fingerprints = []
         for offset, duration in windows:

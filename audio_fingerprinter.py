@@ -1,22 +1,53 @@
 import numpy as np
-from scipy.fft import rfft, rfftfreq
+from scipy.fftpack import dct
+from scipy.fft import rfft
 from scipy.signal import get_window
+
+def hz_to_mel(f):
+    return 2595 * np.log10(1 + f / 700)
+
+def mel_to_hz(m):
+    return 700 * (10**(m / 2595) - 1)
+
+def get_mel_filterbank(sr, n_fft, n_mels=40):
+    """Calculates a Mel filterbank."""
+    mel_min = hz_to_mel(0)
+    mel_max = hz_to_mel(sr / 2)
+    mel_points = np.linspace(mel_min, mel_max, n_mels + 2)
+    hz_points = mel_to_hz(mel_points)
+    
+    # FFT bins
+    bin_points = np.floor((n_fft + 1) * hz_points / sr).astype(int)
+    
+    filters = np.zeros((n_mels, int(n_fft / 2 + 1)))
+    for i in range(1, n_mels + 1):
+        # Left slope
+        for j in range(bin_points[i-1], bin_points[i]):
+            if bin_points[i] != bin_points[i-1]:
+                filters[i-1, j] = (j - bin_points[i-1]) / (bin_points[i] - bin_points[i-1])
+        # Right slope
+        for j in range(bin_points[i], bin_points[i+1]):
+            if bin_points[i+1] != bin_points[i]:
+                filters[i-1, j] = (bin_points[i+1] - j) / (bin_points[i+1] - bin_points[i])
+    return filters
 
 def compute_fingerprint(y, sr):
     """
-    Pure NumPy/SciPy implementation of a spectral fingerprint.
-    Avoids Librosa/Numba version issues.
-    Returns 64 dimensions.
+    Upgraded High-Fidelity Audio DNA.
+    Uses 13 MFCCs with Mean and Standard Deviation.
+    Returns 26 dimensions.
     """
     if len(y) == 0:
-        return [0.0] * 64
+        return [0.0] * 26
         
-    # 1. Pre-emphasis
+    # 1. Pre-emphasis (High-pass filter to balance spectrum)
     y = np.append(y[0], y[1:] - 0.97 * y[:-1])
     
-    # 2. Frame the signal (approx 23ms frames)
+    # 2. Framing (25ms windows with 10ms step)
     frame_size = int(0.025 * sr)
     hop_size = int(0.010 * sr)
+    if frame_size == 0: return [0.0] * 26
+    
     window = get_window("hamming", frame_size)
     
     # Calculate number of frames
@@ -26,47 +57,34 @@ def compute_fingerprint(y, sr):
     pad_len = num_frames * hop_size + frame_size
     y_padded = np.append(y, np.zeros(pad_len - len(y)))
     
-    # FFT
-    all_spectra = []
+    # Mel Filterbank setup
+    n_fft = frame_size
+    n_mels = 40
+    mel_fb = get_mel_filterbank(sr, n_fft, n_mels)
+    
+    # 3. FFT and MFCC calculation per frame
+    all_mfccs = []
     for i in range(num_frames):
         frame = y_padded[i*hop_size : i*hop_size + frame_size] * window
-        spectrum = np.abs(rfft(frame))
-        all_spectra.append(spectrum)
+        # Power Spectrum
+        spectrum = np.abs(rfft(frame))**2 / n_fft
+        # Mel energies
+        mel_energies = np.dot(mel_fb, spectrum)
+        # Log mel energies (volume independent due to relative energy distribution)
+        log_mel_energies = np.log10(mel_energies + 1e-10)
+        # Discrete Cosine Transform (DCT)
+        mfcc = dct(log_mel_energies, type=2, norm='ortho')[:13]
+        all_mfccs.append(mfcc)
     
-    spectra = np.array(all_spectra)
-    freqs = rfftfreq(frame_size, 1/sr)
+    mfccs = np.array(all_mfccs)
     
-    # 3. Features
-    # 3.1 Spectral Centroid (mean over time)
-    magnitudes = np.sum(spectra, axis=0)
-    centroid = np.sum(freqs * magnitudes) / np.sum(magnitudes) if np.sum(magnitudes) > 0 else 0
+    # 4. Global Statistics (Mean and Std Dev across the 5s window)
+    mean_mfcc = np.mean(mfccs, axis=0)
+    std_mfcc = np.std(mfccs, axis=0)
     
-    # 3.2 Spectral Flatness
-    # (Geometric Mean / Arithmetic Mean)
-    # Using time-averaged spectrum for stability
-    avg_spectrum = np.mean(spectra, axis=0) + 1e-10
-    flatness = np.exp(np.mean(np.log(avg_spectrum))) / np.mean(avg_spectrum)
-    
-    # 3.3 Zero Crossing Rate
-    zcr = np.mean(np.abs(np.diff(np.sign(y)))) / 2
-    
-    # 3.4 Multi-band energy (Simplified Mel-bands)
-    # Divide 0-8000Hz into 61 bands
-    bands = np.linspace(0, min(sr/2, 8000), 62)
-    band_energies = []
-    for i in range(len(bands)-1):
-        mask = (freqs >= bands[i]) & (freqs < bands[i+1])
-        if np.any(mask):
-            energy = np.mean(spectra[:, mask])
-        else:
-            energy = 0.0
-        band_energies.append(energy)
-        
-    # Log scale energies
-    band_energies = np.log10(np.array(band_energies) + 1e-10)
-    
-    # Combine (Centroid + Flatness + ZCR + 61 bands) = 64
-    # Wait, 1 + 1 + 1 + 61 = 64. Correct.
-    fp = np.concatenate([[centroid/sr, flatness, zcr], band_energies])
+    # Normalize features to be strictly 0-1 or centered for stable Cosine Similarity
+    # Actually MFCCs are already quite stable for Cosine Similarity.
+    # We combine them into a single 26-dim vector.
+    fp = np.concatenate([mean_mfcc, std_mfcc])
     
     return fp.tolist()
