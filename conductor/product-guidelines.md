@@ -20,4 +20,4 @@
 
 ## Code Quality
 - **Cross-Platform Compatibility:** Ensure scripts handle platform-specific encoding (UTF-8) and file paths (Windows/Linux) correctly.
-- **State Integrity:** Use structured data formats (JSON) for project state to allow for reliable resuming and data recovery.
+- **State Integrity:** Use structured data formats (JSON) and enforced database schemas (UNIQUE constraints) for project state to ensure data deduplication and reliable recovery.
