@@ -4,12 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: Consistent Identification Pipeline**
-*Link: [./tracks/consistent_pipeline_20260129/](./tracks/consistent_pipeline_20260129/)*
-
-
----
-
 - [ ] **Track: Persistent Audio for Learning**
 *Link: [./tracks/persistent_audio_20260129/](./tracks/persistent_audio_20260129/)*
 
