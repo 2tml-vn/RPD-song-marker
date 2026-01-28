@@ -18,6 +18,7 @@ A seamless, semi-automated workflow for timestamping and identifying music track
 - **Local Identity Learning:** A robust fallback system that learns the "Audio DNA" of unidentified songs. Users can manually identify tracks in an `unidentified.json` file, which the system then fingerprints and stores in a local database for automatic recognition in future sessions.
 - **Symmetric Recognition:** Uses identical windowing logic for both learning and recognition, ensuring that local matching is timing-proof and resilient to transition noise.
 - **Resilient Processing:** Advanced error handling including mobile client spoofing to bypass 403 Forbidden errors and automatic retries for failed identifications.
+- **Database Correction Utility:** A safe JSON-based workflow for batch renaming songs in the local database, allowing users to correct or refine identified names without direct SQL manipulation.
 - **Clean Export:** Generation of ready-to-use text files formatted for YouTube comments or descriptions.
 - **Manual Review Fallback:** Automatic export of full-length audio segments for any tracks that could not be identified, allowing for easy manual verification.
 
