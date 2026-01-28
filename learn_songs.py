@@ -92,6 +92,14 @@ def learn_songs(video_id):
 
     print(f"\nSUCCESS: Learned {learned_count} songs from {video_id}")
 
+    # Clean up audio file if we learned something
+    if learned_count > 0 and audio_path and audio_path.exists():
+        try:
+            audio_path.unlink()
+            print(f"CLEANUP: Deleted audio file {audio_path.name}")
+        except Exception as e:
+            print(f"Error deleting audio file: {e}")
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python learn_songs.py <VIDEO_ID>")

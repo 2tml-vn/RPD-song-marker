@@ -471,14 +471,15 @@ async def main():
                 with unidentified_file.open("w", encoding="utf-8") as f:
                     json.dump(unidentified_data, f, ensure_ascii=False, indent=2)
                 logger.info(f"[EXPORT] Created {unidentified_file.name}")
-
-            # Clean up audio file
-            if audio_path and audio_path.exists():
-                try:
-                    audio_path.unlink()
-                    logger.info(f"[CLEANUP] Deleted audio file: {audio_path.name}")
-                except Exception as e:
-                    logger.error(f"Failed to delete audio file: {e}")
+                logger.info(f"[INFO] Audio file preserved for learning: {audio_path.name}")
+            else:
+                # Clean up audio file ONLY if everything was identified
+                if audio_path and audio_path.exists():
+                    try:
+                        audio_path.unlink()
+                        logger.info(f"[CLEANUP] Deleted audio file: {audio_path.name}")
+                    except Exception as e:
+                        logger.error(f"Failed to delete audio file: {e}")
             
             break
         else: await asyncio.sleep(1)
