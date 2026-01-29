@@ -41,7 +41,7 @@ logger.setLevel(logging.DEBUG)
 from shazamio import Shazam, Serialize
 import shared_utils
 from dna_matcher import DNAMatcher
-from audio_fingerprinter import compute_fingerprint
+from audio_features import extract_features
 
 # --- Configuration ---
 WINDOW_DURATION = shared_utils.WINDOW_DURATION
@@ -280,7 +280,7 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
         temp_name = snippets_dir / f"seg_{int(time.time())}_local.wav"
         cmd = [
             "ffmpeg", "-y", "-ss", str(current_sec + offset), "-t", str(d), "-i", str(audio_path),
-            "-vn", "-ar", "16000", "-ac", "1", "-acodec", "pcm_s16le",
+            "-vn", "-ar", "22050", "-ac", "1", "-acodec", "pcm_s16le",
             "-f", "wav", "-loglevel", "error", str(temp_name)
         ]
         
@@ -291,7 +291,7 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
 
             sr_in, data_in = wav.read(str(temp_name))
             y_in = data_in.astype(np.float32) / 32768.0
-            fp_in = compute_fingerprint(y_in, sr_in)
+            fp_in = extract_features(y_in, sr_in)
             
             # Use lower threshold 0.85 for "voting" but we'll be stricter in the end
             hit_name, hit_score, top = dna_matcher.find_match(fp_in, threshold=0.85)

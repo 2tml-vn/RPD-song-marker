@@ -4,7 +4,7 @@ import json
 import numpy as np
 from pathlib import Path
 from song_memory_manager import SongMemoryManager
-from audio_fingerprinter import compute_fingerprint
+from audio_features import extract_features
 import shared_utils
 import time
 import subprocess
@@ -36,9 +36,6 @@ def learn_songs(video_id):
 
     print(f"Loading audio: {audio_path}")
     
-    # Use pydub for potential normalization or format handling if needed by spec
-    # Though we mostly use ffmpeg for snippets, the spec specifically asked for pydub utilization.
-    # We will load it once to ensure it works and can be used for global properties.
     try:
         full_audio = AudioSegment.from_file(str(audio_path))
         print(f"Audio loaded successfully: {len(full_audio)/1000:.1f}s")
@@ -74,22 +71,23 @@ def learn_songs(video_id):
         for offset, duration in windows:
             tmp_wav = video_dir / f"learn_tmp_{int(time.time())}.wav"
             # EXTRACT RAW (NO FILTERS) - Matches Phase 2 of identification
+            # Use 22050 for ML features
             cmd = [
                 "ffmpeg", "-y", "-ss", str(start_sec + offset), "-t", str(duration), "-i", str(audio_path),
-                "-vn", "-ar", "16000", "-ac", "1", "-acodec", "pcm_s16le",
+                "-vn", "-ar", "22050", "-ac", "1", "-acodec", "pcm_s16le",
                 "-f", "wav", "-loglevel", "error", str(tmp_wav)
             ]
             
             try:
                 subprocess.run(cmd, check=True)
                 
-                # Load the filtered wav
                 sr_in, data_in = wav.read(str(tmp_wav))
                 y_slice = data_in.astype(np.float32) / 32768.0
                 
-                fp = compute_fingerprint(y_slice, sr_in)
+                # USE NEW ML FEATURES
+                fp = extract_features(y_slice, sr_in)
                 fingerprints.append(fp)
-                time.sleep(0.01) # Small sleep to avoid same-second filename collision if running fast
+                time.sleep(0.01)
             except Exception as e:
                 print(f"    Failed to process window: {e}")
             finally:
@@ -100,7 +98,9 @@ def learn_songs(video_id):
             learned_count += 1
             print(f"  Result: Added {added} new signatures, Skipped {skipped} duplicates for '{name}'")
 
-    print(f"\nSUCCESS: Learned {learned_count} songs from {video_id}")
+    if learned_count > 0:
+        print(f"\nSUCCESS: Learned {learned_count} songs from {video_id}")
+        print("\n*** IMPORTANT: New signatures added. Please run: python train_brain.py ***")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
