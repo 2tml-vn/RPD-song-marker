@@ -1,10 +1,11 @@
 # Implementation Plan - High-Fidelity Audio DNA
 
-## Phase 1: Mathematical Engine Upgrade [checkpoint: high_precision_math_verified]
+## Phase 1: Mathematical Engine Upgrade [checkpoint: sound_math_verified]
 - [x] Task: Update `audio_fingerprinter.py` to use Mel-Frequency Cepstral Coefficients (MFCCs).
     - [x] Implement MFCC calculation (13 coefficients).
-    - [x] Calculate both Mean and Standard Deviation for the vector.
-    - [x] Ensure 100% volume-independence via normalization.
+    - [x] Discard MFCC[0] (Loudness immunity).
+    - [x] Calculate both Mean and Standard Deviation for MFCC 1-12 (24 dimensions total).
+    - [x] Implement L2-normalization for the final vector (Sound Math).
 - [x] Task: Create `tests/test_precision_math.py` to verify that "Song A" and "Song B" produce distinct fingerprints.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Mathematical Engine Upgrade' (Protocol in workflow.md)
 

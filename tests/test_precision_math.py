@@ -25,8 +25,8 @@ class TestPrecisionMath(unittest.TestCase):
         fp2 = audio_fingerprinter.compute_fingerprint(y2, sr)
         
         # Verify dimension
-        self.assertEqual(len(fp1), 26)
-        self.assertEqual(len(fp2), 26)
+        self.assertEqual(len(fp1), 24)
+        self.assertEqual(len(fp2), 24)
         
         # Calculate Cosine Similarity
         fp1 = np.array(fp1)
