@@ -269,8 +269,11 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
             if temp_name.exists(): temp_name.unlink()
 
     # --- Phase 2: Local Memory ---
-    logger.debug("Starting Phase 2: Local Memory Fallback (High-Density 5s Scan)")
+    logger.debug("Starting Phase 2: Local Memory Fallback (High-Density Consensus Scan)")
     local_windows = shared_utils.get_local_matching_windows(gap)
+    
+    votes = {} # name -> [scores]
+    
     for offset, d in local_windows:
         logger.debug(f"  Local Attempt {local_windows.index((offset, d)) + 1}/{len(local_windows)}: offset +{offset}s...")
         
@@ -289,20 +292,56 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
             sr_in, data_in = wav.read(str(temp_name))
             y_in = data_in.astype(np.float32) / 32768.0
             fp_in = compute_fingerprint(y_in, sr_in)
-            local_name, score, top = dna_matcher.find_match(fp_in)
             
-            if local_name:
-                logger.info(f"  [LOCAL MATCH] {local_name} (Similarity: {score:.3f})")
-                return local_name
+            # Use lower threshold 0.85 for "voting" but we'll be stricter in the end
+            hit_name, hit_score, top = dna_matcher.find_match(fp_in, threshold=0.85)
+            
+            if hit_name:
+                if hit_name not in votes: votes[hit_name] = []
+                votes[hit_name].append(hit_score)
+                logger.debug(f"    Window +{offset}s: Voted for '{hit_name}' ({hit_score:.3f})")
             elif top:
-                top_str = ", ".join([f"{n} ({s:.3f})" for n, s in top])
-                logger.debug(f"    No match. Top candidates: {top_str}")
+                logger.debug(f"    Window +{offset}s: No high match. Top candidate: {top[0][0]} ({top[0][1]:.3f})")
 
         except Exception as local_err:
             logger.debug(f"    Local window failed: {local_err}")
         finally:
             if temp_name.exists(): temp_name.unlink()
+            
+    # --- Election Results ---
+    if not votes:
+        return "Unidentified"
+        
+    # Sort candidates by number of votes, then by average score
+    candidates = []
+    for name, scores in votes.items():
+        avg_score = sum(scores) / len(scores)
+        candidates.append({
+            "name": name,
+            "votes": len(scores),
+            "avg": avg_score,
+            "max": max(scores)
+        })
     
+    candidates.sort(key=lambda x: (x["votes"], x["avg"]), reverse=True)
+    winner = candidates[0]
+    
+    logger.debug(f"Election Results: {len(candidates)} candidates found.")
+    for c in candidates[:3]:
+        logger.debug(f"  - {c['name']}: {c['votes']} votes, Avg Similarity {c['avg']:.3f}")
+
+    # DECISION LOGIC:
+    # 1. Clear Winner: At least 2 votes AND avg similarity >= 0.9
+    if winner["votes"] >= 2 and winner["avg"] >= 0.9:
+        logger.info(f"  [LOCAL MATCH] {winner['name']} (Consensus: {winner['votes']} windows agreed, Avg {winner['avg']:.3f})")
+        return winner["name"]
+    
+    # 2. Strong Single: Only 1 vote but very high similarity (> 0.96)
+    if winner["votes"] == 1 and winner["max"] >= 0.96:
+        logger.info(f"  [LOCAL MATCH] {winner['name']} (High Single Match: {winner['max']:.3f})")
+        return winner["name"]
+
+    logger.info(f"  [DISCARD] No consensus reached. Winner '{winner['name']}' had {winner['votes']} votes but failed safety checks.")
     return "Unidentified"
 
 async def main():
