@@ -6,8 +6,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Robust Best-Match Pipeline**
 *Link: [./tracks/consistent_pipeline_20260129/](./consistent_pipeline_20260129/)*
-
----
-
-- [x] **Track: Self-Trained Local ML Upgrade**
-*Link: [./tracks/local_ml_upgrade_20260129/](./local_ml_upgrade_20260129/)*
