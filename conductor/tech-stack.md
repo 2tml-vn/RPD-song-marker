@@ -9,8 +9,9 @@
 - **ShazamIO:** Asynchronous Python library for interfacing with the reverse-engineered Shazam API.
 - **yt-dlp:** Advanced command-line tool for video and audio acquisition, configured with mobile client spoofing for high resilience.
 - **pydub & numpy:** Utilized for audio manipulation and mathematical signal transformations.
-- **scipy:** Used for advanced spectral analysis, Mel-Frequency Cepstral Coefficients (MFCC), and Fast Fourier Transforms (FFT) in the local fingerprinting engine.
-- **sqlite3:** Powers the local song memory database, providing efficient storage and retrieval of audio signatures.
+- **librosa & scipy:** Utilized for advanced high-dimensional spectral analysis, extracting 147+ features including MFCCs, Chroma (melody), Tonnetz (harmony), and Spectral Contrast.
+- **scikit-learn:** Powers the local Neural ML Brain, utilizing a K-Nearest Neighbors (KNN) model for high-precision distance matching and surgical song identification.
+- **sqlite3:** Powers the local song memory database, storing high-dimensional neural signatures mapping to unique song identities.
 - **asyncio & aiohttp:** Foundation for non-blocking I/O and network requests.
 
 ## Frontend & Client Architecture
