@@ -2,20 +2,65 @@
   "#あくあ色ぱれっと": {
     "intl": "Aqua Iro Paretto"
   },
+  "Angelic Angel": {
+    "artist_orig": "μ's"
+  },
+  "BRAIN": {
+    "artist_orig": "Kanaria"
+  },
   "cLick cRack": {
     "intl_override": true,
     "artist_orig": "ギガP",
     "artist_orig_override": true
   },
+  "Dream Land!Dream World!": {
+    "artist_orig": "A・ZU・NA"
+  },
   "FUN☆FUN☆わんだふるDAYS!": {
     "intl": "FUN☆FUN☆Wonderful DAYS!",
     "intl_override": true
   },
+  "GALAXY HidE and SeeK": {
+    "artist_orig": "AZALEA"
+  },
+  "Guilty Eyes Fever": {
+    "artist_orig": "Guilty Kiss"
+  },
+  "Happy Halloween": {
+    "artist_orig": "Junky"
+  },
   "HAPPY PARTY TRAIN": {
     "artist_orig": "Aqours"
   },
+  "Helter-Spider": {
+    "artist_orig": "Crazy:B／天城 燐音、HiMERU、桜河 こはく、椎名 ニキ"
+  },
+  "Hop? Stop? Nonstop!": {
+    "artist_orig": "Aqours"
+  },
+  "JIMO-AI Dash!": {
+    "artist_orig": "Aqours"
+  },
+  "KA-GA-YA-KI-RA-RI-RA": {
+    "artist_orig": "Aqours"
+  },
+  "Luvoratorrrrry!": {
+    "artist_orig": "れをる Feat. Nqrse"
+  },
+  "NEO SKY, NEO MAP!": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
   "OIDEMASE!!〜極楽〜": {
     "intl": "OIDEMASE!!〜gokuraku〜"
+  },
+  "Pop/Stars": {
+    "artist_orig": "Jose Julie"
+  },
+  "PSYCHIC FIRE": {
+    "artist_orig": "BiBi"
+  },
+  "Snow halation": {
+    "artist_orig": "μ's"
   },
   "Special♡Spell": {
     "intl_override": true,
@@ -24,6 +69,18 @@
   },
   "START:DASH!!": {
     "artist_orig": "高坂穂乃果(CV.新田恵海), 南ことり(CV.内田 彩) & 園田海未(CV.三森すずこ)"
+  },
+  "sweet&sweet holiday": {
+    "artist_orig": "printemps"
+  },
+  "Takedown": {
+    "artist_orig": "HUNTR/X, EJAE, オードリー・ヌナ, REI AMI & KPop Demon Hunters Cast"
+  },
+  "Tiny Stars": {
+    "artist_orig": "澁谷かのん & 唐 可可"
+  },
+  "TOKIMEKI Runners": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
   },
   "あんさんぶる体操！！": {
     "intl": "Ensemble Taisou!!",
@@ -51,6 +108,10 @@
   },
   "お返事まだカナ?おじさん構文!": {
     "intl": "Ohenji Mada Kana? Ojisan Koubun!"
+  },
+  "けっかおーらい": {
+    "intl": "Kekka Orai - My Hero Academia: Vigilantes Opening Theme Song",
+    "artist_orig": "こっちのけんと"
   },
   "こころのたまご": {
     "intl": "Kokoro no Tamago"
@@ -91,6 +152,10 @@
   "もっとはやくそれになりたい！": {
     "intl": "Motto Hayaku Sore ni Naritai!"
   },
+  "わーいわいわい わいわいわい!": {
+    "artist_orig": "わいわいわい",
+    "intl": "Wai Wai Wai Waiwaiwai!"
+  },
   "アイドル活動!": {
     "intl": "Idol Activity!",
     "intl_override": true
@@ -129,6 +194,10 @@
   "スイートマジック": {
     "intl": "Sweet Magic"
   },
+  "ススメ→トゥモロウ": {
+    "artist_orig": "高坂穂乃果, 南ことり & 園田海未",
+    "intl": "Susume→Tomorrow"
+  },
   "ステップ!": {
     "intl": "STEP!"
   },
@@ -137,6 +206,10 @@
   },
   "ダイヤモンドプリンセスの憂鬱": {
     "intl": "Diamond Princess no Yuuutsu"
+  },
+  "チルノのパーフェクトさんすう教室": {
+    "intl": "Cirno's Perfect Math Class",
+    "artist_orig": "IOSYS"
   },
   "テレキャスタービーボーイ": {
     "intl": "Telecaster B-boy"
@@ -178,6 +251,10 @@
   },
   "ベノム": {
     "intl": "Venom"
+  },
+  "マーシャル・マキシマイザー": {
+    "intl": "Marshall Maximizer",
+    "artist_orig": "Vivid BAD SQUAD"
   },
   "メグメグ☆ファイアーエンドレスナイト": {
     "intl": "MEGUMEGU☆FIRE ENDLESS NIGHT"
@@ -244,6 +321,10 @@
   },
   "告白実行委員会": {
     "intl": "Kokuhaku Jikkou Iinkai"
+  },
+  "唱 (A Cappella)": {
+    "intl": "Show (A Cappella)",
+    "artist_orig": "Ado"
   },
   "夏への扉 Never end ver.": {
     "intl": "The Door Towards Summer Never end ver."
@@ -320,6 +401,10 @@
   },
   "未熟DREAMER": {
     "intl": "Mijuku DREAMER"
+  },
+  "決めたよHand in Hand": {
+    "artist_orig": "高海千歌, 桜内梨子 & 渡辺 曜",
+    "intl": "Kimeta yo Hand in Hand"
   },
   "知らないLove*教えてLove": {
     "intl": "Shiranai Love*Oshiete Love"

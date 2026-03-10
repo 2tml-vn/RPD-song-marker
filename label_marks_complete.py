@@ -380,6 +380,8 @@ def strip_extra_info(text):
     text = re.sub(pattern_mix, '', text)
     # 6. Remove any square-bracket tag regardless of content (e.g., "[Remix]", "[feat. ...]", "[TV Size]")
     text = re.sub(r'\s*\[[^\]]*\]', '', text)
+    # 7. Remove bare "feat." not in parentheses (e.g., "Song feat.Artist1、Artist2")
+    text = re.sub(r'\s+feat\..*$', '', text, flags=re.IGNORECASE)
     return text
 
 def strip_shared_tags(ja, en):
