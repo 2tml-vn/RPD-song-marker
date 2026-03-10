@@ -165,9 +165,11 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
     """
     title_clean = strip_extra_info(title_clean)
     artist = clean_artist_name(artist)
+    logger.debug(f"[RESOLVE] title_clean='{title_clean}' artist='{artist}' track_id={track_id}")
 
     # Look up in song overrides (exact match on original or intl name)
     orig_key, override_data = lookup_song_override(title_clean)
+    logger.debug(f"[RESOLVE] Override lookup: orig_key='{orig_key}' found={override_data is not None}")
 
     if override_data:
         ori_song = orig_key
@@ -175,6 +177,7 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
         # Resolve international song name
         if override_data.get('intl_override'):
             int_song = override_data.get('intl')
+            logger.debug(f"[RESOLVE] intl_override=True → int_song='{int_song}'")
         else:
             # Try Shazam EN API first, fallback to stored intl
             int_song = None
@@ -182,13 +185,18 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
                 try:
                     en_data = await shazam_en.track_about(int(track_id))
                     en_title = en_data['track'].get('title') if isinstance(en_data, dict) and 'track' in en_data else (en_data['title'] if isinstance(en_data, dict) and 'title' in en_data else getattr(en_data, 'title', None))
+                    logger.debug(f"[RESOLVE] Shazam EN returned: '{en_title}'")
                     if en_title and en_title.lower() != ori_song.lower():
                         int_song = strip_extra_info(en_title)
-                except: pass
+                        logger.debug(f"[RESOLVE] After strip_extra_info: int_song='{int_song}'")
+                except Exception as e:
+                    logger.debug(f"[RESOLVE] Shazam EN API failed: {e}")
             if not int_song:
                 int_song = override_data.get('intl')
+                logger.debug(f"[RESOLVE] Fallback to stored intl: '{int_song}'")
             # Skip if same as original
             if int_song and int_song.lower() == ori_song.lower():
+                logger.debug(f"[RESOLVE] int_song same as ori_song, setting to None")
                 int_song = None
 
         # Resolve artist
@@ -196,7 +204,9 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
         int_artist = override_data.get('artist_intl') if override_data.get('artist_intl_override') else None
 
         ori_song, int_song = strip_shared_tags(ori_song, int_song)
-        return format_display_name(ori_song, int_song, ori_artist, int_artist)
+        result = format_display_name(ori_song, int_song, ori_artist, int_artist)
+        logger.debug(f"[RESOLVE] Final: ori='{ori_song}' intl='{int_song}' artist='{ori_artist}' → '{result}'")
+        return result
     else:
         # No override found — try Shazam EN API for translation
         en_name = None
@@ -204,9 +214,11 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
             try:
                 en_data = await shazam_en.track_about(int(track_id))
                 en_title = en_data['track'].get('title') if isinstance(en_data, dict) and 'track' in en_data else (en_data['title'] if isinstance(en_data, dict) and 'title' in en_data else getattr(en_data, 'title', None))
+                logger.debug(f"[RESOLVE] No override. Shazam EN returned: '{en_title}'")
                 if en_title and en_title.lower() != title_clean.lower():
                     en_name = strip_extra_info(en_title)
-            except: pass
+            except Exception as e:
+                logger.debug(f"[RESOLVE] No override. Shazam EN API failed: {e}")
 
         ori_song = title_clean
         int_song = en_name if en_name and en_name.lower() != title_clean.lower() else None
@@ -216,7 +228,9 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
         auto_register_song(ori_song, int_song, ori_artist, None)
 
         ori_song, int_song = strip_shared_tags(ori_song, int_song)
-        return format_display_name(ori_song, int_song, ori_artist, None)
+        result = format_display_name(ori_song, int_song, ori_artist, None)
+        logger.debug(f"[RESOLVE] Final (new): ori='{ori_song}' intl='{int_song}' artist='{ori_artist}' → '{result}'")
+        return result
 
 def apply_user_phrase_replace(full_name):
     """
