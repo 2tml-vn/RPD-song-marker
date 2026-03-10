@@ -11,6 +11,9 @@
     "intl": "FUN☆FUN☆Wonderful DAYS!",
     "intl_override": true
   },
+  "HAPPY PARTY TRAIN": {
+    "artist_orig": "Aqours"
+  },
   "OIDEMASE!!〜極楽〜": {
     "intl": "OIDEMASE!!〜gokuraku〜"
   },
@@ -18,6 +21,9 @@
     "intl_override": true,
     "artist_orig": "きゅるりんってしてみて",
     "artist_orig_override": true
+  },
+  "START:DASH!!": {
+    "artist_orig": "高坂穂乃果(CV.新田恵海), 南ことり(CV.内田 彩) & 園田海未(CV.三森すずこ)"
   },
   "あんさんぶる体操！！": {
     "intl": "Ensemble Taisou!!",
@@ -207,6 +213,10 @@
   "僕たちはひとつの光": {
     "intl": "Bokutachi wa Hitotsu no Hikari"
   },
+  "僕らのLIVE 君とのLIFE": {
+    "intl": "Bokura no LIVE Kimi to no LIFE",
+    "artist_orig": "μ's"
+  },
   "僕らは今のなかで": {
     "intl": "Bokura wa Ima no Naka de"
   },
@@ -279,6 +289,10 @@
   },
   "恋ひ恋ふ縁": {
     "intl": "Koi Kou Enishi"
+  },
+  "恋愛サーキュレーション": {
+    "intl": "Renai Circulation",
+    "artist_orig": "物語シリーズ"
   },
   "悪ノ召使": {
     "intl": "The Servant of Evil"

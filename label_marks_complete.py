@@ -164,6 +164,7 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
     Returns the formatted display name string.
     """
     title_clean = strip_extra_info(title_clean)
+    artist = clean_artist_name(artist)
 
     # Look up in song overrides (exact match on original or intl name)
     orig_key, override_data = lookup_song_override(title_clean)
@@ -348,6 +349,13 @@ class BridgeHandler(BaseHTTPRequestHandler):
 
 def start_server():
     HTTPServer(('127.0.0.1', PORT), BridgeHandler).serve_forever()
+
+def clean_artist_name(text):
+    """Remove (CV.xxx) tags from artist names (case-insensitive)."""
+    if not text: return text
+    text = re.sub(r'\s*\([Cc][Vv][.．][^)]*\)', '', text)
+    text = re.sub(r'  +', ' ', text)
+    return text.strip()
 
 def strip_extra_info(text):
     """
