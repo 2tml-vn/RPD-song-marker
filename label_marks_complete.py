@@ -68,24 +68,14 @@ SHAZAM_REMAP = {
     "Lucky Star Opening - AnimeHub": "もってけ！セーラーふく (Motteke! Sailor Fuku)",
     "踊 (Odo) - Vivid BAD SQUAD": "踊 (Odo) - Ado",
 }
-SUBSTRING_OVERRIDE = [
-    # (Japanese, English, Optional Artist)
-    ("うまぴょい伝説", "Umapyoi Densetsu"),
-    ("サインはB", "Sign wa B"),
-    ("トレセン音頭", "Tracen Ondo"),
-    ("おちゃめ機能", "Mischievous Function"),
-    ("アイドル活動!", "Idol Activity!"),
-    ("あんさんぶる体操！！", "Ensemble Taisou!!"),
-    ("君色に染まる", "kimiiro ni somaru"),
-    ("金曜日のおはよう", "Kinyoubi no Ohayou"),
-    ("ニッポン笑顔百景", "Nippon Egao Hyakkei"),
-    ("FUN☆FUN☆わんだふるDAYS!", "FUN☆FUN☆Wonderful DAYS!"),
-    ("ワーワーワールド", "Wah Wah World"),
-    ("神のまにまに", "Kamino Manimani", "れるりり"),
-    ("Special♡Spell", "", "きゅるりんってしてみて"),
-    ("cLick cRack", "", "ギガP"),
-    ("夜もすがら君想ふ", "Yomosugara Kimi Omou", "TOKOTOKO(西沢さんP)"),
-]
+# --- Song Name Overrides (loaded from JSON) ---
+SONG_OVERRIDES_FILE = Path(__file__).parent / "song_name_overrides.json"
+SONG_OVERRIDES = {}
+
+# Display format template — customize how song names appear in output.
+# Variables: {ori_song}, {int_song}, {ori_artist}, {int_artist}
+# Sections in [...] are optional: only included if all variables inside have values.
+DISPLAY_FORMAT = "{ori_song}[ ({int_song})][ - {ori_artist}][ ({int_artist})]"
 
 # User-defined phrase replacements: if song name contains the phrase, replace with the set song name
 # Format: ("phrase to find", "replacement song name")
@@ -97,19 +87,130 @@ USER_PHRASE_REPLACE = [
     ("MIRACLE WAVE", "MIRACLE WAVE - Aqours",)
 ]
 
-def apply_substring_remap(full_name):
-    if not full_name: return full_name
-    for item in SUBSTRING_OVERRIDE:
-        ja, en = item[0], item[1]
-        artist = f" - {item[2]}" if len(item) > 2 else ""
-        # Only check en if it's not empty, otherwise empty string matches everything
-        if en:
-            if ja in full_name or en in full_name:
-                return f"{ja} ({en}){artist}"
+def load_song_overrides():
+    """Load song name overrides from JSON file."""
+    global SONG_OVERRIDES
+    if SONG_OVERRIDES_FILE.exists():
+        with open(SONG_OVERRIDES_FILE, "r", encoding="utf-8") as f:
+            SONG_OVERRIDES = json.load(f)
+    logger.info(f"[OVERRIDES] Loaded {len(SONG_OVERRIDES)} entries from {SONG_OVERRIDES_FILE.name}")
+
+def save_song_overrides():
+    """Save song name overrides to JSON file."""
+    with open(SONG_OVERRIDES_FILE, "w", encoding="utf-8") as f:
+        json.dump(SONG_OVERRIDES, f, ensure_ascii=False, indent=2)
+
+def lookup_song_override(title):
+    """
+    Exact-match lookup by original name (key) or intl name.
+    Returns (orig_key, data_dict) or (None, None).
+    """
+    if title in SONG_OVERRIDES:
+        return title, SONG_OVERRIDES[title]
+    for orig_name, data in SONG_OVERRIDES.items():
+        intl = data.get('intl', '')
+        if intl and intl == title:
+            return orig_name, data
+    return None, None
+
+def format_display_name(ori_song, int_song=None, ori_artist=None, int_artist=None):
+    """
+    Format song name using DISPLAY_FORMAT template.
+    Sections in [...] are optional: only included if all {variables} inside have values.
+    """
+    variables = {
+        'ori_song': ori_song or '',
+        'int_song': int_song or '',
+        'ori_artist': ori_artist or '',
+        'int_artist': int_artist or '',
+    }
+    def replace_optional(match):
+        section = match.group(1)
+        vars_in_section = re.findall(r'\{(\w+)\}', section)
+        for var_name in vars_in_section:
+            if not variables.get(var_name):
+                return ''
+        for var_name, val in variables.items():
+            section = section.replace('{' + var_name + '}', val)
+        return section
+    result = re.sub(r'\[([^\]]*)\]', replace_optional, DISPLAY_FORMAT)
+    for var_name, val in variables.items():
+        result = result.replace('{' + var_name + '}', val)
+    return result.strip()
+
+def auto_register_song(ori_song, int_song=None, ori_artist=None, int_artist=None):
+    """Auto-register a newly identified song in the overrides JSON (if not already present)."""
+    if not ori_song:
+        return
+    # Check if already registered (by ori or intl key)
+    existing_key, _ = lookup_song_override(ori_song)
+    if existing_key:
+        return
+    entry = {}
+    if int_song: entry['intl'] = int_song
+    if ori_artist: entry['artist_orig'] = ori_artist
+    if int_artist: entry['artist_intl'] = int_artist
+    SONG_OVERRIDES[ori_song] = entry
+    save_song_overrides()
+    logger.debug(f"[OVERRIDES] Auto-registered: {ori_song}")
+
+async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
+    """
+    Resolve a detected song into a formatted display name using overrides and Shazam EN API.
+    Also auto-registers new songs into the overrides JSON.
+    Returns the formatted display name string.
+    """
+    title_clean = strip_extra_info(title_clean)
+
+    # Look up in song overrides (exact match on original or intl name)
+    orig_key, override_data = lookup_song_override(title_clean)
+
+    if override_data:
+        ori_song = orig_key
+
+        # Resolve international song name
+        if override_data.get('intl_override'):
+            int_song = override_data.get('intl')
         else:
-            if ja in full_name:
-                return f"{ja}{artist}"
-    return full_name
+            # Try Shazam EN API first, fallback to stored intl
+            int_song = None
+            if track_id and shazam_en:
+                try:
+                    en_data = await shazam_en.track_about(int(track_id))
+                    en_title = en_data['track'].get('title') if isinstance(en_data, dict) and 'track' in en_data else (en_data['title'] if isinstance(en_data, dict) and 'title' in en_data else getattr(en_data, 'title', None))
+                    if en_title and en_title.lower() != ori_song.lower():
+                        int_song = strip_extra_info(en_title)
+                except: pass
+            if not int_song:
+                int_song = override_data.get('intl')
+            # Skip if same as original
+            if int_song and int_song.lower() == ori_song.lower():
+                int_song = None
+
+        # Resolve artist
+        ori_artist = override_data.get('artist_orig') if override_data.get('artist_orig_override') else artist
+        int_artist = override_data.get('artist_intl') if override_data.get('artist_intl_override') else None
+
+        return format_display_name(ori_song, int_song, ori_artist, int_artist)
+    else:
+        # No override found — try Shazam EN API for translation
+        en_name = None
+        if track_id and shazam_en:
+            try:
+                en_data = await shazam_en.track_about(int(track_id))
+                en_title = en_data['track'].get('title') if isinstance(en_data, dict) and 'track' in en_data else (en_data['title'] if isinstance(en_data, dict) and 'title' in en_data else getattr(en_data, 'title', None))
+                if en_title and en_title.lower() != title_clean.lower():
+                    en_name = strip_extra_info(en_title)
+            except: pass
+
+        ori_song = title_clean
+        int_song = en_name if en_name and en_name.lower() != title_clean.lower() else None
+        ori_artist = artist
+
+        # Auto-register in overrides JSON
+        auto_register_song(ori_song, int_song, ori_artist, None)
+
+        return format_display_name(ori_song, int_song, ori_artist, None)
 
 def apply_user_phrase_replace(full_name):
     """
@@ -122,110 +223,6 @@ def apply_user_phrase_replace(full_name):
             return replacement
     return full_name
 
-JAPANESE_TO_ENGLISH_MAP = {
-    "悪ノ娘": "The Daughter of Evil",
-    "悪ノ召使": "The Servant of Evil",
-    "にこぷり♡女子道": "Nicopuri ♡ Joshidou",
-    "コールボーイ": "Call Boy",
-    "踊れオーケストラ": "Odore Orchestra",
-    "罰ゲーム" : "Batsugame",
-    "ハム太郎 とっとこうた": "Hamutaro Tottoko Uta",
-    "テレキャスタービーボーイ": "Telecaster B-boy",
-    "めっちゃGoing!!": "Meccha Going!!",
-    "ドキピポ☆エモーション": "Dokipipo☆Emotion",
-    "微熱からMystery": "Binetsu kara Mystery",
-    "おこちゃま戦争": "Okochama Sensou",
-    "敦盛2011": "Atsumori 2011",
-    "잘자요 아가씨": "Good Night Ojosama",
-    "最低で最高のParadiso": "Saitei de Saikou no Paradis",
-    "トリコリコPLEASE!!": "Torikoriko PLEASE!!",
-    "キセキヒカル": "Kiseki Hikaru",
-    "ラブノベルス": "Love Novels",
-    "未熟DREAMER": "Mijuku DREAMER",
-    "想いよひとつになれ": "Omoi yo Hitotsu ni Nare",
-    "ダイヤモンドプリンセスの憂鬱": "Diamond Princess no Yuuutsu",
-    "乙姫心で恋宮殿": "Otohime Heart de Love Kyuuden",
-    "金色千夜夢舞台": "Konjiki Senya Yumebutai",
-    "スリリング・ワンウェイ": "Thrilling・One Way",
-    "完璧ぐ~のね": "Kanpekigu No Ne",
-    "知らないLove*教えてLove": "Shiranai Love*Oshiete Love",
-    "夏への扉 Never end ver.": "The Door Towards Summer Never end ver.",
-    "思い出以上になりたくて": "Omoide Ijou ni Naritakute",
-    "ユメノトビラ": "Yume no Tobira",
-    "ぷわぷわーお!": "Puwa Puwa-O!",
-    "サンシャインぴっかぴか音頭": "Sanshain Pikkapika Ondo",
-    "ベノム": "Venom",
-    "フレンド革命": "Friend Revolution",
-    "こころのたまご": "Kokoro no Tamago",
-    "ハイドアンド·シーク": "Hide And Seek",
-    "#あくあ色ぱれっと": "Aqua Iro Paretto",
-    "OIDEMASE!!〜極楽〜": "OIDEMASE!!〜gokuraku〜",
-    'もぎゅっと"love"で接近中!': "Mogyutto “love” de Sekkin Chuu!",
-    "アユミ☆マジカルショータイム": "Ayumi☆Magical Showtime",
-    "アイドル活動!": "Idol Activity!",
-    "リリリリ★バーニングナイト": "Lily Lily ☆ Burning Night",
-    "おジャ魔女カーニバル!!": "Ojamajo Carnival!!",
-    "お返事まだカナ?おじさん構文!": "Ohenji Mada Kana? Ojisan Koubun!",
-    "これからのSomeday": "Korekara no Someday",
-    "さらば、佳き日": "Saraba, Yoki Hi",
-    "サインはB": "Sign wa B",
-    "スイートマジック": "Sweet Magic",
-    "ステップ!": "STEP!",
-    "だってだって噫無情": "Datte Datte Aa Mujou",
-    "ハッピーシンセサイザ": "Happy Synthesizer",
-    "ハレ晴レユカイ": "Hare Hare Yukai",
-    "ビターチョコデコレーション": "Bitter Choco Decoration",
-    "ぽっぴっぽー": "PoPiPo",
-    "まいたけダンス": "Maitake Dance",
-    "みんなだいすき": "Minna Daisuki",
-    "もっとはやくそれになりたい！": "Motto Hayaku Sore ni Naritai!",
-    "メグメグ☆ファイアーエンドレスナイト": "MEGUMEGU☆FIRE ENDLESS NIGHT",
-    "メランコリック": "Melancholic",
-    "ルカルカ★ナイトフィーバー": "Luka Luka ★ Night Fever",
-    "ロミオとシンデレラ": "Romeo and Cinderella",
-    "一等星のニュアンス": "Ittousei no Nuance",
-    "僕たちはひとつの光": "Bokutachi wa Hitotsu no Hikari",
-    "僕らは今のなかで": "Bokura wa Ima no Naka de",
-    "全速ドリーマー": "Zensoku Dreamer",
-    "君のこころは輝いてるかい?": "Kimi no Kokoro wa Kagayaiteru kai?",
-    "君色に染まる": "kimiiro ni somaru",
-    "告白実行委員会": "Kokuhaku Jikkou Iinkai",
-    "夏色えがおで1,2,Jump!": "Natsuiro Egao de 1,2,Jump!",
-    "天使のクローバー": "Tenshi no Clover",
-    "妙子": "Taeko",
-    "常夏☆サンシャイン": "Tokonatsu☆Sunshine",
-    "強風オールバック": "Kyoufuu All Back",
-    "恋になりたいAQUARIUM": "Koi ni Naritai AQUARIUM",
-    "恋ひ恋ふ縁": "Koi Kou Enishi",
-    "悪魔の踊り方": "Akuma no Odorikata",
-    "我ら!": "Warera!",
-    "劣等上等": "BRING IT ON",
-    "妄想感傷代償連盟": "Mousou Kanshou Daishou Renmei",
-    "少女交響曲": "Shoujo Koukyoukyoku",
-    "輝夜の城で踊りたい": "Kaguya no Shiro de Odoritai",
-    "虹色Passions!": "Nijiiro Passions!",
-    "骸骨楽団とリリア": "Gaikotsu Gakudan to Lilia",
-    "神っぽいな": "God-ish",
-    "硝子の花園": "Garasu no Hanazono",
-    "金曜日のおはよう": "Kinyoubi no Ohayou",
-    "刀ピークリスマスのテーマソング2023": "TouPea Christmas 2023",
-    "ノンフィクション!!": "Nonfiction!!",
-    "オトモダチフィルム": "Otomodachi Film",
-    "自力本願レボリューション": "Jiriki Hongan Revolution",
-    "花ハ踊レヤいろはにほ": "Hana wa Odoreya Irohaniho",
-    "コンプレックス・イマージュ": "complex image",
-    "カレンダーガール": "Calendar Girl",
-    "愛してるばんざーい!": "Aishiteru Banzai!",
-    "クレイジー・ビート": "Crazy Beat",
-    "うまるん体操": "Umarun Taisou",
-    "千本桜": "Senbonzakura",
-    "まいたけダンス": "Maitake Dance",
-    "それは僕たちの奇跡": "Sore wa Bokutachi no Kiseki",
-    "えれくとりっく・えんじぇぅ": "Electric Angel",
-    "青空Jumping Heart": "Aozora Jumping Heart",
-    "シュビドゥビ☆スイーツタイム": "Shubidubi☆Sweets Time",
-    "元気全開 DAY! DAY! DAY!": "Genki Zenkai DAY! DAY! DAY!",
-}
 
 VIDEO_ID = "default"
 ACR_ONLY = False
@@ -349,21 +346,6 @@ class BridgeHandler(BaseHTTPRequestHandler):
 def start_server():
     HTTPServer(('127.0.0.1', PORT), BridgeHandler).serve_forever()
 
-async def map_japanese_to_english(title_clean, track_id, shazam_en=None):
-    en_name = None
-    for map_key, map_val in JAPANESE_TO_ENGLISH_MAP.items():
-        if title_clean.startswith(map_key):
-            en_name = map_val
-            break
-    if not en_name and track_id and shazam_en:
-        try:
-            en_data = await shazam_en.track_about(int(track_id))
-            en_title = en_data['track'].get('title') if isinstance(en_data, dict) and 'track' in en_data else (en_data['title'] if isinstance(en_data, dict) and 'title' in en_data else getattr(en_data, 'title', None))
-            if en_title and en_title.lower() != title_clean.lower():
-                en_name = en_title
-        except: pass
-    return en_name
-
 def strip_extra_info(text):
     """
     Precisely removes tags like '(Instrumental)', '[Instrumental]', '(feat. ...)', '[feat.]', '(Ver...)', '(Edit...)', '(Vocal...)', '(mix)', and '(サイズ)'
@@ -427,14 +409,8 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
                     title_clean = shared_utils.clean_title(track['title'])
                     artist = track['subtitle']
                     track_id = track.get('key')
-                    en_name = await map_japanese_to_english(title_clean, track_id, shazam_en)
-                    title_clean, en_name = strip_shared_tags(title_clean, en_name)
-                    title_clean = strip_extra_info(title_clean)
-                    if en_name: en_name = strip_extra_info(en_name)
-                    if en_name and en_name.lower() not in title_clean.lower(): title_clean = f"{title_clean} ({en_name})"
-                    full_match_name = f"{title_clean} - {artist}"
+                    full_match_name = await resolve_song_name(title_clean, artist, track_id, shazam_en)
                     if full_match_name in SHAZAM_REMAP: full_match_name = SHAZAM_REMAP[full_match_name]
-                    full_match_name = apply_substring_remap(full_match_name)
                     full_match_name = apply_user_phrase_replace(full_match_name)
                     logger.info(f"  [MATCH - SHAZAM] {full_match_name}")
                     return full_match_name
@@ -459,14 +435,8 @@ async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippet
                 if " - " in acr_match:
                     title, artist = acr_match.rsplit(" - ", 1)
                     title_clean = shared_utils.clean_title(title)
-                    en_name = await map_japanese_to_english(title_clean, None, shazam_en)
-                    title_clean, en_name = strip_shared_tags(title_clean, en_name)
-                    title_clean = strip_extra_info(title_clean)
-                    if en_name: en_name = strip_extra_info(en_name)
-                    if en_name and en_name.lower() not in title_clean.lower(): title_clean = f"{title_clean} ({en_name})"
-                    acr_match = f"{title_clean} - {artist}"
+                    acr_match = await resolve_song_name(title_clean, artist, None, shazam_en)
                     if acr_match in SHAZAM_REMAP: acr_match = SHAZAM_REMAP[acr_match]
-                    acr_match = apply_substring_remap(acr_match)
                     acr_match = apply_user_phrase_replace(acr_match)
                 logger.info(f"  [MATCH - ACRCLOUD] {acr_match}")
                 return acr_match
@@ -481,6 +451,7 @@ async def main():
     global VIDEO_ID, MAIN_LOOP, RESULTS, IS_FINISHED, IS_SESSION_DONE
     MAIN_LOOP = asyncio.get_running_loop()
     parse_args()
+    load_song_overrides()
     video_dir = Path.cwd() / "runs" / VIDEO_ID
     video_dir.mkdir(parents=True, exist_ok=True)
     progress_file = video_dir / "progress.json"
