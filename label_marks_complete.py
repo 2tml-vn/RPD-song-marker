@@ -195,6 +195,7 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
         ori_artist = override_data.get('artist_orig') if override_data.get('artist_orig_override') else artist
         int_artist = override_data.get('artist_intl') if override_data.get('artist_intl_override') else None
 
+        ori_song, int_song = strip_shared_tags(ori_song, int_song)
         return format_display_name(ori_song, int_song, ori_artist, int_artist)
     else:
         # No override found — try Shazam EN API for translation
@@ -214,6 +215,7 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
         # Auto-register in overrides JSON
         auto_register_song(ori_song, int_song, ori_artist, None)
 
+        ori_song, int_song = strip_shared_tags(ori_song, int_song)
         return format_display_name(ori_song, int_song, ori_artist, None)
 
 def apply_user_phrase_replace(full_name):
