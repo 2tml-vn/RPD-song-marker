@@ -14,7 +14,7 @@ import logging
 import numpy as np
 import scipy.io.wavfile as wav
 
-# Configure logging for Shazamio
+# Muffle internal decoder and network logs
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 shazam_logger = logging.getLogger("shazamio")
 shazam_logger.setLevel(logging.WARNING)
@@ -40,38 +40,213 @@ logger.setLevel(logging.DEBUG)
 # Use installed library version
 from shazamio import Shazam, Serialize
 import shared_utils
-from dna_matcher import DNAMatcher
-from audio_features import extract_features
+import acrcloud
 
 # --- Configuration ---
 WINDOW_DURATION = shared_utils.WINDOW_DURATION
 PORT = 5000
 
-# Initialize Local Memory Matcher
-dna_matcher = DNAMatcher()
-
-# Custom Japanese to English Name Mappings
-JAPANESE_TO_ENGLISH_MAP = {
-    "金曜日のおはよう": "Kinyoubi no Ohayou",
-    "君色に染まる": "kimiiro ni somaru",
-    "夏色えがおで1,2,Jump!": "Natsuiro Egao de 1,2,Jump!",
-    "サインはB": "Sign wa B",
-    "青空Jumping Heart": "Aozora Jumping Heart",
-    "おジャ魔女カーニバル!!": "Ojamajo Carnival!!",
-    "えれくとりっく・えんじぇぅ": "Electric Angel",
-    "輝夜の城で踊りたい": "Kaguya no Shiro de Odoritai",
-    "虹色Passions!": "Nijiiro Passions!",
-    "僕らは今のなかで": "Bokura wa Ima no Naka de",
-    "アイドル活動!": "Idol Activity!",
-    "OIDEMASE!!〜極楽〜": "OIDEMASE!!〜gokuraku〜" 
+# ACRCloud Config
+ACR_CONFIG = {
+    'host': 'identify-ap-southeast-1.acrcloud.com',
+    'access_key': '9f6854a4b6a69192b2d22a3e6d64ebf9',
+    'access_secret': 'GYUh0PMKeUVqLHXT26mTNrepehI9FIE3KHZ0kZFD',
 }
 
-
 MARK_QUEUE = asyncio.Queue()
-VIDEO_ID = "default"
+SELECTION_QUEUE = asyncio.Queue()
+MAIN_LOOP = None
+CURRENT_SEEK_TS = -1
+CLEANUP_CANDIDATES = []
+RESULTS = {}
+IS_FINISHED = False
+IS_SESSION_DONE = False
 
-def get_video_id():
-    return sys.argv[1] if len(sys.argv) > 1 else "default"
+SHAZAM_REMAP = {
+    "nightcord - deaya": "キャットラビング (Cat Loving)",
+    "Chika Dance - Gudrap": "チカっとチカ千花っ♡ (Chikatto Chika Chika♡)",
+    "Lucky Star Opening - AnimeHub": "もってけ！セーラーふく (Motteke! Sailor Fuku)",
+    "踊 (Odo) - Vivid BAD SQUAD": "踊 (Odo) - Ado",
+}
+SUBSTRING_OVERRIDE = [
+    # (Japanese, English, Optional Artist)
+    ("うまぴょい伝説", "Umapyoi Densetsu"),
+    ("サインはB", "Sign wa B"),
+    ("トレセン音頭", "Tracen Ondo"),
+    ("おちゃめ機能", "Mischievous Function"),
+    ("アイドル活動!", "Idol Activity!"),
+    ("あんさんぶる体操！！", "Ensemble Taisou!!"),
+    ("君色に染まる", "kimiiro ni somaru"),
+    ("金曜日のおはよう", "Kinyoubi no Ohayou"),
+    ("ニッポン笑顔百景", "Nippon Egao Hyakkei"),
+    ("FUN☆FUN☆わんだふるDAYS!", "FUN☆FUN☆Wonderful DAYS!"),
+    ("ワーワーワールド", "Wah Wah World"),
+    ("神のまにまに", "Kamino Manimani", "れるりり"),
+    ("Special♡Spell", "", "きゅるりんってしてみて"),
+    ("cLick cRack", "", "ギガP"),
+    ("夜もすがら君想ふ", "Yomosugara Kimi Omou", "TOKOTOKO(西沢さんP)"),
+]
+
+# User-defined phrase replacements: if song name contains the phrase, replace with the set song name
+# Format: ("phrase to find", "replacement song name")
+USER_PHRASE_REPLACE = [
+    ("LOST IN PARADISE", "LOST IN PARADISE (Jujutsu Kaisen Ending Theme Song) [feat. AKLO] - ALI"),
+    ("STAR☆T☆RAIN", "STAR☆T☆RAIN"),
+    ("Umapyoi Legend", "うまぴょい伝説 (Umapyoi Densetsu) - ウマ娘 プリティーダービー"),
+    ("Ensemble Taiso!!", "あんさんぶる体操！！ (Ensemble Taisou!!)"),
+    ("MIRACLE WAVE", "MIRACLE WAVE - Aqours",)
+]
+
+def apply_substring_remap(full_name):
+    if not full_name: return full_name
+    for item in SUBSTRING_OVERRIDE:
+        ja, en = item[0], item[1]
+        artist = f" - {item[2]}" if len(item) > 2 else ""
+        # Only check en if it's not empty, otherwise empty string matches everything
+        if en:
+            if ja in full_name or en in full_name:
+                return f"{ja} ({en}){artist}"
+        else:
+            if ja in full_name:
+                return f"{ja}{artist}"
+    return full_name
+
+def apply_user_phrase_replace(full_name):
+    """
+    If the song name contains a user-specified phrase, replace it with a user-specified song name.
+    Configured via USER_PHRASE_REPLACE list above.
+    """
+    if not full_name: return full_name
+    for phrase, replacement in USER_PHRASE_REPLACE:
+        if phrase.lower() in full_name.lower():
+            return replacement
+    return full_name
+
+JAPANESE_TO_ENGLISH_MAP = {
+    "悪ノ娘": "The Daughter of Evil",
+    "悪ノ召使": "The Servant of Evil",
+    "にこぷり♡女子道": "Nicopuri ♡ Joshidou",
+    "コールボーイ": "Call Boy",
+    "踊れオーケストラ": "Odore Orchestra",
+    "罰ゲーム" : "Batsugame",
+    "ハム太郎 とっとこうた": "Hamutaro Tottoko Uta",
+    "テレキャスタービーボーイ": "Telecaster B-boy",
+    "めっちゃGoing!!": "Meccha Going!!",
+    "ドキピポ☆エモーション": "Dokipipo☆Emotion",
+    "微熱からMystery": "Binetsu kara Mystery",
+    "おこちゃま戦争": "Okochama Sensou",
+    "敦盛2011": "Atsumori 2011",
+    "잘자요 아가씨": "Good Night Ojosama",
+    "最低で最高のParadiso": "Saitei de Saikou no Paradis",
+    "トリコリコPLEASE!!": "Torikoriko PLEASE!!",
+    "キセキヒカル": "Kiseki Hikaru",
+    "ラブノベルス": "Love Novels",
+    "未熟DREAMER": "Mijuku DREAMER",
+    "想いよひとつになれ": "Omoi yo Hitotsu ni Nare",
+    "ダイヤモンドプリンセスの憂鬱": "Diamond Princess no Yuuutsu",
+    "乙姫心で恋宮殿": "Otohime Heart de Love Kyuuden",
+    "金色千夜夢舞台": "Konjiki Senya Yumebutai",
+    "スリリング・ワンウェイ": "Thrilling・One Way",
+    "完璧ぐ~のね": "Kanpekigu No Ne",
+    "知らないLove*教えてLove": "Shiranai Love*Oshiete Love",
+    "夏への扉 Never end ver.": "The Door Towards Summer Never end ver.",
+    "思い出以上になりたくて": "Omoide Ijou ni Naritakute",
+    "ユメノトビラ": "Yume no Tobira",
+    "ぷわぷわーお!": "Puwa Puwa-O!",
+    "サンシャインぴっかぴか音頭": "Sanshain Pikkapika Ondo",
+    "ベノム": "Venom",
+    "フレンド革命": "Friend Revolution",
+    "こころのたまご": "Kokoro no Tamago",
+    "ハイドアンド·シーク": "Hide And Seek",
+    "#あくあ色ぱれっと": "Aqua Iro Paretto",
+    "OIDEMASE!!〜極楽〜": "OIDEMASE!!〜gokuraku〜",
+    'もぎゅっと"love"で接近中!': "Mogyutto “love” de Sekkin Chuu!",
+    "アユミ☆マジカルショータイム": "Ayumi☆Magical Showtime",
+    "アイドル活動!": "Idol Activity!",
+    "リリリリ★バーニングナイト": "Lily Lily ☆ Burning Night",
+    "おジャ魔女カーニバル!!": "Ojamajo Carnival!!",
+    "お返事まだカナ?おじさん構文!": "Ohenji Mada Kana? Ojisan Koubun!",
+    "これからのSomeday": "Korekara no Someday",
+    "さらば、佳き日": "Saraba, Yoki Hi",
+    "サインはB": "Sign wa B",
+    "スイートマジック": "Sweet Magic",
+    "ステップ!": "STEP!",
+    "だってだって噫無情": "Datte Datte Aa Mujou",
+    "ハッピーシンセサイザ": "Happy Synthesizer",
+    "ハレ晴レユカイ": "Hare Hare Yukai",
+    "ビターチョコデコレーション": "Bitter Choco Decoration",
+    "ぽっぴっぽー": "PoPiPo",
+    "まいたけダンス": "Maitake Dance",
+    "みんなだいすき": "Minna Daisuki",
+    "もっとはやくそれになりたい！": "Motto Hayaku Sore ni Naritai!",
+    "メグメグ☆ファイアーエンドレスナイト": "MEGUMEGU☆FIRE ENDLESS NIGHT",
+    "メランコリック": "Melancholic",
+    "ルカルカ★ナイトフィーバー": "Luka Luka ★ Night Fever",
+    "ロミオとシンデレラ": "Romeo and Cinderella",
+    "一等星のニュアンス": "Ittousei no Nuance",
+    "僕たちはひとつの光": "Bokutachi wa Hitotsu no Hikari",
+    "僕らは今のなかで": "Bokura wa Ima no Naka de",
+    "全速ドリーマー": "Zensoku Dreamer",
+    "君のこころは輝いてるかい?": "Kimi no Kokoro wa Kagayaiteru kai?",
+    "君色に染まる": "kimiiro ni somaru",
+    "告白実行委員会": "Kokuhaku Jikkou Iinkai",
+    "夏色えがおで1,2,Jump!": "Natsuiro Egao de 1,2,Jump!",
+    "天使のクローバー": "Tenshi no Clover",
+    "妙子": "Taeko",
+    "常夏☆サンシャイン": "Tokonatsu☆Sunshine",
+    "強風オールバック": "Kyoufuu All Back",
+    "恋になりたいAQUARIUM": "Koi ni Naritai AQUARIUM",
+    "恋ひ恋ふ縁": "Koi Kou Enishi",
+    "悪魔の踊り方": "Akuma no Odorikata",
+    "我ら!": "Warera!",
+    "劣等上等": "BRING IT ON",
+    "妄想感傷代償連盟": "Mousou Kanshou Daishou Renmei",
+    "少女交響曲": "Shoujo Koukyoukyoku",
+    "輝夜の城で踊りたい": "Kaguya no Shiro de Odoritai",
+    "虹色Passions!": "Nijiiro Passions!",
+    "骸骨楽団とリリア": "Gaikotsu Gakudan to Lilia",
+    "神っぽいな": "God-ish",
+    "硝子の花園": "Garasu no Hanazono",
+    "金曜日のおはよう": "Kinyoubi no Ohayou",
+    "刀ピークリスマスのテーマソング2023": "TouPea Christmas 2023",
+    "ノンフィクション!!": "Nonfiction!!",
+    "オトモダチフィルム": "Otomodachi Film",
+    "自力本願レボリューション": "Jiriki Hongan Revolution",
+    "花ハ踊レヤいろはにほ": "Hana wa Odoreya Irohaniho",
+    "コンプレックス・イマージュ": "complex image",
+    "カレンダーガール": "Calendar Girl",
+    "愛してるばんざーい!": "Aishiteru Banzai!",
+    "クレイジー・ビート": "Crazy Beat",
+    "うまるん体操": "Umarun Taisou",
+    "千本桜": "Senbonzakura",
+    "まいたけダンス": "Maitake Dance",
+    "それは僕たちの奇跡": "Sore wa Bokutachi no Kiseki",
+    "えれくとりっく・えんじぇぅ": "Electric Angel",
+    "青空Jumping Heart": "Aozora Jumping Heart",
+    "シュビドゥビ☆スイーツタイム": "Shubidubi☆Sweets Time",
+    "元気全開 DAY! DAY! DAY!": "Genki Zenkai DAY! DAY! DAY!",
+}
+
+VIDEO_ID = "default"
+ACR_ONLY = False
+SKIP_RECOG = False
+
+def parse_args():
+    global VIDEO_ID, ACR_ONLY, SKIP_RECOG
+    args = sys.argv[1:]
+    
+    if "acrcloud" in [a.lower() for a in args]:
+        ACR_ONLY = True
+        args = [a for a in args if a.lower() != "acrcloud"]
+    
+    if "skip" in [a.lower() for a in args]:
+        SKIP_RECOG = True
+        args = [a for a in args if a.lower() != "skip"]
+
+    if args:
+        VIDEO_ID = args[0]
+    else:
+        VIDEO_ID = "default"
 
 def format_timestamp_for_youtube(total_seconds):
     m, s = divmod(int(round(float(total_seconds))), 60)
@@ -79,12 +254,10 @@ def format_timestamp_for_youtube(total_seconds):
     return f"{h}:{m:02d}:{s:02d}" if h > 0 else f"{m}:{s:02d}"
 
 def ensure_audio(video_id, video_dir):
-    # Get true duration from YouTube first to validate existing/new files
     true_duration = 0
     try:
         duration_cmd = ["yt-dlp", "--get-duration", f"https://www.youtube.com/watch?v={video_id}"]
         dur_str = subprocess.check_output(duration_cmd).decode('utf-8').strip()
-        # Handle formats like 1:20:30 or 5:10
         parts = list(map(int, dur_str.split(':')))
         if len(parts) == 3: true_duration = parts[0]*3600 + parts[1]*60 + parts[2]
         elif len(parts) == 2: true_duration = parts[0]*60 + parts[1]
@@ -92,91 +265,39 @@ def ensure_audio(video_id, video_dir):
     except:
         print("[DL] Warning: Could not fetch true duration from YouTube for validation.")
 
-    # Check for existing audio in the video directory
     for ext in ['m4a', 'mp3', 'webm', 'mp4']:
         path = video_dir / f"audio.{ext}"
         if path.exists():
-            # Validate existing file against YouTube duration
             try:
                 probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(path)]
                 local_dur = float(subprocess.check_output(probe_cmd).decode('utf-8').strip())
-                
-                # If local file is more than 5 seconds shorter than YT, it's truncated
                 if true_duration > 0 and local_dur < (true_duration - 5):
-                    print(f"[INFO] Existing file {path.name} is truncated ({int(local_dur)}s / {int(true_duration)}s). Deleting.")
                     path.unlink()
                     continue
-            except:
-                pass
-            
+            except: pass
             if path.exists():
                 print(f"[INFO] Using existing audio: {path.name}")
                 return path
-    
-    # Check root for backward compatibility
-    for ext in ['m4a', 'mp3', 'webm', 'mp4']:
-        old_path = Path(f"full_audio_{video_id}.{ext}")
-        if old_path.exists():
-            new_path = video_dir / f"audio.{ext}"
-            old_path.rename(new_path)
-            print(f"[INFO] Moved and using: {new_path.name}")
-            return new_path
 
     path = video_dir / "audio.m4a"
-    # Note: Using bestaudio/best to get high bitrate (Opus/AAC)
     base_cmd = [
-        "yt-dlp", 
-        "-f", "bestaudio/best",
-        "-x", "--audio-format", "m4a",
+        "yt-dlp", "-f", "bestaudio/best", "-x", "--audio-format", "m4a",
         "--no-check-certificates",
         "--extractor-args", "youtube:player-client=android,ios;player-skip=webpage,configs",
-        "-o", str(video_dir / "audio.%(ext)s"), 
-        f"https://www.youtube.com/watch?v={video_id}"
+        "-o", str(video_dir / "audio.%(ext)s"), f"https://www.youtube.com/watch?v={video_id}"
     ]
 
     for attempt in range(3):
         try:
             cmd = base_cmd.copy()
             if attempt == 1:
-                print(f"[DL] Retry 1: Trying m3u8 (HLS) formats...")
-                # HLS streams often bypass the token/SABR restrictions
-                cmd = [
-                    "yt-dlp", "-f", "bestaudio[protocol=m3u8_native]/bestaudio", "-x", "--audio-format", "m4a",
-                    "-o", str(video_dir / "audio.%(ext)s"),
-                    f"https://www.youtube.com/watch?v={video_id}"
-                ]
+                cmd = ["yt-dlp", "-f", "bestaudio[protocol=m3u8_native]/bestaudio", "-x", "--audio-format", "m4a", "-o", str(video_dir / "audio.%(ext)s"), f"https://www.youtube.com/watch?v={video_id}"]
             elif attempt == 2:
-                print(f"[DL] Retry 2: Trying basic web client fallback...")
-                cmd = [
-                    "yt-dlp", "-f", "ba/b", "-x", "--audio-format", "m4a",
-                    "--extractor-args", "youtube:player-client=web;player-skip=webpage",
-                    "-o", str(video_dir / "audio.%(ext)s"),
-                    f"https://www.youtube.com/watch?v={video_id}"
-                ]
-            
+                cmd = ["yt-dlp", "-f", "ba/b", "-x", "--audio-format", "m4a", "--extractor-args", "youtube:player-client=web;player-skip=webpage", "-o", str(video_dir / "audio.%(ext)s"), f"https://www.youtube.com/watch?v={video_id}"]
             subprocess.run(cmd, check=True)
-            
-            # Validation: Check if file exists and has reasonable size/duration
             if path.exists():
-                try:
-                    probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(path)]
-                    local_dur = float(subprocess.check_output(probe_cmd).decode('utf-8').strip())
-                    
-                    if true_duration > 0 and local_dur < (true_duration - 5):
-                        print(f"[DL] WARNING: Downloaded file is truncated ({int(local_dur)}s / {int(true_duration)}s).")
-                        path.unlink()
-                        continue
-                except Exception as probe_err:
-                    print(f"[DL] Probe failed: {probe_err}")
-                    pass
-                
-                print(f"[DL] Extraction complete and validated.")
                 return path
-        except Exception as e:
-            print(f"[DL] Attempt {attempt+1} failed: {e}")
-            if attempt < 2:
-                time.sleep(2)
-    
+        except: time.sleep(2)
     return None
 
 class BridgeHandler(BaseHTTPRequestHandler):
@@ -187,332 +308,341 @@ class BridgeHandler(BaseHTTPRequestHandler):
         query = parse_qs(urlparse(self.path).query)
         if '/add_mark' in self.path:
             ts = query.get('ts', ['0'])[0]
-            logger.info(f"[MARKER] Received: {ts}")
-            MARK_QUEUE.put_nowait(ts)
+            if MAIN_LOOP:
+                MAIN_LOOP.call_soon_threadsafe(MARK_QUEUE.put_nowait, ts)
             self.send_response(200); self.send_header('Access-Control-Allow-Origin', '*'); self.end_headers(); self.wfile.write(b'{"status":"queued"}')
+        elif '/status' in self.path:
+            self.send_response(200)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            self.end_headers()
+            
+            # Determine status message
+            status_msg = ""
+            if IS_SESSION_DONE:
+                status_msg = "All identified! Finishing..."
+            elif IS_FINISHED:
+                processing_count = sum(1 for v in RESULTS.values() if v == "Processing...")
+                if processing_count > 0:
+                    status_msg = f"Still identifying {processing_count} songs..."
+                else:
+                    unidentified_count = sum(1 for v in RESULTS.values() if v == "Unidentified")
+                    if unidentified_count > 0:
+                        status_msg = f"Starting cleanup for {unidentified_count} gaps"
+                    else:
+                        status_msg = "All identified! Finishing..."
+
+            response = json.dumps({
+                "seek_ts": CURRENT_SEEK_TS, 
+                "candidates": CLEANUP_CANDIDATES,
+                "status_msg": status_msg,
+                "marks": sorted(RESULTS.keys(), key=shared_utils.parse_ts) if IS_FINISHED else []
+            })
+            self.wfile.write(response.encode('utf-8'))
+        elif '/select' in self.path:
+            choice = query.get('choice', [None])[0]
+            if choice and MAIN_LOOP:
+                MAIN_LOOP.call_soon_threadsafe(SELECTION_QUEUE.put_nowait, choice)
+            self.send_response(200); self.send_header('Access-Control-Allow-Origin', '*'); self.end_headers(); self.wfile.write(b'{"status":"ok"}')
 
 def start_server():
-    HTTPServer(('localhost', PORT), BridgeHandler).serve_forever()
+    HTTPServer(('127.0.0.1', PORT), BridgeHandler).serve_forever()
 
-async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippets_dir):
+async def map_japanese_to_english(title_clean, track_id, shazam_en=None):
+    en_name = None
+    for map_key, map_val in JAPANESE_TO_ENGLISH_MAP.items():
+        if title_clean.startswith(map_key):
+            en_name = map_val
+            break
+    if not en_name and track_id and shazam_en:
+        try:
+            en_data = await shazam_en.track_about(int(track_id))
+            en_title = en_data['track'].get('title') if isinstance(en_data, dict) and 'track' in en_data else (en_data['title'] if isinstance(en_data, dict) and 'title' in en_data else getattr(en_data, 'title', None))
+            if en_title and en_title.lower() != title_clean.lower():
+                en_name = en_title
+        except: pass
+    return en_name
+
+def strip_extra_info(text):
     """
-    Attempts to identify a song using temporary files.
-    Phase 1: Try Shazam for all windows.
-    Phase 2: If Shazam fails, try Local Memory for all windows.
+    Precisely removes tags like '(Instrumental)', '[Instrumental]', '(feat. ...)', '[feat.]', '(Ver...)', '(Edit...)', '(Vocal...)', '(mix)', and '(サイズ)'
+    Handles nested parentheses/brackets (one level).
     """
+    if not text: return text
+    # 1. Remove (Instrumental)
+    text = re.sub(r'\s*\([Ii]nstrumental\)', '', text)
+    # 2. Remove (feat. ...)
+    text = re.sub(r'\s*\([Ff]eat\.(?:[^()]|\([^()]*\))*\)', '', text)
+    # 3. Remove anything in () that contains "ver", "edit", or "vocal" (case-insensitive)
+    pattern_extra = r'\s*\((?=[^)]*?(?:[Vv][Ee][Rr]|[Ee][Dd][Ii][Tt]|[Vv][Oo][Cc][Aa][Ll]))(?:[^()]|\([^()]*\))*\)'
+    text = re.sub(pattern_extra, '', text)
+    # 4. Remove anything in () that contains "サイズ" (Japanese for "size", e.g., "(TVサイズ)")
+    pattern_size = r'\s*\((?=[^)]*?サイズ)(?:[^()]|\([^()]*\))*\)'
+    text = re.sub(pattern_size, '', text)
+    # 5. Remove anything in () that contains "mix" (case-insensitive, e.g., "(Remix)", "(Extended Mix)")
+    pattern_mix = r'\s*\((?=[^)]*?mix)(?:[^()]|\([^()]*\))*\)'
+    text = re.sub(pattern_mix, '', text)
+    # 6. Remove any square-bracket tag regardless of content (e.g., "[Remix]", "[feat. ...]", "[TV Size]")
+    text = re.sub(r'\s*\[[^\]]*\]', '', text)
+    return text
+
+def strip_shared_tags(ja, en):
+    """
+    If both titles have the same (...) content, remove it from both before comparison.
+    Handles nested parentheses.
+    """
+    if not ja or not en: return ja, en
+    paren_pattern = r'\((?:[^()]|\([^()]*\))*\)'
+    ja_tags = re.findall(paren_pattern, ja)
+    en_tags = re.findall(paren_pattern, en)
+    for tag_with_parens in ja_tags:
+        if tag_with_parens in en_tags:
+            safe_tag = re.escape(tag_with_parens)
+            ja = re.sub(r'\s*' + safe_tag, '', ja)
+            en = re.sub(r'\s*' + safe_tag, '', en)
+    return ja, en
+
+async def identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippets_dir, is_last_segment=False):
     sliding_windows = shared_utils.get_optimal_sliding_windows(gap)
+    if not ACR_ONLY:
+        logger.debug(f"Starting Phase 1: Shazam Identification ({len(sliding_windows)} windows)")
+        for i, (offset, d) in enumerate(sliding_windows):
+            logger.debug(f"  [Shazam] Attempt {i+1}/{len(sliding_windows)}: Offset +{offset}s, Dur {d}s")
+            temp_name = snippets_dir / f"seg_{int(time.time())}_shazam.wav"
+            cmd = ["ffmpeg", "-y", "-ss", str(current_sec + offset), "-t", str(d), "-i", str(audio_path), "-vn", "-loglevel", "error", str(temp_name)]
+            try:
+                subprocess.run(cmd, check=True)
+                if not temp_name.exists(): continue
+                # 1. Try Shazam (JP Only for direct ID)
+                async def recognize_shazam(client, file_path):
+                    try: return await client.recognize(file_path)
+                    except: return None
+                
+                out = await recognize_shazam(shazam, str(temp_name))
+                
+                if out and 'track' in out:
+                    track = out['track']
+                    logger.debug(f"  [RAW SHAZAM] {track['title']} - {track['subtitle']}")
+                    title_clean = shared_utils.clean_title(track['title'])
+                    artist = track['subtitle']
+                    track_id = track.get('key')
+                    en_name = await map_japanese_to_english(title_clean, track_id, shazam_en)
+                    title_clean, en_name = strip_shared_tags(title_clean, en_name)
+                    title_clean = strip_extra_info(title_clean)
+                    if en_name: en_name = strip_extra_info(en_name)
+                    if en_name and en_name.lower() not in title_clean.lower(): title_clean = f"{title_clean} ({en_name})"
+                    full_match_name = f"{title_clean} - {artist}"
+                    if full_match_name in SHAZAM_REMAP: full_match_name = SHAZAM_REMAP[full_match_name]
+                    full_match_name = apply_substring_remap(full_match_name)
+                    full_match_name = apply_user_phrase_replace(full_match_name)
+                    logger.info(f"  [MATCH - SHAZAM] {full_match_name}")
+                    return full_match_name
+            except Exception as e: logger.error(f"  [Shazam] Error: {e}")
+            finally:
+                if temp_name.exists(): 
+                    try: temp_name.unlink()
+                    except: pass
+    else: logger.info("  [SKIP] Phase 1 (Shazam) skipped due to ACR_ONLY mode.")
 
-    # --- Phase 1: Shazam ---
-    logger.debug(f"Starting Phase 1: Shazam Identification ({len(sliding_windows)} windows)")
-    for offset, d in sliding_windows:
-        logger.debug(f"  Shazam Attempt {sliding_windows.index((offset, d)) + 1}/{len(sliding_windows)}: offset +{offset}s...")
-        
-        temp_name = snippets_dir / f"seg_{int(time.time())}_shazam.wav"
-        cmd = [
-            "ffmpeg", "-y", "-ss", str(current_sec + offset), "-t", str(d), "-i", str(audio_path),
-            "-vn", "-ar", "16000", "-ac", "1", "-acodec", "pcm_s16le",
-            "-f", "wav", "-loglevel", "error", str(temp_name)
-        ]
-        
+    logger.debug(f"Starting Phase 2: ACRCloud Fallback ({len(sliding_windows)} windows)")
+    for i, (offset, d) in enumerate(sliding_windows):
+        logger.debug(f"  [ACRCloud] Attempt {i+1}/{len(sliding_windows)}: Offset +{offset}s, Dur {d}s")
+        temp_name = snippets_dir / f"seg_{int(time.time())}_acr.wav"
+        cmd = ["ffmpeg", "-y", "-ss", str(current_sec + offset), "-t", str(d), "-i", str(audio_path), "-vn", "-loglevel", "error", str(temp_name)]
         try:
             subprocess.run(cmd, check=True)
-            if not temp_name.exists() or temp_name.stat().st_size < 1000:
-                continue
-
-            async def recognize_with_retry(client, file_path):
-                try:
-                    return await asyncio.wait_for(client.recognize(file_path), timeout=15)
-                except:
-                    return None
-
-            out = await recognize_with_retry(shazam, str(temp_name))
-            if not (out and 'track' in out):
-                out = await recognize_with_retry(shazam_en, str(temp_name))
-
-            if out and 'track' in out:
-                track = out['track']
-                original_title = track['title']
-                artist = track['subtitle']
-                track_id = track.get('key')
-
-                if artist.lower() in ["moonbooter", "generic artist"]:
-                    logger.debug(f"  Discarding false positive: {original_title} - {artist}")
-                else:
-                    title = shared_utils.clean_title(original_title)
-                    en_name = None
-
-                    if track_id:
-                        try:
-                            en_data = await shazam_en.track_about(int(track_id))
-                            en_track = Serialize.track(data=en_data)
-                            if en_track.title:
-                                cleaned_shazam_en = shared_utils.clean_title(en_track.title)
-                                # Only keep en_name if it's actually different from the Japanese title
-                                if cleaned_shazam_en.lower() != title.lower():
-                                    en_name = cleaned_shazam_en
-                        except: pass
-
-                    if title in JAPANESE_TO_ENGLISH_MAP:
-                        en_name = JAPANESE_TO_ENGLISH_MAP[title]
-
-                    # Only append en_name if it's not already contained in the title
-                    if en_name and en_name.lower() not in title.lower():
-                        title = f"{title} ({en_name})"
-
-                    found_name = f"{title} - {artist}"
-                    logger.info(f"  [MATCH] {found_name}")
-                    return found_name
-
-        except Exception as e:
-            logger.error(f"  Shazam window failed: {e}")
+            if not temp_name.exists(): continue
+            acr_match = await acrcloud.recognize(str(temp_name), access_key=ACR_CONFIG['access_key'], access_secret=ACR_CONFIG['access_secret'], host=ACR_CONFIG['host'])
+            if acr_match:
+                logger.debug(f"  [RAW ACRCLOUD] {acr_match}")
+                if " - " in acr_match:
+                    title, artist = acr_match.rsplit(" - ", 1)
+                    title_clean = shared_utils.clean_title(title)
+                    en_name = await map_japanese_to_english(title_clean, None, shazam_en)
+                    title_clean, en_name = strip_shared_tags(title_clean, en_name)
+                    title_clean = strip_extra_info(title_clean)
+                    if en_name: en_name = strip_extra_info(en_name)
+                    if en_name and en_name.lower() not in title_clean.lower(): title_clean = f"{title_clean} ({en_name})"
+                    acr_match = f"{title_clean} - {artist}"
+                    if acr_match in SHAZAM_REMAP: acr_match = SHAZAM_REMAP[acr_match]
+                    acr_match = apply_substring_remap(acr_match)
+                    acr_match = apply_user_phrase_replace(acr_match)
+                logger.info(f"  [MATCH - ACRCLOUD] {acr_match}")
+                return acr_match
+        except Exception as e: logger.error(f"  [ACRCloud] Error: {e}")
         finally:
-            if temp_name.exists(): temp_name.unlink()
-
-    # --- Phase 2: Local Memory ---
-    logger.debug("Starting Phase 2: Local Memory Fallback (High-Density Consensus Scan)")
-    local_windows = shared_utils.get_local_matching_windows(gap)
-    
-    votes = {} # name -> [scores]
-    
-    for offset, d in local_windows:
-        logger.debug(f"  Local Attempt {local_windows.index((offset, d)) + 1}/{len(local_windows)}: offset +{offset}s...")
-        
-        temp_name = snippets_dir / f"seg_{int(time.time())}_local.wav"
-        cmd = [
-            "ffmpeg", "-y", "-ss", str(current_sec + offset), "-t", str(d), "-i", str(audio_path),
-            "-vn", "-ar", "22050", "-ac", "1", "-acodec", "pcm_s16le",
-            "-f", "wav", "-loglevel", "error", str(temp_name)
-        ]
-        
-        try:
-            subprocess.run(cmd, check=True)
-            if not temp_name.exists() or temp_name.stat().st_size < 1000:
-                continue
-
-            sr_in, data_in = wav.read(str(temp_name))
-            y_in = data_in.astype(np.float32) / 32768.0
-            fp_in = extract_features(y_in, sr_in)
-            
-            # Use lower threshold 0.85 for "voting" but we'll be stricter in the end
-            hit_name, hit_score, top = dna_matcher.find_match(fp_in, threshold=0.85)
-            
-            if hit_name:
-                if hit_name not in votes: votes[hit_name] = []
-                votes[hit_name].append(hit_score)
-                logger.debug(f"    Window +{offset}s: Voted for '{hit_name}' ({hit_score:.3f})")
-            elif top:
-                logger.debug(f"    Window +{offset}s: No high match. Top candidate: {top[0][0]} ({top[0][1]:.3f})")
-
-        except Exception as local_err:
-            logger.debug(f"    Local window failed: {local_err}")
-        finally:
-            if temp_name.exists(): temp_name.unlink()
-            
-    # --- Election Results ---
-    if not votes:
-        return "Unidentified"
-        
-    # Sort candidates by number of votes, then by average score
-    candidates = []
-    for name, scores in votes.items():
-        avg_score = sum(scores) / len(scores)
-        candidates.append({
-            "name": name,
-            "votes": len(scores),
-            "avg": avg_score,
-            "max": max(scores)
-        })
-    
-    candidates.sort(key=lambda x: (x["votes"], x["avg"]), reverse=True)
-    winner = candidates[0]
-    
-    logger.debug(f"Election Results: {len(candidates)} candidates found.")
-    for c in candidates[:3]:
-        logger.debug(f"  - {c['name']}: {c['votes']} votes, Avg Similarity {c['avg']:.3f}")
-
-    # DECISION LOGIC:
-    # 1. Clear Winner: At least 2 votes AND avg similarity >= 0.9
-    if winner["votes"] >= 2 and winner["avg"] >= 0.9:
-        logger.info(f"  [LOCAL MATCH] {winner['name']} (Consensus: {winner['votes']} windows agreed, Avg {winner['avg']:.3f})")
-        return winner["name"]
-    
-    # 2. Strong Single: Only 1 vote but very high similarity (> 0.96)
-    if winner["votes"] == 1 and winner["max"] >= 0.96:
-        logger.info(f"  [LOCAL MATCH] {winner['name']} (High Single Match: {winner['max']:.3f})")
-        return winner["name"]
-
-    logger.info(f"  [DISCARD] No consensus reached. Winner '{winner['name']}' had {winner['votes']} votes but failed safety checks.")
-    return "Unidentified"
+            if temp_name.exists(): 
+                try: temp_name.unlink()
+                except: pass
+    logger.info("  [FINAL RESULT] Unidentified"); return "Unidentified"
 
 async def main():
-
-    global VIDEO_ID
-
-    VIDEO_ID = get_video_id()
-
-    # 1. Setup Directory Structure
+    global VIDEO_ID, MAIN_LOOP, RESULTS, IS_FINISHED, IS_SESSION_DONE
+    MAIN_LOOP = asyncio.get_running_loop()
+    parse_args()
     video_dir = Path.cwd() / "runs" / VIDEO_ID
     video_dir.mkdir(parents=True, exist_ok=True)
-
     progress_file = video_dir / "progress.json"
     youtube_out = video_dir / "results.txt"
     snippets_dir = video_dir / "snippets"
     if not snippets_dir.exists(): snippets_dir.mkdir()
 
-    # Backward compatibility: Move files from root to runs folder
-    old_progress = Path.cwd() / f"progress_{VIDEO_ID}.json"
-    if old_progress.exists() and not progress_file.exists():
-        old_progress.rename(progress_file)
-    
-    old_txt = Path.cwd() / f"youtube_comments_{VIDEO_ID}.txt"
-    if old_txt.exists() and not youtube_out.exists():
-        old_txt.rename(youtube_out)
-
-    # 2. Start Server IMMEDIATELY so browser can mark while we download
     threading.Thread(target=start_server, daemon=True).start()
     logger.info(f"[START] Video ID: {VIDEO_ID}")
     logger.info(f"Files stored in: {video_dir}")
     logger.info(f"Server listening on port {PORT}. YOU CAN START MARKING NOW.")
 
-    results = {}
     insertion_order = []
-    marker_arrival_times = {} # Track when we first saw a marker for Undo protection
+    marker_arrival_times = {}
 
     if progress_file.exists():
-        with progress_file.open("r", encoding="utf-8") as f:
-            raw_results = json.load(f)
-        # Normalize keys to h:m:s format on load
-        results = {format_timestamp_for_youtube(shared_utils.parse_ts(k)): v for k, v in raw_results.items()}
-        # Restore insertion order from saved results, assuming chronological for existing files
-        insertion_order = sorted(results.keys(), key=shared_utils.parse_ts)
-        for m in results:
-            if results[m] == "":
-                results[m] = "Processing..."
-            else:
-                # Apply filter to existing entries but keep them if already identified/failed
-                results[m] = shared_utils.format_song_entry(results[m])
-            # For loaded files, we assume they are "old enough" to process immediately
-            marker_arrival_times[m] = 0 
+        with progress_file.open("r", encoding="utf-8") as f: raw_results = json.load(f)
+        RESULTS = {format_timestamp_for_youtube(shared_utils.parse_ts(k)): v for k, v in raw_results.items()}
+        insertion_order = sorted(RESULTS.keys(), key=shared_utils.parse_ts)
+        for m in RESULTS:
+            marker_arrival_times[m] = 0
+            if RESULTS[m] == "" or RESULTS[m] is None: RESULTS[m] = "Processing..."
 
     shazam = Shazam(language='ja-JP', endpoint_country='JP')
     shazam_en = Shazam(language='en-US', endpoint_country='US')
-
-    # 3. Download audio
     audio_path = ensure_audio(VIDEO_ID, video_dir)
-    if not audio_path:
-        logger.error("Could not obtain audio file. Exiting.")
-        return
+    if not audio_path: return
 
-    is_finished = False
+    def save_state():
+        with progress_file.open("w", encoding="utf-8") as f: json.dump(RESULTS, f, ensure_ascii=False, indent=2)
+        with youtube_out.open("w", encoding="utf-8", newline='') as f:
+            for m in sorted(RESULTS.keys(), key=shared_utils.parse_ts):
+                val = shared_utils.format_song_entry(RESULTS[m])
+                if val == "Unidentified": val = ""
+                f.write(f"{m} {val}\n")
+
+    if SKIP_RECOG:
+        logger.info("[SKIP] Bypassing identification. Moving to cleanup.")
+        for m in RESULTS:
+            if RESULTS[m] == "Processing...": RESULTS[m] = "Unidentified"
+        IS_FINISHED = True; save_state()
+
+    async def queue_worker():
+        global IS_FINISHED
+        while True:
+            ts = await MARK_QUEUE.get()
+            try:
+                if ts == "[FINISH]": IS_FINISHED = True; continue
+                if ts == "[UNDO]":
+                    if insertion_order:
+                        last_added = insertion_order.pop()
+                        logger.info(f"[UNDO] Removed: {last_added}")
+                        if last_added in RESULTS: del RESULTS[last_added]
+                    else: logger.warning("[UNDO] Requested but no markers to remove.")
+                    save_state(); continue
+                ts_formatted = format_timestamp_for_youtube(ts)
+                logger.info(f"[MARKER] Received: {ts_formatted}")
+                if ts_formatted not in RESULTS:
+                    RESULTS[ts_formatted] = "Processing..."; insertion_order.append(ts_formatted);
+                save_state()
+            finally: MARK_QUEUE.task_done()
+
+    worker_task = asyncio.create_task(queue_worker())
 
     while True:
-        queue_processed = False
-        while not MARK_QUEUE.empty():
-            ts = await MARK_QUEUE.get()
-            queue_processed = True
-            if ts == "[FINISH]": is_finished = True; continue
-            if ts == "[UNDO]":
-                if insertion_order:
-                    last_added = insertion_order.pop()
-                    if last_added in results:
-                        del results[last_added]
-                        if last_added in marker_arrival_times: del marker_arrival_times[last_added]
-                continue
-            
-            ts_formatted = format_timestamp_for_youtube(ts)
-            if ts_formatted not in results:
-                results[ts_formatted] = "Processing..."
-                insertion_order.append(ts_formatted)
-                marker_arrival_times[ts_formatted] = time.time()
-        
-        if queue_processed:
-            # Save state immediately after queue actions (Mark/Undo)
-            with progress_file.open("w", encoding="utf-8") as f: 
-                json.dump(results, f, ensure_ascii=False, indent=2)
-            with youtube_out.open("w", encoding="utf-8", newline='') as f:
-                current_keys = sorted(results.keys(), key=shared_utils.parse_ts)
-                for m in current_keys:
-                    f.write(f"{m} {shared_utils.format_song_entry(results[m])}\n")
-
-        sorted_keys = sorted(results.keys(), key=shared_utils.parse_ts)
+        sorted_keys = sorted(RESULTS.keys(), key=shared_utils.parse_ts)
         target = None
-        
-        # Logic: Process "Processing..." markers ONLY if the NEXT marker is 10s old (Undo protection)
         for i, m in enumerate(sorted_keys):
-            if results[m] == "Processing...":
-                # Check if we have a next marker to define the gap
-                if i + 1 < len(sorted_keys):
-                    next_m = sorted_keys[i+1]
-                    # Only process if the marker that ENDS this gap has existed for 10 seconds
-                    # This gives the user time to UNDO that next marker if it was a mistake.
-                    if is_finished or (time.time() - marker_arrival_times.get(next_m, 0) > 10):
-                        target = m; break
-                else:
-                    # It's the last marker. We only process it if FINISH was pressed.
-                    if is_finished:
-                        target = m; break
+            if RESULTS[m] == "Processing...":
+                if i + 2 < len(sorted_keys) or IS_FINISHED: target = m; break
         
-        if target:
+        if target and not SKIP_RECOG:
             idx = sorted_keys.index(target)
             current_sec = shared_utils.parse_ts(target)
-            
-            # Get video duration for the last marker gap calculation
             video_duration = 0
             try:
                 probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)]
                 video_duration = float(subprocess.check_output(probe_cmd).decode('utf-8').strip())
-            except:
-                pass
-
+            except: pass
             gap = (shared_utils.parse_ts(sorted_keys[idx + 1]) - current_sec) if idx + 1 < len(sorted_keys) else (video_duration - current_sec if video_duration > current_sec else 120.0)
             logger.info(f"[TARGET] {target} (Gap: {gap:.1f}s)")
-            
-            found_name = await identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippets_dir)
+            found_name = await identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippets_dir, (idx + 1 == len(sorted_keys)))
+            if target in RESULTS:
+                RESULTS[target] = shared_utils.format_song_entry(found_name) if found_name != "Unidentified" else "Unidentified"
+                save_state()
+        elif IS_FINISHED and not any(res == "Processing..." for res in RESULTS.values()):
+            worker_task.cancel()
+            try: await worker_task
+            except asyncio.CancelledError: pass
 
-            # Verify the target hasn't been UNDONE during processing
-            if target in results:
-                # Format before saving to results so JSON is also clean
-                cleaned_name = shared_utils.format_song_entry(found_name) if found_name and found_name != "Unidentified" else "Unidentified"
-                results[target] = cleaned_name
-                
-                with progress_file.open("w", encoding="utf-8") as f: 
-                    json.dump(results, f, ensure_ascii=False, indent=2)
-                with youtube_out.open("w", encoding="utf-8", newline='') as f:
-                    current_keys = sorted(results.keys(), key=shared_utils.parse_ts)
-                    for m in current_keys:
-                        f.write(f"{m} {results[m]}\n")
-            else:
-                logger.warning(f"[DISCARD] {target} was undone during processing.")
-        elif is_finished and not any(res == "Processing..." for res in results.values()):
-            logger.info("[COMPLETE]")
+            missed_file = Path("list_of_missed_songs_by_shazam.txt")
+            if missed_file.exists():
+                with open(missed_file, "r", encoding="utf-8") as f: candidates = [line.strip() for line in f if line.strip()]
+                unidentified_keys = [k for k in sorted(RESULTS.keys(), key=shared_utils.parse_ts) if RESULTS[k] == "Unidentified"]
+                if candidates and unidentified_keys:
+                    global CLEANUP_CANDIDATES, CURRENT_SEEK_TS
+                    candidates.sort(key=lambda x: x.lower())
+                    CLEANUP_CANDIDATES = candidates
+                    video_duration = 0
+                    try:
+                        probe_cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)]
+                        video_duration = float(subprocess.check_output(probe_cmd).decode('utf-8').strip())
+                    except: pass
+
+                    all_keys = sorted(RESULTS.keys(), key=shared_utils.parse_ts)
+                    quit_cleanup = False
+                    for k in unidentified_keys:
+                        if quit_cleanup: break
+                        idx = all_keys.index(k)
+                        start_sec = shared_utils.parse_ts(k)
+                        logger.info(f"[CLEANUP] Current Gap: {k}")
+                        CURRENT_SEEK_TS = int(start_sec)
+                        choice = await SELECTION_QUEUE.get()
+                        if choice == 'q': quit_cleanup = True; break
+                        if choice == 's': continue
+                        try:
+                            if str(choice).startswith('+'):
+                                selected = str(choice)[1:].strip()
+                                RESULTS[k] = selected
+                                logger.info(f"✓ Manually Added: {selected}")
+                                if selected not in candidates: candidates.append(selected)
+                                candidates.sort(key=lambda x: x.lower()); CLEANUP_CANDIDATES = candidates
+                                with open(missed_file, "w", encoding="utf-8") as f:
+                                    for c in candidates: f.write(c + "\n")
+                                save_state(); continue
+                            val = int(choice)
+                            if 0 <= val < len(candidates):
+                                selected = candidates[val]; RESULTS[k] = selected; logger.info(f"✓ Assigned: {selected}"); save_state()
+                        except: pass
+                    CLEANUP_CANDIDATES = []; CURRENT_SEEK_TS = -1
             
-            # Export unidentified.json
             unidentified_data = {}
-            sorted_keys = sorted(results.keys(), key=shared_utils.parse_ts)
+            sorted_keys = sorted(RESULTS.keys(), key=shared_utils.parse_ts)
             for i, m in enumerate(sorted_keys):
-                if results[m] == "Unidentified":
+                if RESULTS[m] == "Unidentified":
                     next_m = sorted_keys[i+1] if i+1 < len(sorted_keys) else "END"
-                    unidentified_data[m] = {
-                        "end": next_m,
-                        "name": ""
-                    }
-            
+                    unidentified_data[m] = {"end": next_m, "name": ""}
             if unidentified_data:
                 unidentified_file = video_dir / "unidentified.json"
-                with unidentified_file.open("w", encoding="utf-8") as f:
-                    json.dump(unidentified_data, f, ensure_ascii=False, indent=2)
+                with unidentified_file.open("w", encoding="utf-8") as f: json.dump(unidentified_data, f, ensure_ascii=False, indent=2)
                 logger.info(f"[EXPORT] Created {unidentified_file.name}")
-                logger.info(f"[INFO] Audio file preserved for learning: {audio_path.name}")
             else:
-                # Clean up audio file ONLY if everything was identified
                 if audio_path and audio_path.exists():
                     try:
                         audio_path.unlink()
                         logger.info(f"[CLEANUP] Deleted audio file: {audio_path.name}")
-                    except Exception as e:
-                        logger.error(f"Failed to delete audio file: {e}")
+                    except: pass
             
-            break
+            # Open results.txt in Notepad++
+            try:
+                if youtube_out.exists():
+                    npp_path = r'C:\Program Files\Notepad++\notepad++.exe'
+                    if os.path.exists(npp_path):
+                        subprocess.Popen([npp_path, str(youtube_out)])
+                        logger.info(f"[OPEN] results.txt opened in Notepad++")
+                    else:
+                        subprocess.Popen(f'start notepad++ "{youtube_out}"', shell=True)
+                        logger.info("[OPEN] results.txt opened via notepad++ command")
+            except Exception as e: logger.warning(f"[OPEN] Could not open results in Notepad++: {e}")
+
+            logger.info("="*60); logger.info(" SESSION COMPLETE"); logger.info("="*60); 
+            IS_SESSION_DONE = True; await asyncio.sleep(2); break
         else: await asyncio.sleep(1)
 
 if __name__ == "__main__":
