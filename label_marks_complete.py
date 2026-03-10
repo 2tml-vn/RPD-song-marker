@@ -75,8 +75,8 @@ SONG_OVERRIDES = {}
 # Display format template — customize how song names appear in output.
 # Variables: {ori_song}, {int_song}, {ori_artist}, {int_artist}
 # Sections in [...] are optional: only included if all variables inside have values.
-DISPLAY_FORMAT = "{ori_song}[ ({int_song})][ - {ori_artist}][ ({int_artist})]"
 
+DISPLAY_FORMAT = "{ori_artist} - {ori_song} [ ({int_song})]"
 # User-defined phrase replacements: if song name contains the phrase, replace with the set song name
 # Format: ("phrase to find", "replacement song name")
 USER_PHRASE_REPLACE = [
@@ -137,6 +137,8 @@ def format_display_name(ori_song, int_song=None, ori_artist=None, int_artist=Non
     result = re.sub(r'\[([^\]]*)\]', replace_optional, DISPLAY_FORMAT)
     for var_name, val in variables.items():
         result = result.replace('{' + var_name + '}', val)
+    # Collapse multiple consecutive spaces into one
+    result = re.sub(r'  +', ' ', result)
     return result.strip()
 
 def auto_register_song(ori_song, int_song=None, ori_artist=None, int_artist=None):
