@@ -179,9 +179,11 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
             int_song = override_data.get('intl')
             logger.debug(f"[RESOLVE] intl_override=True → int_song='{int_song}'")
         else:
-            # Try Shazam EN API first, fallback to stored intl
-            int_song = None
-            if track_id and shazam_en:
+            # Use stored intl first, fallback to Shazam EN API
+            int_song = override_data.get('intl')
+            if int_song:
+                logger.debug(f"[RESOLVE] Using stored intl: '{int_song}'")
+            elif track_id and shazam_en:
                 try:
                     en_data = await shazam_en.track_about(int(track_id))
                     en_title = en_data['track'].get('title') if isinstance(en_data, dict) and 'track' in en_data else (en_data['title'] if isinstance(en_data, dict) and 'title' in en_data else getattr(en_data, 'title', None))
@@ -191,13 +193,6 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None):
                         logger.debug(f"[RESOLVE] After strip_extra_info: int_song='{int_song}'")
                 except Exception as e:
                     logger.debug(f"[RESOLVE] Shazam EN API failed: {e}")
-            if not int_song:
-                int_song = override_data.get('intl')
-                logger.debug(f"[RESOLVE] Fallback to stored intl: '{int_song}'")
-            # Skip if same as original
-            if int_song and int_song.lower() == ori_song.lower():
-                logger.debug(f"[RESOLVE] int_song same as ori_song, setting to None")
-                int_song = None
 
         # Resolve artist
         ori_artist = override_data.get('artist_orig') if override_data.get('artist_orig_override') else artist
