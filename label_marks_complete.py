@@ -96,9 +96,10 @@ def load_song_overrides():
     logger.info(f"[OVERRIDES] Loaded {len(SONG_OVERRIDES)} entries from {SONG_OVERRIDES_FILE.name}")
 
 def save_song_overrides():
-    """Save song name overrides to JSON file."""
+    """Save song name overrides to JSON file (sorted alphabetically by key)."""
+    sorted_overrides = dict(sorted(SONG_OVERRIDES.items(), key=lambda x: x[0].lower()))
     with open(SONG_OVERRIDES_FILE, "w", encoding="utf-8") as f:
-        json.dump(SONG_OVERRIDES, f, ensure_ascii=False, indent=2)
+        json.dump(sorted_overrides, f, ensure_ascii=False, indent=2)
 
 def lookup_song_override(title):
     """

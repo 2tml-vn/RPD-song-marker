@@ -1,123 +1,44 @@
 {
-  "悪ノ娘": {
-    "intl": "The Daughter of Evil"
-  },
-  "悪ノ召使": {
-    "intl": "The Servant of Evil"
-  },
-  "にこぷり♡女子道": {
-    "intl": "Nicopuri ♡ Joshidou"
-  },
-  "コールボーイ": {
-    "intl": "Call Boy"
-  },
-  "踊れオーケストラ": {
-    "intl": "Odore Orchestra"
-  },
-  "罰ゲーム": {
-    "intl": "Batsugame"
-  },
-  "ハム太郎 とっとこうた": {
-    "intl": "Hamutaro Tottoko Uta"
-  },
-  "テレキャスタービーボーイ": {
-    "intl": "Telecaster B-boy"
-  },
-  "めっちゃGoing!!": {
-    "intl": "Meccha Going!!"
-  },
-  "ドキピポ☆エモーション": {
-    "intl": "Dokipipo☆Emotion"
-  },
-  "微熱からMystery": {
-    "intl": "Binetsu kara Mystery"
-  },
-  "おこちゃま戦争": {
-    "intl": "Okochama Sensou"
-  },
-  "敦盛2011": {
-    "intl": "Atsumori 2011"
-  },
-  "잘자요 아가씨": {
-    "intl": "Good Night Ojosama"
-  },
-  "最低で最高のParadiso": {
-    "intl": "Saitei de Saikou no Paradis"
-  },
-  "トリコリコPLEASE!!": {
-    "intl": "Torikoriko PLEASE!!"
-  },
-  "キセキヒカル": {
-    "intl": "Kiseki Hikaru"
-  },
-  "ラブノベルス": {
-    "intl": "Love Novels"
-  },
-  "未熟DREAMER": {
-    "intl": "Mijuku DREAMER"
-  },
-  "想いよひとつになれ": {
-    "intl": "Omoi yo Hitotsu ni Nare"
-  },
-  "ダイヤモンドプリンセスの憂鬱": {
-    "intl": "Diamond Princess no Yuuutsu"
-  },
-  "乙姫心で恋宮殿": {
-    "intl": "Otohime Heart de Love Kyuuden"
-  },
-  "金色千夜夢舞台": {
-    "intl": "Konjiki Senya Yumebutai"
-  },
-  "スリリング・ワンウェイ": {
-    "intl": "Thrilling・One Way"
-  },
-  "完璧ぐ~のね": {
-    "intl": "Kanpekigu No Ne"
-  },
-  "知らないLove*教えてLove": {
-    "intl": "Shiranai Love*Oshiete Love"
-  },
-  "夏への扉 Never end ver.": {
-    "intl": "The Door Towards Summer Never end ver."
-  },
-  "思い出以上になりたくて": {
-    "intl": "Omoide Ijou ni Naritakute"
-  },
-  "ユメノトビラ": {
-    "intl": "Yume no Tobira"
-  },
-  "ぷわぷわーお!": {
-    "intl": "Puwa Puwa-O!"
-  },
-  "サンシャインぴっかぴか音頭": {
-    "intl": "Sanshain Pikkapika Ondo"
-  },
-  "ベノム": {
-    "intl": "Venom"
-  },
-  "フレンド革命": {
-    "intl": "Friend Revolution"
-  },
-  "こころのたまご": {
-    "intl": "Kokoro no Tamago"
-  },
-  "ハイドアンド·シーク": {
-    "intl": "Hide And Seek"
-  },
   "#あくあ色ぱれっと": {
     "intl": "Aqua Iro Paretto"
+  },
+  "cLick cRack": {
+    "intl_override": true,
+    "artist_orig": "ギガP",
+    "artist_orig_override": true
+  },
+  "FUN☆FUN☆わんだふるDAYS!": {
+    "intl": "FUN☆FUN☆Wonderful DAYS!",
+    "intl_override": true
   },
   "OIDEMASE!!〜極楽〜": {
     "intl": "OIDEMASE!!〜gokuraku〜"
   },
-  "もぎゅっと\"love\"で接近中!": {
-    "intl": "Mogyutto \u201clove\u201d de Sekkin Chuu!"
+  "Special♡Spell": {
+    "intl_override": true,
+    "artist_orig": "きゅるりんってしてみて",
+    "artist_orig_override": true
   },
-  "アユミ☆マジカルショータイム": {
-    "intl": "Ayumi☆Magical Showtime"
+  "あんさんぶる体操！！": {
+    "intl": "Ensemble Taisou!!",
+    "intl_override": true
   },
-  "リリリリ★バーニングナイト": {
-    "intl": "Lily Lily ☆ Burning Night"
+  "うまぴょい伝説": {
+    "intl": "Umapyoi Densetsu",
+    "intl_override": true
+  },
+  "うまるん体操": {
+    "intl": "Umarun Taisou"
+  },
+  "えれくとりっく・えんじぇぅ": {
+    "intl": "Electric Angel"
+  },
+  "おこちゃま戦争": {
+    "intl": "Okochama Sensou"
+  },
+  "おちゃめ機能": {
+    "intl": "Mischievous Function",
+    "intl_override": true
   },
   "おジャ魔女カーニバル!!": {
     "intl": "Ojamajo Carnival!!"
@@ -125,29 +46,26 @@
   "お返事まだカナ?おじさん構文!": {
     "intl": "Ohenji Mada Kana? Ojisan Koubun!"
   },
+  "こころのたまご": {
+    "intl": "Kokoro no Tamago"
+  },
   "これからのSomeday": {
     "intl": "Korekara no Someday"
   },
   "さらば、佳き日": {
     "intl": "Saraba, Yoki Hi"
   },
-  "スイートマジック": {
-    "intl": "Sweet Magic"
-  },
-  "ステップ!": {
-    "intl": "STEP!"
+  "それは僕たちの奇跡": {
+    "intl": "Sore wa Bokutachi no Kiseki"
   },
   "だってだって噫無情": {
     "intl": "Datte Datte Aa Mujou"
   },
-  "ハッピーシンセサイザ": {
-    "intl": "Happy Synthesizer"
+  "にこぷり♡女子道": {
+    "intl": "Nicopuri ♡ Joshidou"
   },
-  "ハレ晴レユカイ": {
-    "intl": "Hare Hare Yukai"
-  },
-  "ビターチョコデコレーション": {
-    "intl": "Bitter Choco Decoration"
+  "ぷわぷわーお!": {
+    "intl": "Puwa Puwa-O!"
   },
   "ぽっぴっぽー": {
     "intl": "PoPiPo"
@@ -158,8 +76,102 @@
   "みんなだいすき": {
     "intl": "Minna Daisuki"
   },
+  "めっちゃGoing!!": {
+    "intl": "Meccha Going!!"
+  },
+  "もぎゅっと\"love\"で接近中!": {
+    "intl": "Mogyutto “love” de Sekkin Chuu!"
+  },
   "もっとはやくそれになりたい！": {
     "intl": "Motto Hayaku Sore ni Naritai!"
+  },
+  "アイドル活動!": {
+    "intl": "Idol Activity!",
+    "intl_override": true
+  },
+  "アユミ☆マジカルショータイム": {
+    "intl": "Ayumi☆Magical Showtime"
+  },
+  "オトモダチフィルム": {
+    "intl": "Otomodachi Film"
+  },
+  "カレンダーガール": {
+    "intl": "Calendar Girl"
+  },
+  "キセキヒカル": {
+    "intl": "Kiseki Hikaru"
+  },
+  "クレイジー・ビート": {
+    "intl": "Crazy Beat"
+  },
+  "コンプレックス・イマージュ": {
+    "intl": "complex image"
+  },
+  "コールボーイ": {
+    "intl": "Call Boy"
+  },
+  "サインはB": {
+    "intl": "Sign wa B",
+    "intl_override": true
+  },
+  "サンシャインぴっかぴか音頭": {
+    "intl": "Sanshain Pikkapika Ondo"
+  },
+  "シュビドゥビ☆スイーツタイム": {
+    "intl": "Shubidubi☆Sweets Time"
+  },
+  "スイートマジック": {
+    "intl": "Sweet Magic"
+  },
+  "ステップ!": {
+    "intl": "STEP!"
+  },
+  "スリリング・ワンウェイ": {
+    "intl": "Thrilling・One Way"
+  },
+  "ダイヤモンドプリンセスの憂鬱": {
+    "intl": "Diamond Princess no Yuuutsu"
+  },
+  "テレキャスタービーボーイ": {
+    "intl": "Telecaster B-boy"
+  },
+  "トリコリコPLEASE!!": {
+    "intl": "Torikoriko PLEASE!!"
+  },
+  "トレセン音頭": {
+    "intl": "Tracen Ondo",
+    "intl_override": true
+  },
+  "ドキピポ☆エモーション": {
+    "intl": "Dokipipo☆Emotion"
+  },
+  "ニッポン笑顔百景": {
+    "intl": "Nippon Egao Hyakkei",
+    "intl_override": true
+  },
+  "ノンフィクション!!": {
+    "intl": "Nonfiction!!"
+  },
+  "ハイドアンド·シーク": {
+    "intl": "Hide And Seek"
+  },
+  "ハッピーシンセサイザ": {
+    "intl": "Happy Synthesizer"
+  },
+  "ハム太郎 とっとこうた": {
+    "intl": "Hamutaro Tottoko Uta"
+  },
+  "ハレ晴レユカイ": {
+    "intl": "Hare Hare Yukai"
+  },
+  "ビターチョコデコレーション": {
+    "intl": "Bitter Choco Decoration"
+  },
+  "フレンド革命": {
+    "intl": "Friend Revolution"
+  },
+  "ベノム": {
+    "intl": "Venom"
   },
   "メグメグ☆ファイアーエンドレスナイト": {
     "intl": "MEGUMEGU☆FIRE ENDLESS NIGHT"
@@ -167,14 +179,30 @@
   "メランコリック": {
     "intl": "Melancholic"
   },
+  "ユメノトビラ": {
+    "intl": "Yume no Tobira"
+  },
+  "ラブノベルス": {
+    "intl": "Love Novels"
+  },
+  "リリリリ★バーニングナイト": {
+    "intl": "Lily Lily ☆ Burning Night"
+  },
   "ルカルカ★ナイトフィーバー": {
     "intl": "Luka Luka ★ Night Fever"
   },
   "ロミオとシンデレラ": {
     "intl": "Romeo and Cinderella"
   },
+  "ワーワーワールド": {
+    "intl": "Wah Wah World",
+    "intl_override": true
+  },
   "一等星のニュアンス": {
     "intl": "Ittousei no Nuance"
+  },
+  "乙姫心で恋宮殿": {
+    "intl": "Otohime Heart de Love Kyuuden"
   },
   "僕たちはひとつの光": {
     "intl": "Bokutachi wa Hitotsu no Hikari"
@@ -182,23 +210,57 @@
   "僕らは今のなかで": {
     "intl": "Bokura wa Ima no Naka de"
   },
+  "元気全開 DAY! DAY! DAY!": {
+    "intl": "Genki Zenkai DAY! DAY! DAY!"
+  },
   "全速ドリーマー": {
     "intl": "Zensoku Dreamer"
+  },
+  "刀ピークリスマスのテーマソング2023": {
+    "intl": "TouPea Christmas 2023"
+  },
+  "劣等上等": {
+    "intl": "BRING IT ON"
+  },
+  "千本桜": {
+    "intl": "Senbonzakura"
   },
   "君のこころは輝いてるかい?": {
     "intl": "Kimi no Kokoro wa Kagayaiteru kai?"
   },
+  "君色に染まる": {
+    "intl": "kimiiro ni somaru",
+    "intl_override": true
+  },
   "告白実行委員会": {
     "intl": "Kokuhaku Jikkou Iinkai"
+  },
+  "夏への扉 Never end ver.": {
+    "intl": "The Door Towards Summer Never end ver."
   },
   "夏色えがおで1,2,Jump!": {
     "intl": "Natsuiro Egao de 1,2,Jump!"
   },
+  "夜もすがら君想ふ": {
+    "intl": "Yomosugara Kimi Omou",
+    "intl_override": true,
+    "artist_orig": "TOKOTOKO(西沢さんP)",
+    "artist_orig_override": true
+  },
   "天使のクローバー": {
     "intl": "Tenshi no Clover"
   },
+  "妄想感傷代償連盟": {
+    "intl": "Mousou Kanshou Daishou Renmei"
+  },
   "妙子": {
     "intl": "Taeko"
+  },
+  "完璧ぐ~のね": {
+    "intl": "Kanpekigu No Ne"
+  },
+  "少女交響曲": {
+    "intl": "Shoujo Koukyoukyoku"
   },
   "常夏☆サンシャイン": {
     "intl": "Tokonatsu☆Sunshine"
@@ -206,133 +268,53 @@
   "強風オールバック": {
     "intl": "Kyoufuu All Back"
   },
+  "微熱からMystery": {
+    "intl": "Binetsu kara Mystery"
+  },
+  "思い出以上になりたくて": {
+    "intl": "Omoide Ijou ni Naritakute"
+  },
   "恋になりたいAQUARIUM": {
     "intl": "Koi ni Naritai AQUARIUM"
   },
   "恋ひ恋ふ縁": {
     "intl": "Koi Kou Enishi"
   },
+  "悪ノ召使": {
+    "intl": "The Servant of Evil"
+  },
+  "悪ノ娘": {
+    "intl": "The Daughter of Evil"
+  },
   "悪魔の踊り方": {
     "intl": "Akuma no Odorikata"
   },
-  "我ら!": {
-    "intl": "Warera!"
-  },
-  "劣等上等": {
-    "intl": "BRING IT ON"
-  },
-  "妄想感傷代償連盟": {
-    "intl": "Mousou Kanshou Daishou Renmei"
-  },
-  "少女交響曲": {
-    "intl": "Shoujo Koukyoukyoku"
-  },
-  "輝夜の城で踊りたい": {
-    "intl": "Kaguya no Shiro de Odoritai"
-  },
-  "虹色Passions!": {
-    "intl": "Nijiiro Passions!"
-  },
-  "骸骨楽団とリリア": {
-    "intl": "Gaikotsu Gakudan to Lilia"
-  },
-  "神っぽいな": {
-    "intl": "God-ish"
-  },
-  "硝子の花園": {
-    "intl": "Garasu no Hanazono"
-  },
-  "刀ピークリスマスのテーマソング2023": {
-    "intl": "TouPea Christmas 2023"
-  },
-  "ノンフィクション!!": {
-    "intl": "Nonfiction!!"
-  },
-  "オトモダチフィルム": {
-    "intl": "Otomodachi Film"
-  },
-  "自力本願レボリューション": {
-    "intl": "Jiriki Hongan Revolution"
-  },
-  "花ハ踊レヤいろはにほ": {
-    "intl": "Hana wa Odoreya Irohaniho"
-  },
-  "コンプレックス・イマージュ": {
-    "intl": "complex image"
-  },
-  "カレンダーガール": {
-    "intl": "Calendar Girl"
+  "想いよひとつになれ": {
+    "intl": "Omoi yo Hitotsu ni Nare"
   },
   "愛してるばんざーい!": {
     "intl": "Aishiteru Banzai!"
   },
-  "クレイジー・ビート": {
-    "intl": "Crazy Beat"
+  "我ら!": {
+    "intl": "Warera!"
   },
-  "うまるん体操": {
-    "intl": "Umarun Taisou"
+  "敦盛2011": {
+    "intl": "Atsumori 2011"
   },
-  "千本桜": {
-    "intl": "Senbonzakura"
+  "最低で最高のParadiso": {
+    "intl": "Saitei de Saikou no Paradis"
   },
-  "それは僕たちの奇跡": {
-    "intl": "Sore wa Bokutachi no Kiseki"
+  "未熟DREAMER": {
+    "intl": "Mijuku DREAMER"
   },
-  "えれくとりっく・えんじぇぅ": {
-    "intl": "Electric Angel"
+  "知らないLove*教えてLove": {
+    "intl": "Shiranai Love*Oshiete Love"
   },
-  "青空Jumping Heart": {
-    "intl": "Aozora Jumping Heart"
+  "硝子の花園": {
+    "intl": "Garasu no Hanazono"
   },
-  "シュビドゥビ☆スイーツタイム": {
-    "intl": "Shubidubi☆Sweets Time"
-  },
-  "元気全開 DAY! DAY! DAY!": {
-    "intl": "Genki Zenkai DAY! DAY! DAY!"
-  },
-  "うまぴょい伝説": {
-    "intl": "Umapyoi Densetsu",
-    "intl_override": true
-  },
-  "サインはB": {
-    "intl": "Sign wa B",
-    "intl_override": true
-  },
-  "トレセン音頭": {
-    "intl": "Tracen Ondo",
-    "intl_override": true
-  },
-  "おちゃめ機能": {
-    "intl": "Mischievous Function",
-    "intl_override": true
-  },
-  "アイドル活動!": {
-    "intl": "Idol Activity!",
-    "intl_override": true
-  },
-  "あんさんぶる体操！！": {
-    "intl": "Ensemble Taisou!!",
-    "intl_override": true
-  },
-  "君色に染まる": {
-    "intl": "kimiiro ni somaru",
-    "intl_override": true
-  },
-  "金曜日のおはよう": {
-    "intl": "Kinyoubi no Ohayou",
-    "intl_override": true
-  },
-  "ニッポン笑顔百景": {
-    "intl": "Nippon Egao Hyakkei",
-    "intl_override": true
-  },
-  "FUN☆FUN☆わんだふるDAYS!": {
-    "intl": "FUN☆FUN☆Wonderful DAYS!",
-    "intl_override": true
-  },
-  "ワーワーワールド": {
-    "intl": "Wah Wah World",
-    "intl_override": true
+  "神っぽいな": {
+    "intl": "God-ish"
   },
   "神のまにまに": {
     "intl": "Kamino Manimani",
@@ -340,20 +322,38 @@
     "artist_orig": "れるりり",
     "artist_orig_override": true
   },
-  "Special♡Spell": {
-    "intl_override": true,
-    "artist_orig": "きゅるりんってしてみて",
-    "artist_orig_override": true
+  "罰ゲーム": {
+    "intl": "Batsugame"
   },
-  "cLick cRack": {
-    "intl_override": true,
-    "artist_orig": "ギガP",
-    "artist_orig_override": true
+  "自力本願レボリューション": {
+    "intl": "Jiriki Hongan Revolution"
   },
-  "夜もすがら君想ふ": {
-    "intl": "Yomosugara Kimi Omou",
-    "intl_override": true,
-    "artist_orig": "TOKOTOKO(西沢さんP)",
-    "artist_orig_override": true
+  "花ハ踊レヤいろはにほ": {
+    "intl": "Hana wa Odoreya Irohaniho"
+  },
+  "虹色Passions!": {
+    "intl": "Nijiiro Passions!"
+  },
+  "踊れオーケストラ": {
+    "intl": "Odore Orchestra"
+  },
+  "輝夜の城で踊りたい": {
+    "intl": "Kaguya no Shiro de Odoritai"
+  },
+  "金曜日のおはよう": {
+    "intl": "Kinyoubi no Ohayou",
+    "intl_override": true
+  },
+  "金色千夜夢舞台": {
+    "intl": "Konjiki Senya Yumebutai"
+  },
+  "青空Jumping Heart": {
+    "intl": "Aozora Jumping Heart"
+  },
+  "骸骨楽団とリリア": {
+    "intl": "Gaikotsu Gakudan to Lilia"
+  },
+  "잘자요 아가씨": {
+    "intl": "Good Night Ojosama"
   }
 }
