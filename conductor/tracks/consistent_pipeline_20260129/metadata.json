@@ -1,8 +1,0 @@
-{
-  "track_id": "consistent_pipeline_20260129",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-01-29T07:43:00Z",
-  "updated_at": "2026-01-29T07:43:00Z",
-  "description": "Implement Consensus Matching and frame-level normalization to eliminate false positives in local identification."
-}
