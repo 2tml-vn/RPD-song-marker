@@ -178,10 +178,16 @@ async def _identify_with_acrcloud(
     offset: float,
     audio_path: Path,
     sliding_windows: list,
-    i: int
+    i: int,
+    collect_raw: Optional[list] = None,
 ) -> Optional[str]:
     """
     Attempt song identification using ACRCloud.
+
+    Args:
+        collect_raw: optional list that each raw acr_result dict is appended
+            to (even when DB resolve fails/discards), so callers such as the
+            /acr_identify endpoint can surface full ACRCloud details.
 
     Returns:
         Song name if identified, None otherwise
@@ -201,7 +207,16 @@ async def _identify_with_acrcloud(
         )
 
         if acr_result:
-            logger.info(" [RAW ACRCLOUD] %s - %s (en: %s)", acr_result['title'], acr_result['artist'], acr_result.get('en_title'))
+            if collect_raw is not None:
+                try:
+                    collect_raw.append(acr_result)
+                except Exception:
+                    pass
+            logger.info(
+                " [RAW ACRCLOUD] (window %d/%d @ %.1fs) %s - %s (en: %s)",
+                i + 1, len(sliding_windows), current_sec + offset,
+                acr_result['title'], acr_result['artist'], acr_result.get('en_title'),
+            )
 
             title_clean = shared_utils.clean_title(acr_result['title'])
             artist = acr_result['artist']

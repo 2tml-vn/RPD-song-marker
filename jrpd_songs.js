@@ -8,6 +8,20 @@
 
 // NOTE: songListsCache and songListsLoading are defined in jrpd_state.js
 
+function getSongServerUrl() {
+    if (typeof getReviewServerUrl === "function") return getReviewServerUrl();
+    if (typeof getServerUrl === "function") return getServerUrl();
+    if (typeof jrpdGetServerBase === "function") return jrpdGetServerBase();
+    const hostname = window.location.hostname;
+    return hostname.includes('bilibili.com') ? 'http://192.168.100.108:5000' : 'http://127.0.0.1:5000';
+}
+
+function songFetch(url, options) {
+    if (typeof reviewFetch === "function") return reviewFetch(url, options);
+    if (typeof jrpdFetch === "function") return jrpdFetch(url, options);
+    return fetch(url, options);
+}
+
 /** Panel collapse state (persisted in localStorage) */
 const PANEL_PREFS_KEY = "jrpd-panel-prefs";
 let panelCollapsedState = { unified: false };
@@ -84,7 +98,7 @@ function createSongListPanels() {
 
     loadPanelCollapsePrefs();
 
-    const panelStyle = "position: fixed; top: 80px; width: 400px; height: 60vh; min-width: 250px; min-height: 200px; color: #eee; z-index: 9998; padding: 0; border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.6); display: none; flex-direction: column; font-family: Roboto, Arial, sans-serif; border: 1px solid #333; overflow: hidden;";
+    const panelStyle = "position: fixed; top: 80px; width: 400px; height: 60vh; min-width: 250px; min-height: 200px; color: #eee; z-index: 9998; padding: 0; border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.6); display: none; flex-direction: column; font-family: Roboto, Arial, sans-serif; border: 1px solid #333; overflow: hidden; resize: both;";
 
     // Unified Songs Panel
     const unifiedPanel = document.createElement("div");
@@ -97,13 +111,17 @@ function createSongListPanels() {
 
     const unifiedContent = createPanelContent("unified", "#1e1e2e");
     unifiedPanel.appendChild(unifiedContent);
-    document.body.appendChild(unifiedPanel);
+    (typeof jrpdOverlayParent === "function" ? jrpdOverlayParent() : document.body).appendChild(unifiedPanel);
 
     // Add song input section (created once during panel creation)
     addSongInputSection();
 
     // Apply initial collapse state
     applyCollapseState("unified", panelCollapsedState.unified);
+
+    // Restore user-customized size/position (independent of main panel) + enable drag/resize
+    restoreUnifiedGeometry();
+    enableUnifiedPanelDragResize();
 }
 
 /**
@@ -244,7 +262,9 @@ function applyCollapseState(panelType, collapsed) {
         }
     } else {
         if (content) content.style.display = "flex";
-        panel.style.height = "60vh";
+        // Restore user-resized height when available, else default.
+        const savedH = panelCollapsedState.unifiedH;
+        panel.style.height = (panel.dataset.userSized === "1" && savedH) ? savedH + "px" : "60vh";
         panel.style.minHeight = "200px";
         if (toggleBtn) {
             toggleBtn.textContent = "▼";
@@ -254,7 +274,87 @@ function applyCollapseState(panelType, collapsed) {
 }
 
 /**
+ * Restore saved geometry (size/position) for the unified panel.
+ * @returns {void}
+ */
+function restoreUnifiedGeometry() {
+    const panel = document.getElementById("jrpd-unified-panel");
+    if (!panel) return;
+    try {
+        if (panelCollapsedState.unifiedW) panel.style.width = panelCollapsedState.unifiedW + "px";
+        if (panelCollapsedState.unifiedH && !panelCollapsedState.unified) panel.style.height = panelCollapsedState.unifiedH + "px";
+        if (panelCollapsedState.unifiedMoved && panelCollapsedState.unifiedL != null && panelCollapsedState.unifiedT != null) {
+            panel.style.left = panelCollapsedState.unifiedL + "px";
+            panel.style.top = panelCollapsedState.unifiedT + "px";
+            panel.style.right = "auto";
+            panel.dataset.userMoved = "1";
+        }
+        if (panelCollapsedState.unifiedSized) panel.dataset.userSized = "1";
+    } catch (e) {}
+}
+
+/**
+ * Enable drag + independent resize persistence for the unified panel.
+ * Size/position are stored separately from the main results panel.
+ * @returns {void}
+ */
+function enableUnifiedPanelDragResize() {
+    const panel = document.getElementById("jrpd-unified-panel");
+    if (!panel || panel.dataset.dragInit === "1") return;
+    panel.dataset.dragInit = "1";
+    const header = panel.querySelector("div");
+    if (!header) return;
+
+    let isDragging = false, dragOffX = 0, dragOffY = 0;
+    header.addEventListener("mousedown", (e) => {
+        if (e.target.tagName === "BUTTON") return;
+        isDragging = true;
+        dragOffX = e.clientX - panel.offsetLeft;
+        dragOffY = e.clientY - panel.offsetTop;
+        header.style.cursor = "grabbing";
+        e.preventDefault();
+    });
+    document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        panel.style.left = (e.clientX - dragOffX) + "px";
+        panel.style.top = (e.clientY - dragOffY) + "px";
+        panel.style.right = "auto";
+    });
+    document.addEventListener("mouseup", () => {
+        if (!isDragging) return;
+        isDragging = false;
+        header.style.cursor = "pointer";
+        panel.dataset.userMoved = "1";
+        panelCollapsedState.unifiedL = panel.offsetLeft;
+        panelCollapsedState.unifiedT = panel.offsetTop;
+        panelCollapsedState.unifiedMoved = true;
+        savePanelCollapsePrefs();
+    });
+
+    let resizeTimer = null;
+    if (typeof ResizeObserver !== "undefined") {
+        new ResizeObserver(() => {
+            if (panel.style.display === "none") return;
+            if (resizeTimer) clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                const w = panel.offsetWidth;
+                const h = panel.offsetHeight;
+                if (w > 0 && h > 0 && !panelCollapsedState.unified) {
+                    panel.dataset.userSized = "1";
+                    panelCollapsedState.unifiedW = w;
+                    panelCollapsedState.unifiedH = h;
+                    panelCollapsedState.unifiedSized = true;
+                    savePanelCollapsePrefs();
+                }
+            }, 400);
+        }).observe(panel);
+    }
+}
+
+/**
  * Position the song panels relative to the results panel.
+ * Respects user-customized position/size: auto-placement only applies
+ * until the user manually drags or resizes the panel.
  * @returns {void}
  */
 function positionSongPanels() {
@@ -262,18 +362,30 @@ function positionSongPanels() {
     const unifiedPanel = document.getElementById("jrpd-unified-panel");
     if (!resultsPanel || !unifiedPanel) return;
 
+    const userMoved = unifiedPanel.dataset.userMoved === "1" || panelCollapsedState.unifiedMoved;
+    const userSized = unifiedPanel.dataset.userSized === "1" || panelCollapsedState.unifiedSized;
+    if (userMoved && userSized) return;
+
     const rRect = resultsPanel.getBoundingClientRect();
-    const panelW = 400;
+    const panelW = panelCollapsedState.unifiedW || 400;
     const gap = 10;
 
     const isCollapsed = panelCollapsedState["unified"];
     const width = isCollapsed ? unifiedPanel.offsetWidth : panelW;
-    
-    unifiedPanel.style.top = rRect.top + "px";
-    unifiedPanel.style.left = (rRect.left - gap - width) + "px";
-    unifiedPanel.style.right = "auto";
-    
-    if (!isCollapsed) {
+
+    if (!userMoved) {
+        // Position to left of results panel if space permits, else to right
+        let leftPos = rRect.left - gap - width;
+        if (leftPos < 10) {
+            leftPos = rRect.right + gap;
+        }
+
+        unifiedPanel.style.top = Math.max(10, rRect.top) + "px";
+        unifiedPanel.style.left = leftPos + "px";
+        unifiedPanel.style.right = "auto";
+    }
+
+    if (!isCollapsed && !userSized) {
         unifiedPanel.style.height = rRect.height + "px";
     }
 }
@@ -286,15 +398,15 @@ function positionSongPanels() {
 function showSongPanels(ts) {
     reviewSelectedTs = ts;
     createSongListPanels();
-    positionSongPanels();
 
     const unifiedPanel = document.getElementById("jrpd-unified-panel");
     if (unifiedPanel) unifiedPanel.style.display = "flex";
+    positionSongPanels();
 
     if (songListsCache) populateSongPanels(songListsCache);
     if (!songListsLoading) {
         songListsLoading = true;
-        fetch("http://127.0.0.1:5000/song_lists")
+        songFetch(`${getSongServerUrl()}/song_lists`)
             .then(r => r.json())
             .then(data => {
                 songListsCache = data;
@@ -450,11 +562,13 @@ function createSongItem(song) {
         const encodedTs = encodeURIComponent(capturedTs);
         const encodedSong = encodeURIComponent(song.display);
         const encodedOldSong = encodeURIComponent(oldSong);
-        fetch(`http://127.0.0.1:5000/update_result?ts=${encodedTs}&song=${encodedSong}&old_song=${encodedOldSong}`)
+        songFetch(`${getSongServerUrl()}/update_result?ts=${encodedTs}&song=${encodedSong}&old_song=${encodedOldSong}`)
         .then(r => r.json())
         .then(res => {
             if (res.replaced) {
                 showToast(`${capturedTs} → ${song.display}`, "#2e7d32");
+                // Assigning a song is an explicit fix: clear any manual-review flag
+                if (typeof unflagRow === "function") unflagRow(capturedTs);
                 // Try incremental update first (no flicker)
                 const updated = updateSingleResultRow(capturedTs, song.display);
                 if (!updated) {
@@ -548,7 +662,7 @@ function addSongInputSection() {
     	// Build the display string for the new song
     	const newSongDisplay = buildSongDisplay(key, intlInput?.value.trim(), artistInput?.value.trim(), artistIntlInput?.value.trim());
    
-    	fetch(`http://127.0.0.1:5000/add_song_and_update?${params.toString()}`)
+    	songFetch(`${getSongServerUrl()}/add_song_and_update?${params.toString()}`)
     	.then(r => r.json())
     	.then(res => {
     		if (res.status === "ok") {
@@ -558,6 +672,9 @@ function addSongInputSection() {
                     if (el) el.value = "";
                 });
                 // Try incremental update first (no flicker)
+                const capturedAddTs = reviewSelectedTs;
+                // Assigning a song is an explicit fix: clear any manual-review flag
+                if (typeof unflagRow === "function") unflagRow(capturedAddTs);
                 const updated = updateSingleResultRow(reviewSelectedTs, newSongDisplay);
                 if (!updated) {
                     // Fallback to full re-render if incremental update failed
@@ -587,9 +704,22 @@ function addSongInputSection() {
  * @param {string} [songArtistIntl] - International artist
  * @returns {void}
  */
-function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, songArtistIntl) {
+async function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, songArtistIntl) {
+    // Fetch full record so all possible fields are available (fallback to passed params)
+    let songData = {};
+    try {
+        const resp = await songFetch(`${getSongServerUrl()}/get_song_data?key=${encodeURIComponent(songKey)}`);
+        if (resp.ok) songData = await resp.json();
+    } catch (e) {
+        console.warn("JRPD: get_song_data failed, using cached values", e);
+    }
+    if (!songData.intl) songData.intl = songIntl || "";
+    if (!songData.artist_orig) songData.artist_orig = songArtistOrig || "";
+    if (!songData.artist_intl) songData.artist_intl = songArtistIntl || "";
+
     // Create overlay modal for editing
     const overlay = document.createElement("div");
+    overlay.className = "jrpd-modal-overlay";
     overlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center;";
 
     const modal = document.createElement("div");
@@ -601,16 +731,11 @@ function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, songAr
     title.style.color = "#82b1ff";
     modal.appendChild(title);
 
-    // Use raw values from song data (passed as parameters)
-    let currentIntl = songIntl || "";
-    let currentArtistOrig = songArtistOrig || "";
-    let currentArtistIntl = songArtistIntl || "";
-    
-    // Create form elements
+    // Create form elements (all possible song fields; empty ones auto-collapsed)
     const form = document.createElement("form");
     form.style.cssText = "display: flex; flex-direction: column; gap: 10px;";
     
-    // Song Key (readonly)
+    // Song Key (readonly, always visible)
     const keyLabel = document.createElement("label");
     keyLabel.textContent = "Song Key:";
     keyLabel.style.fontWeight = "bold";
@@ -622,42 +747,71 @@ function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, songAr
     keyInput.readOnly = true;
     keyInput.style.cssText = "padding: 6px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; margin-bottom: 10px;";
     form.appendChild(keyInput);
-    
-    // Intl Name
-    const intlLabel = document.createElement("label");
-    intlLabel.textContent = "International Name:";
-    form.appendChild(intlLabel);
-    
-    const intlInput = document.createElement("input");
-    intlInput.type = "text";
-    intlInput.value = currentIntl;
-    intlInput.placeholder = "Enter international name";
-    intlInput.style.cssText = "padding: 6px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; margin-bottom: 10px;";
-    form.appendChild(intlInput);
-    
-    // Original Artist
-    const artistOrigLabel = document.createElement("label");
-    artistOrigLabel.textContent = "Original Artist:";
-    form.appendChild(artistOrigLabel);
-    
-    const artistOrigInput = document.createElement("input");
-    artistOrigInput.type = "text";
-    artistOrigInput.value = currentArtistOrig;
-    artistOrigInput.placeholder = "Enter original artist";
-    artistOrigInput.style.cssText = "padding: 6px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; margin-bottom: 10px;";
-    form.appendChild(artistOrigInput);
-    
-    // International Artist
-    const artistIntlLabel = document.createElement("label");
-    artistIntlLabel.textContent = "International Artist:";
-    form.appendChild(artistIntlLabel);
-    
-    const artistIntlInput = document.createElement("input");
-    artistIntlInput.type = "text";
-    artistIntlInput.value = currentArtistIntl;
-    artistIntlInput.placeholder = "Enter international artist";
-    artistIntlInput.style.cssText = "padding: 6px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; margin-bottom: 15px;";
-    form.appendChild(artistIntlInput);
+
+    const textDefs = [
+        {key: "intl", label: "International Name:", placeholder: "Enter international name", title: ""},
+        {key: "artist_orig", label: "Original Artist:", placeholder: "Enter original artist", title: ""},
+        {key: "artist_intl", label: "International Artist:", placeholder: "Enter international artist", title: ""},
+        {key: "info", label: "Info:", placeholder: "Enter extra info (version, etc.)", title: ""},
+        {key: "remap", label: "Remap to (optional):", placeholder: "Enter target song name for remapping", title: "If set, this song name will be automatically remapped to the specified target on next identification"},
+    ];
+    const boolDefs = [
+        {key: "discard", label: "Discard (skip in identification)", title: "If checked, this song is ignored during identification"},
+        {key: "see_artist", label: "Require artist match (see_artist)", title: "If checked, title only matches when artist also matches"},
+        {key: "intl_override", label: "Force stored intl (intl_override)", title: "If checked, use stored intl without Shazam EN fallback"},
+    ];
+    const fieldInputs = {};
+    const emptyWrappers = [];
+    const inputStyle = "padding: 6px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; width: 100%; box-sizing: border-box;";
+
+    textDefs.forEach(def => {
+        const wrap = document.createElement("div");
+        wrap.style.cssText = "display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px;";
+        const lab = document.createElement("label");
+        lab.textContent = def.label;
+        wrap.appendChild(lab);
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.value = songData[def.key] || "";
+        inp.placeholder = def.placeholder;
+        if (def.title) inp.title = def.title;
+        inp.style.cssText = inputStyle;
+        wrap.appendChild(inp);
+        fieldInputs[def.key] = inp;
+        if ((songData[def.key] || "").toString().trim()) form.appendChild(wrap);
+        else emptyWrappers.push(wrap);
+    });
+
+    boolDefs.forEach(def => {
+        const wrap = document.createElement("div");
+        wrap.style.cssText = "display: flex; align-items: center; gap: 8px; margin-bottom: 10px;";
+        const inp = document.createElement("input");
+        inp.type = "checkbox";
+        inp.checked = !!songData[def.key];
+        inp.style.cssText = "width: 16px; height: 16px; cursor: pointer;";
+        if (def.title) inp.title = def.title;
+        const lab = document.createElement("label");
+        lab.textContent = def.label;
+        if (def.title) lab.title = def.title;
+        lab.style.cssText = "cursor: pointer; user-select: none;";
+        lab.onclick = () => { inp.checked = !inp.checked; };
+        wrap.appendChild(inp);
+        wrap.appendChild(lab);
+        fieldInputs[def.key] = inp;
+        if (songData[def.key]) form.appendChild(wrap);
+        else emptyWrappers.push(wrap);
+    });
+
+    if (emptyWrappers.length) {
+        const details = document.createElement("details");
+        details.style.cssText = "margin-bottom: 10px; border: 1px solid #444; border-radius: 4px; padding: 6px 8px;";
+        const summary = document.createElement("summary");
+        summary.textContent = `Show ${emptyWrappers.length} empty fields`;
+        summary.style.cssText = "cursor: pointer; color: #aaa; font-size: 12px; user-select: none;";
+        details.appendChild(summary);
+        emptyWrappers.forEach(w => { w.style.marginBottom = "8px"; w.style.marginTop = "8px"; details.appendChild(w); });
+        form.appendChild(details);
+    }
     
     // Buttons container
     const buttonsDiv = document.createElement("div");
@@ -673,7 +827,7 @@ function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, songAr
     cancelBtn.textContent = "Cancel";
     cancelBtn.style.cssText = "padding: 8px 16px; background: #757575; color: white; border: none; border-radius: 4px; cursor: pointer;";
     cancelBtn.onclick = () => {
-        document.body.removeChild(overlay);
+        overlay.remove();
     };
     
     buttonsDiv.appendChild(cancelBtn);
@@ -683,22 +837,22 @@ function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, songAr
     form.onsubmit = (e) => {
         e.preventDefault();
     
-        // Prepare form data for POST request
+        // Prepare form data for POST request (all fields; empty text = delete, unchecked = false/remove)
         const params = new URLSearchParams();
         params.append('key', songKey);
-        params.append('intl', intlInput.value.trim());
-        params.append('artist_orig', artistOrigInput.value.trim());
-        params.append('artist_intl', artistIntlInput.value.trim());
+        ["intl", "artist_orig", "artist_intl", "info", "remap"].forEach(k => {
+            params.append(k, (fieldInputs[k] ? fieldInputs[k].value.trim() : ""));
+        });
+        ["discard", "see_artist", "intl_override"].forEach(k => {
+            params.append(k, (fieldInputs[k] && fieldInputs[k].checked) ? "1" : "0");
+        });
     
         // DEBUG: Log what's being sent
         console.log("JRPD: [DEBUG] Sending update_song_vars request");
         console.log("JRPD: [DEBUG] songKey:", songKey);
-        console.log("JRPD: [DEBUG] intl:", intlInput.value.trim());
-        console.log("JRPD: [DEBUG] artist_orig:", artistOrigInput.value.trim());
-        console.log("JRPD: [DEBUG] artist_intl:", artistIntlInput.value.trim());
         console.log("JRPD: [DEBUG] params:", params.toString());
     
-        fetch('http://127.0.0.1:5000/update_song_vars', {
+        songFetch(`${getSongServerUrl()}/update_song_vars`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -710,7 +864,7 @@ function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, songAr
             if (res.status === "ok") {
                 showToast(`Updated song: ${songKey}`, "#2e7d32");
                 // Close modal and refresh the song lists
-                document.body.removeChild(overlay);
+                overlay.remove();
                 // Refresh the song lists to show updated values
                 if (songListsCache) {
                     // Capture current search value before refresh
@@ -719,7 +873,7 @@ function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, songAr
                     
                     // Clear cache to force refresh
                     songListsCache = null;
-                    fetch("http://127.0.0.1:5000/song_lists")
+                    songFetch(`${getSongServerUrl()}/song_lists`)
                     .then(r => r.json())
                     .then(data => {
                         songListsCache = data;
@@ -739,11 +893,11 @@ function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, songAr
         .catch(e => {
             console.error("JRPD: update_song_vars failed", e);
             showToast("Update failed", "#c62828");
-            document.body.removeChild(overlay);
+            overlay.remove();
         });
     };
     
     modal.appendChild(form);
     overlay.appendChild(modal);
-    document.body.appendChild(overlay);
+    (typeof jrpdOverlayParent === "function" ? jrpdOverlayParent() : document.body).appendChild(overlay);
 }

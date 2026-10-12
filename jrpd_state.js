@@ -1,6 +1,20 @@
 // JRPD State Variables
 // Shared state across all JRPD modules
 
+// Central server host config (Fix 4: single source of truth).
+// Override via localStorage 'jrpd-server-host' if your LAN IP changes.
+var JRPD_LOCAL_HOST = 'http://127.0.0.1:5000';
+var JRPD_BILIBILI_HOST = 'http://192.168.100.108:5000';
+
+function jrpdGetServerBase() {
+    try {
+        const override = localStorage.getItem('jrpd-server-host');
+        if (override) return override;
+    } catch (e) {}
+    const hostname = window.location.hostname;
+    return hostname.includes('bilibili.com') ? JRPD_BILIBILI_HOST : JRPD_LOCAL_HOST;
+}
+
 let marks = [];
 let vid = "";
 let lastMarkTime = 0;
@@ -16,13 +30,12 @@ let reviewLastMtime = 0;
 let reviewLoopActive = false;
 let reviewActiveGapTs = null;
 let reviewSelectedTs = null;
+let panelAutoOpened = false; // auto-opened the results panel for current video (once per video)
 let songListsCache = null;
 let songListsLoading = false;
-let lastMarkedTimeDisplay = "--:--";
 
-// Heart-marked timestamps for review (session-only)
-let heartMarkedTimestamps = new Set();
+// Previous results snapshot for identification detection (ts -> song text; null = not initialized yet)
+let jrpdPrevResultsMap = null;
 
-// Time box drag state
-let timeBoxDragActive = false;
-let timeBoxDragOffset = { x: 0, y: 0 };
+// Flagged timestamps for manual review (persisted in localStorage, session-to-session)
+let flaggedTimestamps = new Set();

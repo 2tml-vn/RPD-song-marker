@@ -90,16 +90,31 @@ function createCleanupPanel() {
     btnRow.appendChild(quitBtn);
     panel.appendChild(btnRow);
 
-    document.body.appendChild(panel);
+    (typeof jrpdOverlayParent === "function" ? jrpdOverlayParent() : document.body).appendChild(panel);
+}
+
+function getCleanupServerUrl() {
+    if (typeof getSongServerUrl === "function") return getSongServerUrl();
+    if (typeof getReviewServerUrl === "function") return getReviewServerUrl();
+    if (typeof getServerUrl === "function") return getServerUrl();
+    if (typeof jrpdGetServerBase === "function") return jrpdGetServerBase();
+    return 'http://127.0.0.1:5000';
+}
+
+function cleanupFetch(url, options) {
+    if (typeof songFetch === "function") return songFetch(url, options);
+    if (typeof reviewFetch === "function") return reviewFetch(url, options);
+    if (typeof jrpdFetch === "function") return jrpdFetch(url, options);
+    return fetch(url, options);
 }
 
 function sendChoice(choice) {
     // Provide immediate visual feedback that a choice was made
     const list = document.getElementById("jrpd-candidate-list");
     if (list) list.style.opacity = "0.3";
-    
+
     const encodedChoice = encodeURIComponent(choice);
-    fetch(`http://127.0.0.1:5000/select?choice=${encodedChoice}`)
+    cleanupFetch(`${getCleanupServerUrl()}/select?choice=${encodedChoice}`)
         .then(() => {
             if (choice === "q") {
                 document.getElementById("jrpd-cleanup-panel").style.display = "none";

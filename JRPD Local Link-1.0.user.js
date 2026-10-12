@@ -10,5 +10,7 @@
 // @require      file:///D:/rpd/jrpd_results.js
 // @require      file:///D:/rpd/jrpd_songs.js
 // @require      file:///D:/rpd/jrpd_marker.user.js
-// @grant        none
+// @grant        GM_xmlhttpRequest
+// @grant        GM_log
+// @grant        unsafeWindow
 // ==/UserScript==

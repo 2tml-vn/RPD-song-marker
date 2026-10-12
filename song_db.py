@@ -165,7 +165,7 @@ def lookup_song_override(title, artist=None):
     """
     found_key = None
     found_data = None
-    
+
     if title in SONG_OVERRIDES:
         found_key = title
         found_data = SONG_OVERRIDES[title]
@@ -173,7 +173,7 @@ def lookup_song_override(title, artist=None):
         # O(1) lookup via reverse index instead of linear scan
         found_key = _INTL_INDEX[title]
         found_data = SONG_OVERRIDES[found_key]
-    
+
     if found_data and found_data.get('see_artist'):
         # Must match artist
         stored_artists = [found_data.get('artist_orig'), found_data.get('artist_intl')]
@@ -182,7 +182,7 @@ def lookup_song_override(title, artist=None):
         else:
             # Artist mismatch - return no match
             return None, None
-    
+
     return found_key, found_data
 
 
@@ -193,7 +193,15 @@ def auto_register_song(ori_song, int_song=None, ori_artist=None, int_artist=None
         return
     
     existing_key, existing_data = lookup_song_override(ori_song)
-    
+
+    if existing_key is None and ori_song in SONG_OVERRIDES:
+        # Blocked by a see_artist restriction: this title belongs to an
+        # entry reserved for another artist (e.g. a different song sharing
+        # the title). Leave it untouched instead of overwriting it with
+        # the other recording's data.
+        logger.debug(f"[OVERRIDES] Skipping auto-register for see_artist-blocked key: {ori_song}")
+        return
+
     if existing_key and existing_data:
         # Merge missing fields into existing entry
         updated = False

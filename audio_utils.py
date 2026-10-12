@@ -3,8 +3,11 @@ Audio utilities for JRPD marker system.
 Handles audio processing, text cleaning, and display formatting.
 """
 import re
+import queue
+import shutil
 import subprocess
 import sys
+import threading
 import time
 import logging
 from pathlib import Path
@@ -13,9 +16,59 @@ from shared_utils import format_timestamp_for_youtube  # Re-export for backward 
 
 logger = logging.getLogger("JRPD")
 
+_BILI_PART_SUFFIX_RE = re.compile(r'^(BV[0-9A-Za-z]+|av\d+|\d+)_p(\d+)$')
+_BILI_URL_PART_RE = re.compile(r'bilibili\.com/video/(BV[0-9A-Za-z]+|av\d+)')
+
+
+def split_bilibili_part(video_id: str):
+    """Split a session key like 'BVxxx_p2' into (base_id, part_number).
+
+    Returns (base_id, part) where part is None for bare ids.
+    """
+    if not video_id:
+        return video_id, None
+    v = video_id.strip()
+    m = _BILI_PART_SUFFIX_RE.match(v)
+    if m:
+        try:
+            return m.group(1), int(m.group(2))
+        except ValueError:
+            return m.group(1), None
+    return v, None
+
+
+def video_session_key(video_id: str) -> str:
+    """Derive a filesystem-safe session key for runs/<key>/.
+
+    - Full Bilibili URLs: '.../video/BVxxx?p=2' -> 'BVxxx_p2' (?p=1/missing -> 'BVxxx').
+    - Bare '_pN' keys pass through unchanged.
+    - Everything else passes through stripped.
+    """
+    if not video_id:
+        return "default"
+    v = video_id.strip()
+    if v.startswith("http://") or v.startswith("https://"):
+        m = _BILI_URL_PART_RE.search(v)
+        if m:
+            base = m.group(1)
+            pm = re.search(r'[?&]p=(\d+)', v)
+            try:
+                n = int(pm.group(1)) if pm else 1
+            except ValueError:
+                n = 1
+            return f"{base}_p{n}" if n > 1 else base
+        # Non-bilibili URLs: fall back to YouTube v= param when present
+        ym = re.search(r'[?&]v=([A-Za-z0-9_-]{11})', v)
+        if ym:
+            return ym.group(1)
+        return v
+    return v
+
+
 def normalize_video_url(video_id: str) -> str:
     """Normalize video identifier to a full URL for yt-dlp.
     Supports YouTube IDs/URLs and Bilibili BV/av IDs/URLs.
+    Bilibili multi-part keys ('BVxxx_p2') map to '?p=2' URLs.
     """
     if not video_id:
         return ""
@@ -23,6 +76,15 @@ def normalize_video_url(video_id: str) -> str:
     # Already a URL
     if v.startswith("http://") or v.startswith("https://"):
         return v
+    # Bilibili multi-part session key: BVxxx_p2 -> .../BVxxx?p=2
+    m = _BILI_PART_SUFFIX_RE.match(v)
+    if m:
+        base, part = m.group(1), m.group(2)
+        if base.startswith("BV"):
+            return f"https://www.bilibili.com/video/{base}?p={part}"
+        if base.startswith("av"):
+            return f"https://www.bilibili.com/video/{base}?p={part}"
+        return f"https://www.bilibili.com/video/av{base}?p={part}"
     # Bilibili BV id
     if v.startswith("BV") and len(v) >= 10:
         return f"https://www.bilibili.com/video/{v}"
@@ -47,10 +109,216 @@ def normalize_video_url(video_id: str) -> str:
 _yt_dlp_last_update = 0
 _yt_dlp_update_interval = 86400  # 24 hours in seconds
 
+# aria2c parallel-download args for yt-dlp (--external-downloader aria2c).
+# NOTE: Bilibili's CDN (upos-hz-mirrorakam) aggressively drops connections
+# when too many parallel range requests hit one URL (503 / EOF / TLS errors,
+# CN:16 decaying to CN:1 in logs). Keep Bilibili conservative at -x4/-s4;
+# YouTube tolerates more, so it gets -x8/-s8.
+# -k1M lets small audio files actually split; --file-allocation=none avoids
+# slow pre-allocation on Windows; retry/timeout flags let aria2c recover
+# from single-connection drops instead of aborting the whole transfer.
+_ARIA2C_ARGS_BILIBILI = (
+    "aria2c:-x 4 -s 4 -k 1M --file-allocation=none --check-certificate=false "
+    "--retry-wait=3 --max-tries=5 --timeout=60 --connect-timeout=20 "
+    "--allow-overwrite=true --auto-file-renaming=false --conditional-get=true"
+)
+_ARIA2C_ARGS_DEFAULT = (
+    "aria2c:-x 8 -s 8 -k 1M --file-allocation=none --check-certificate=false "
+    "--retry-wait=3 --max-tries=5 --timeout=60 --connect-timeout=20 "
+    "--allow-overwrite=true --auto-file-renaming=false --conditional-get=true"
+)
+
+# Force machine-parseable per-line progress so it can be streamed to logs
+# even when stdout is piped (no TTY). --progress forces output, --newline
+# puts each update on its own line instead of \r in-place updates.
+_YT_DLP_PROGRESS_ARGS = ["--newline", "--progress"]
+
+# Throttle per-second downloader status lines (aria2c [#...]/yt-dlp
+# [download] % updates) so cmd logs show progression without one line/sec.
+_PROGRESS_LOG_INTERVAL = 10.0  # seconds between progress lines
+_PROGRESS_PCT_STEP = 10.0  # log when percent jumps by this much
+_PCT_RE = re.compile(r'(\d+(?:\.\d+)?)%')
+
+
+def _progress_percent(line: str):
+    """Return percent as float if this is a progress-status line, else None.
+
+    Returns (is_progress, percent_or_None). Error lines are never progress.
+    """
+    low = line.lower()
+    if "error" in low or "errorcode=" in low or "exception" in low or "aborted" in low:
+        return False, None
+    if line.startswith("[download]") or line.startswith("[#"):
+        m = _PCT_RE.search(line)
+        try:
+            return True, float(m.group(1)) if m else None
+        except ValueError:
+            return True, None
+    return False, None
+
+
+def _aria2c_extra_args(is_bilibili: bool = False) -> list:
+    """Return yt-dlp external-downloader args if aria2c is installed, else []."""
+    if shutil.which("aria2c"):
+        args = _ARIA2C_ARGS_BILIBILI if is_bilibili else _ARIA2C_ARGS_DEFAULT
+        return ["--external-downloader", "aria2c", "--downloader-args", args]
+    logger.warning("[DL] aria2c not found on PATH, falling back to native downloader")
+    return []
+
+
+def _clean_aria2_control_files(video_dir: Path) -> None:
+    """Remove stale aria2c control (*.aria2) files before a native retry."""
+    try:
+        for stale in video_dir.glob("*.aria2"):
+            try:
+                stale.unlink()
+            except OSError:
+                pass
+    except Exception:
+        pass
+
+
+def _remove_partial_downloads(video_dir: Path) -> None:
+    """Delete partial/failed download leftovers so the next attempt starts fresh.
+
+    Needed after HTTP 416 (stale resume offset, e.g. aria2c partial resumed
+    with a fresh signed Bilibili URL) — retrying resume against the same
+    partial just 416s again.
+    """
+    patterns = ("audio.*", "*.aria2", "*.part", "*.ytdl", "*.temp")
+    try:
+        for pat in patterns:
+            for stale in video_dir.glob(pat):
+                if stale.name == ".yt_dlp_cache":
+                    continue
+                try:
+                    if stale.is_file():
+                        stale.unlink()
+                except OSError:
+                    pass
+    except Exception:
+        pass
+
+
+def _run_yt_dlp(cmd: list, timeout: int = 300):
+    """Run yt-dlp, streaming progress lines to the JRPD log (console + file).
+
+    Merges stderr into stdout, logs every non-empty line at INFO with a
+    [DL] prefix so download progression is visible in cmd logs, and returns
+    an object with .returncode/.stdout/.stderr (stdout==stderr==combined).
+    Raises subprocess.TimeoutExpired on timeout (caller handles it).
+    """
+    from types import SimpleNamespace
+
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+        encoding="utf-8",
+        errors="replace",
+    )
+    line_queue: queue.Queue = queue.Queue()
+
+    def _reader():
+        try:
+            assert proc.stdout is not None
+            for line in proc.stdout:
+                line_queue.put(line)
+        finally:
+            line_queue.put(None)  # sentinel: reader done
+
+    reader = threading.Thread(target=_reader, daemon=True)
+    reader.start()
+
+    start = time.monotonic()
+    output_lines: list = []
+    returncode = None
+    last_progress_log = 0.0
+    last_progress_pct: float | None = None
+    try:
+        while True:
+            elapsed = time.monotonic() - start
+            remaining = timeout - elapsed
+            if remaining <= 0:
+                proc.kill()
+                try:
+                    proc.wait(timeout=5)
+                except Exception:
+                    pass
+                raise subprocess.TimeoutExpired(cmd, timeout)
+            try:
+                line = line_queue.get(timeout=min(remaining, 0.5))
+            except queue.Empty:
+                if proc.poll() is not None and line_queue.empty():
+                    break
+                continue
+            if line is None:  # reader exhausted; drain process exit
+                break
+            stripped = line.strip()
+            if not stripped:
+                continue
+            output_lines.append(stripped)
+            is_progress, pct = _progress_percent(stripped)
+            if not is_progress:
+                # Status / errors -> cmd logs immediately (console is INFO).
+                logger.info(f"[DL] {stripped}")
+                continue
+            # Throttled progress: log at most every INTERVAL, on a PCT_STEP
+            # jump, or at 100%. Suppressed ticks go to DEBUG (file log only).
+            now = time.monotonic()
+            first = last_progress_pct is None
+            done = pct is not None and pct >= 100.0
+            jumped = (
+                pct is not None
+                and last_progress_pct is not None
+                and pct - last_progress_pct >= _PROGRESS_PCT_STEP
+            )
+            due = (now - last_progress_log) >= _PROGRESS_LOG_INTERVAL
+            if first or done or jumped or due:
+                logger.info(f"[DL] {stripped}")
+                last_progress_log = now
+                if pct is not None:
+                    last_progress_pct = pct
+            else:
+                logger.debug(f"[DL] {stripped}")
+
+        try:
+            returncode = proc.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            raise subprocess.TimeoutExpired(cmd, timeout)
+        if returncode is None:
+            returncode = proc.returncode if proc.returncode is not None else -1
+    finally:
+        if proc.poll() is None:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+        try:
+            if proc.stdout is not None:
+                proc.stdout.close()
+        except Exception:
+            pass
+
+    combined = "\n".join(output_lines)
+    return SimpleNamespace(returncode=returncode, stdout=combined, stderr=combined)
+
 # Pre-compiled regex patterns for performance
 _CV_TAG_PATTERN = re.compile(r'\s*\([Cc][Vv][.．][^)]*\)')
 _MULTI_SPACE_PATTERN = re.compile(r' +')
-_HYPHEN_TAG_PATTERN = re.compile(r'\s*-[^-]+-')
+# Only strip hyphenated tags that look like version/size markers
+# (e.g. "-New Arrange Ver.-", "-TV Size-", "-ショート ver.-").
+# A generic "-...-" pattern must NOT be used here: it corrupts legitimate
+# hyphenated titles such as "KU-RU-KU-RU Cruller!" (eats "-RU-") or
+# "Bling-Bang-Bang-Born" (eats "-Bang-"). Single-word segments without a
+# version keyword ("-RU-", "-Bang-", "-judgelight-") are always preserved.
+_HYPHEN_TAG_PATTERN = re.compile(
+    r'\s*-(?=[^-]*\s[^-]*-)[^-]*?(?:\bver\b\.?|\bversion\b|\bTV\s*size\b|\bsize\b|\bshort\b|ショート)[^-]*?-',
+    re.IGNORECASE
+)
 _TRAILING_DASH_PATTERN = re.compile(r'\s+-.*$')
 _NESTED_PARENS_PATTERN = re.compile(r'\s*\((?:[^()]|\([^()]*\))*\)')
 _SQUARE_BRACKETS_PATTERN = re.compile(r'\s*\[[^\]]*\]')
@@ -277,21 +545,33 @@ def ensure_audio(video_id, video_dir):
                 return path
             # File was invalid and removed, continue to download
 
-    # Download audio
+    # Download audio: aria2c for parallel connections where available, with
+    # native-downloader fallback (Bilibili throttles aggressive parallelism).
     url = normalize_video_url(video_id)
+    is_youtube = "youtube.com" in url or "youtu.be" in url
+    platform = "YouTube" if is_youtube else "Bilibili"
+    is_bilibili = not is_youtube
+    ext_dl_args = _aria2c_extra_args(is_bilibili=is_bilibili)
     base_cmd = [
         "yt-dlp", "-f", "bestaudio/best", "-x", "--audio-format", "best",
         "--no-check-certificates",
         "--remote-components", "ejs:github",
+        *_YT_DLP_PROGRESS_ARGS,
+        *ext_dl_args,
         "-o", str(video_dir / "audio.%(ext)s"),
         url
     ]
 
     # Track if we should force yt-dlp refresh due to repeated failures
     force_yt_dlp_refresh = False
-    
+
+    # Attempts: 1-2 aria2c (parallel), 3 native (tries resume of any partial),
+    # 4 native fresh (partials wiped first — recovers from HTTP 416 where a
+    # stale resume offset can never succeed).
+    max_attempts = 4
+
     # Retry with different formats
-    for attempt in range(3):
+    for attempt in range(max_attempts):
         try:
             # Add delay before retry if this isn't the first attempt
             if attempt > 0:
@@ -307,40 +587,86 @@ def ensure_audio(video_id, video_dir):
 
             if attempt == 0:
                 cmd = base_cmd.copy()
+                attempt_timeout = 300
                 logger.info(f"[DL] Attempt {attempt + 1}: Using base_cmd with web_default client")
             elif attempt == 1:
                 cmd = [
-                    "yt-dlp", "-f", "bestaudio[protocol=m3u8_native]/bestaudio",
-                    "-x", "--audio-format", "best", "--remote-components", "ejs:github",
-                    "-o", str(video_dir / "audio.%(ext)s"),
-                    f"https://www.youtube.com/watch?v={video_id}"
-                ]
-                logger.info(f"[DL] Attempt {attempt + 1}: Using m3u8_native protocol fallback")
-            else:  # attempt == 2
-                cmd = [
-                    "yt-dlp", "-f", "ba/b", "-x", "--audio-format", "best",
+                    "yt-dlp", "-f", "bestaudio/best", "-x", "--audio-format", "best",
+                    "--no-check-certificates",
                     "--remote-components", "ejs:github",
-                    "--extractor-args", "youtube:player-client=web",
+                    *_YT_DLP_PROGRESS_ARGS,
+                    *ext_dl_args,
                     "-o", str(video_dir / "audio.%(ext)s"),
-                    f"https://www.youtube.com/watch?v={video_id}"
+                    url
                 ]
-                logger.info(f"[DL] Attempt {attempt + 1}: Using web client with extractor-args")
+                attempt_timeout = 300
+                logger.info(f"[DL] Attempt {attempt + 1}: Plain retry for {platform}")
+            else:  # attempts 3-4: native downloader fallback (no aria2c).
+                # Bilibili's CDN kills multi-connection aria2c transfers
+                # (503/EOF/TLS errors); a single-connection native retry is
+                # slower but far more likely to complete.
+                if attempt == max_attempts - 1:
+                    # Final attempt: wipe partials first. A resume offset from
+                    # an aria2c partial + a fresh signed URL 416s forever.
+                    _remove_partial_downloads(video_dir)
+                else:
+                    # Clean stale .aria2 control files so they don't linger.
+                    _clean_aria2_control_files(video_dir)
+                if is_youtube:
+                    cmd = [
+                        "yt-dlp", "-f", "ba/b", "-x", "--audio-format", "best",
+                        "--remote-components", "ejs:github",
+                        "--extractor-args", "youtube:player-client=web",
+                        *_YT_DLP_PROGRESS_ARGS,
+                        "--retries", "10", "--fragment-retries", "10",
+                        "--concurrent-fragments", "4",
+                        "-o", str(video_dir / "audio.%(ext)s"),
+                        url
+                    ]
+                    logger.info(f"[DL] Attempt {attempt + 1}: Native fallback (web client, no aria2c)")
+                else:
+                    cmd = [
+                        "yt-dlp", "-f", "ba/b", "-x", "--audio-format", "best",
+                        "--no-check-certificates",
+                        "--remote-components", "ejs:github",
+                        *_YT_DLP_PROGRESS_ARGS,
+                        "--retries", "10", "--fragment-retries", "10",
+                        "--concurrent-fragments", "4",
+                        "-o", str(video_dir / "audio.%(ext)s"),
+                        url
+                    ]
+                    logger.info(f"[DL] Attempt {attempt + 1}: Native fallback (no aria2c) for {platform}")
+                attempt_timeout = 600
 
-            logger.info(f"[DL] Download attempt {attempt + 1}/3 for video {video_id}")
+            logger.info(f"[DL] Download attempt {attempt + 1}/{max_attempts} for video {video_id}")
             logger.debug(f"[DL] Full command: {' '.join(cmd)}")
-            result = subprocess.run(cmd, timeout=300, capture_output=True, text=True)
+            # Streams [download]/[ExtractAudio]/aria2c progress to cmd logs.
+            result = _run_yt_dlp(cmd, timeout=attempt_timeout)
 
             if result.returncode != 0:
                 stderr_lower = result.stderr.lower() if result.stderr else ""
+                tail = result.stderr[-500:] if result.stderr else "unknown error"
                 if "429" in stderr_lower or "too many requests" in stderr_lower:
-                    logger.warning(f"[DL] Attempt {attempt + 1}: HTTP 429 Rate Limited by YouTube - IP may be blocked")
+                    logger.warning(f"[DL] Attempt {attempt + 1}: HTTP 429 Rate Limited by {platform} - IP may be blocked")
                     force_yt_dlp_refresh = True  # Stale yt-dlp often causes 429s
                 elif "visitor data" in stderr_lower or "gvs po token" in stderr_lower:
                     logger.warning(f"[DL] Attempt {attempt + 1}: Missing visitor_data for web_safari client")
                     force_yt_dlp_refresh = True  # yt-dlp version issue
                 elif "416" in stderr_lower or "requested range" in stderr_lower:
-                    logger.warning(f"[DL] Attempt {attempt + 1}: HTTP 416 range error - possible partial download corruption")
-                logger.warning(f"[DL] Download attempt {attempt + 1} failed: {result.stderr[:300] if result.stderr else 'unknown error'}")
+                    # Stale resume offset (aria2c partial + fresh signed URL):
+                    # wipe partials now so the next attempt starts from byte 0
+                    # instead of 416ing again.
+                    _remove_partial_downloads(video_dir)
+                    if attempt == max_attempts - 1:
+                        logger.warning(f"[DL] Attempt {attempt + 1}: HTTP 416 persists on fresh download - giving up")
+                    else:
+                        logger.warning(f"[DL] Attempt {attempt + 1}: HTTP 416 range error - partials wiped, retrying fresh")
+                elif "aria2c exited" in stderr_lower or "errorcode=" in stderr_lower:
+                    logger.warning(
+                        f"[DL] Attempt {attempt + 1}: aria2c rejected by {platform} CDN "
+                        f"(multi-connection throttled; native fallback on final attempts)"
+                    )
+                logger.warning(f"[DL] Download attempt {attempt + 1} failed: {tail}")
                 continue
 
             # Check for downloaded file

@@ -48,9 +48,10 @@ import server
 
 def parse_args():
     """Parse command line arguments."""
+    from audio_utils import video_session_key
     args = sys.argv[1:]
     if args:
-        runtime.VIDEO_ID = args[0]
+        runtime.VIDEO_ID = video_session_key(args[0])
     else:
         runtime.VIDEO_ID = "default"
 
@@ -94,12 +95,23 @@ async def main():
             if server.state.results[m] == "" or server.state.results[m] is None:
                 server.state.results[m] = "Processing..."
 
+    # Rebuild manual-review flags from any 🚩 markers already in results.txt
+    # (e.g. left over from a previous session)
+    try:
+        flagged_count = server.rebuild_flags_from_file()
+        if flagged_count:
+            logger.info(f"[FLAGS] Restored {flagged_count} flagged row(s) from results.txt")
+    except Exception as e:
+        logger.warning(f"[FLAGS] Could not restore flags: {e}")
+
     shazam = Shazam(language='ja-JP', endpoint_country='JP')
     shazam_en = Shazam(language='en-US', endpoint_country='US')
     audio_path = ensure_audio(runtime.VIDEO_ID, video_dir)
     if not audio_path:
         logger.error("Failed to download/locate audio file. Exiting.")
         return
+    server.state.audio_path = str(audio_path)
+    server.state.snippets_dir = str(snippets_dir)
 
     def save_state():
         """Save current progress to disk."""
@@ -111,6 +123,9 @@ async def main():
                     val = shared_utils.format_song_entry(server.state.results[m])
                     if val == "Unidentified":
                         val = ""
+                    # Preserve manual-review flags as a trailing marker
+                    if m in server.state.flagged_ts:
+                        val = f"{val} 🚩" if val else "🚩"
                     f.write(f"{m} {val}\n")
         except OSError as e:
             logger.error(f"Error saving state: {e}")
@@ -256,7 +271,35 @@ async def main():
                 with unidentified_file.open("w", encoding="utf-8") as f:
                     json.dump(unidentified_data, f, ensure_ascii=False, indent=2)
                 logger.info(f"[EXPORT] Created {unidentified_file.name}")
+
+            logger.info("=" * 60)
+            logger.info(" SESSION COMPLETE - ENTERING REVIEW MODE")
+            logger.info("=" * 60)
+            logger.info("[REVIEW] Results panel active in browser. Server staying alive.")
+            logger.info("[REVIEW] Press Ctrl+C or click Done/Copy in panel to exit.")
+            server.state.is_session_done = True
+            server.state.current_seek_ts = -1
+
+            try:
+                await server.state.review_done_event.wait()
+            finally:
+                # Always release the shared ACRCloud ClientSession, otherwise
+                # asyncio prints "Unclosed client session / Unclosed connector"
+                # on exit (close_acr_session() was defined but never called).
+                try:
+                    from acrcloud import close_acr_session
+                    await close_acr_session()
+                except Exception as e:
+                    logger.warning(f"Error closing ACR session: {e}")
+            kind = server.state.review_done_kind
+            if kind == "close":
+                logger.info("[REVIEW] Review closed via Copy button. Exiting.")
             else:
+                logger.info("[REVIEW] Review done. Exiting.")
+            # Both Done (/review_done, kind="done") and Copy in review mode
+            # (/close_review, kind="close") finish the session, so the audio
+            # file must be deleted for either — not just "done".
+            if server.state.is_finished and kind in ("done", "close"):
                 if audio_path and audio_path.exists():
                     try:
                         audio_path.unlink()
@@ -265,17 +308,6 @@ async def main():
                         logger.warning(f"Could not delete audio file: {e}")
                     except Exception as e:
                         logger.warning(f"Unexpected error deleting audio: {e}")
-
-            logger.info("=" * 60)
-            logger.info(" SESSION COMPLETE - ENTERING REVIEW MODE")
-            logger.info("=" * 60)
-            logger.info("[REVIEW] Results panel active in browser. Server staying alive.")
-            logger.info("[REVIEW] Press Ctrl+C or click Done in panel to exit.")
-            server.state.is_session_done = True
-            server.state.current_seek_ts = -1
-
-            await server.state.review_done_event.wait()
-            logger.info("[REVIEW] Review done. Exiting.")
             break
         else:
             await asyncio.sleep(1)
