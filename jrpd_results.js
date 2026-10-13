@@ -246,12 +246,14 @@ function identifyRowWithAcr(ts, btn) {
             unflagRow(ts);
             // Manual identification: toast the row copy like the Marked toast
             jrpdNotifyIdentPopup(jrpdBuildIdentPopupText(ts, res.song), true);
+            try { jrpdSetLatestIdent(ts, true); } catch (e) {}
             // Suppress the auto-detection duplicate (poll will see the same resolved value)
             try { if (jrpdPrevResultsMap) jrpdPrevResultsMap[ts] = res.song; } catch (e) {}
             if (res.detail) showAcrDetailModal(ts, res.detail, res.candidates, true);
             reviewLastMtime = 0;
             fetchResultsFile({ forceFullRender: true });
         } else if (res.status === "ok" && !res.identified) {
+            try { jrpdSetLatestIdent(ts, false); } catch (e) {}
             if (res.detail) {
                 const d = res.detail || {};
                 const rawName = `${d.title || "?"} - ${d.artist || "?"}`;
@@ -798,6 +800,9 @@ function jrpdBuildIdentPopupText(ts, song) {
 function jrpdResetIdentDetection() {
     try {
         jrpdPrevResultsMap = null;
+        jrpdLatestIdentTs = null;
+        jrpdLatestIdentOk = false;
+        jrpdLatestIdentNeedsScroll = false;
     } catch (e) {}
 }
 
@@ -819,6 +824,83 @@ function jrpdNotifyIdentPopup(text, ok) {
 }
 
 /**
+ * Style a row as the latest identification (success = green, fail = orange).
+ * Uses background + left border + glow so it stays distinct from the
+ * yellow selection outline and the red/grey default row colors.
+ * @param {HTMLElement} row - Result row element
+ * @param {boolean} ok - True for success, false for fail
+ * @returns {void}
+ */
+function jrpdStyleRowAsLatest(row, ok) {
+    if (!row) return;
+    row.setAttribute("data-jrpd-latest", ok ? "ok" : "fail");
+    if (ok) {
+        row.style.background = "#1d3b2a";
+        row.style.borderLeft = "3px solid #4caf50";
+        row.style.boxShadow = "0 0 0 1px #4caf50, 0 0 10px rgba(76,175,80,0.55)";
+    } else {
+        row.style.background = "#3a2415";
+        row.style.borderLeft = "3px solid #ff9800";
+        row.style.boxShadow = "0 0 0 1px #ff9800, 0 0 10px rgba(255,152,0,0.55)";
+    }
+}
+
+/**
+ * Restore a row to its default (non-latest) colors based on content.
+ * @param {HTMLElement} row - Result row element
+ * @returns {void}
+ */
+function jrpdClearRowLatestStyle(row) {
+    if (!row) return;
+    row.removeAttribute("data-jrpd-latest");
+    row.style.boxShadow = "";
+    const isGap = row.querySelector(".gapLabel") !== null;
+    const songSpan = row.querySelector(".songContainer span[title]");
+    const isProcessing = !!songSpan && (songSpan.title === "Processing..." || /Identifying/.test(songSpan.textContent || ""));
+    if (isGap) {
+        row.style.background = "#2a1a1a";
+        row.style.borderLeft = "3px solid #ff5252";
+    } else if (isProcessing) {
+        row.style.background = "#232015";
+        row.style.borderLeft = "3px solid #ffb74d";
+    } else {
+        row.style.background = "#1e1e30";
+        row.style.borderLeft = "none";
+    }
+}
+
+/**
+ * Record the latest identification and highlight its row.
+ * Only one row is highlighted at a time; previous highlight is cleared.
+ * @param {string} ts - Timestamp of the identified row
+ * @param {boolean} ok - True for success, false for fail
+ * @param {boolean} [scroll=true] - Scroll the row into view
+ * @returns {void}
+ */
+function jrpdSetLatestIdent(ts, ok, scroll = true) {
+    try {
+        if (!ts) return;
+        jrpdLatestIdentTs = ts;
+        jrpdLatestIdentOk = !!ok;
+        try { jrpdLatestIdentNeedsScroll = !scroll; } catch (e) {}
+        const list = document.getElementById("jrpd-results-list");
+        if (!list) return;
+        list.querySelectorAll("[data-jrpd-latest]").forEach(r => {
+            if (r.getAttribute("data-row-ts") !== ts) jrpdClearRowLatestStyle(r);
+        });
+        const row = list.querySelector(`[data-row-ts="${ts}"]`);
+        if (row) {
+            jrpdStyleRowAsLatest(row, !!ok);
+            if (scroll) {
+                try { row.scrollIntoView({ behavior: "smooth", block: "nearest" }); } catch (e) {}
+            }
+        }
+    } catch (e) {
+        console.warn("JRPD: set latest ident failed", e);
+    }
+}
+
+/**
  * Detect automatic identifications from a fresh /results_file payload.
  * Fires once per row when it transitions Processing... -> resolved song (success)
  * or Processing... -> empty gap (fail). First poll only snapshots.
@@ -836,14 +918,27 @@ function jrpdDetectIdentifications(lines) {
         }
         const prevMap = jrpdPrevResultsMap;
         jrpdPrevResultsMap = newMap;
+        const justResolved = [];
         Object.keys(newMap).forEach(ts => {
             const prev = prevMap[ts];
             const cur = newMap[ts];
             // Brand-new ts that arrived already resolved (e.g. after reload): skip, not a fresh identification.
             if (prev === "Processing..." && cur !== "Processing...") {
                 jrpdNotifyIdentPopup(jrpdBuildIdentPopupText(ts, cur), !!cur);
+                justResolved.push(ts);
             }
         });
+        if (justResolved.length) {
+            // Highlight the chronologically latest resolved row when several
+            // finish in the same poll.
+            let latestTs = justResolved[0];
+            try {
+                if (typeof parseTimestampToSeconds === "function") {
+                    latestTs = justResolved.slice().sort((a, b) => parseTimestampToSeconds(a) - parseTimestampToSeconds(b)).pop();
+                }
+            } catch (e) {}
+            jrpdSetLatestIdent(latestTs, !!newMap[latestTs], false);
+        }
     } catch (e) {
         console.warn("JRPD: ident detection failed", e);
     }
@@ -874,6 +969,7 @@ function updateSongInRow(row, resolvedSong) {
         songSpan.style.fontStyle = "italic";
         row.style.background = "#232015";
         row.style.borderLeft = "3px solid #ffb74d";
+        row.style.boxShadow = "";
     } else {
         songSpan.textContent = resolvedSong;
         songSpan.title = resolvedSong;
@@ -881,7 +977,17 @@ function updateSongInRow(row, resolvedSong) {
         songSpan.style.fontStyle = "normal";
         row.style.background = "#1e1e30";
         row.style.borderLeft = "none";
+        row.style.boxShadow = "";
     }
+    // Preserve latest-identification highlight (it uses bg/border/glow too).
+    try {
+        const ts = row.getAttribute("data-row-ts");
+        if (typeof jrpdLatestIdentTs !== "undefined" && jrpdLatestIdentTs === ts) {
+            jrpdStyleRowAsLatest(row, !!jrpdLatestIdentOk);
+        } else {
+            row.removeAttribute("data-jrpd-latest");
+        }
+    } catch (e) {}
     const editBtn = songContainer.querySelector("button");
     if (editBtn) {
         const ts = row.getAttribute("data-row-ts");
@@ -1020,6 +1126,13 @@ function removeOptimisticResultRow(ts) {
     if (row) {
         row.remove();
     }
+    try {
+        if (typeof jrpdLatestIdentTs !== "undefined" && jrpdLatestIdentTs === ts) {
+            jrpdLatestIdentTs = null;
+            jrpdLatestIdentOk = false;
+            jrpdLatestIdentNeedsScroll = false;
+        }
+    } catch (e) {}
     const remaining = list.querySelectorAll("[data-result-row]");
     if (remaining.length === 0) {
         renderResultsPanel([]);
@@ -1224,6 +1337,13 @@ function createResultRow(entry, idx, parsed) {
         badge.style.cssText = "background: #ffeb3b; color: #000; font-weight: bold; padding: 1px 6px; border-radius: 3px; font-size: 10px; flex-shrink: 0; margin-left: auto; white-space: nowrap;";
         row.appendChild(badge);
     }
+
+    // Latest-identification highlight (survives full rebuilds)
+    try {
+        if (typeof jrpdLatestIdentTs !== "undefined" && jrpdLatestIdentTs === entry.ts) {
+            jrpdStyleRowAsLatest(row, !!jrpdLatestIdentOk);
+        }
+    } catch (e) {}
     
     return row;
 }
@@ -1304,6 +1424,18 @@ function renderResultsPanel(lines, options = {}) {
                 });
                 
                 if (!needsFullRebuild) {
+                    // A fresh identification just landed: bring its row into view once.
+                    try {
+                        if (typeof jrpdLatestIdentNeedsScroll !== "undefined" && jrpdLatestIdentNeedsScroll && jrpdLatestIdentTs) {
+                            jrpdLatestIdentNeedsScroll = false;
+                            const latestRow = list.querySelector(`[data-row-ts="${jrpdLatestIdentTs}"]`);
+                            if (latestRow) {
+                                jrpdStyleRowAsLatest(latestRow, !!jrpdLatestIdentOk);
+                                latestRow.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                                return;
+                            }
+                        }
+                    } catch (e) {}
                     // Restore scroll position and return
                     if (preserveScroll) {
                         list.scrollTop = savedScrollTop;
@@ -1322,6 +1454,19 @@ function renderResultsPanel(lines, options = {}) {
         list.appendChild(row);
     });
 
+    // A fresh identification just landed: bring its row into view once
+    // (overrides the preserved scroll for this render only).
+    try {
+        if (typeof jrpdLatestIdentNeedsScroll !== "undefined" && jrpdLatestIdentNeedsScroll && jrpdLatestIdentTs) {
+            jrpdLatestIdentNeedsScroll = false;
+            const latestRow = list.querySelector(`[data-row-ts="${jrpdLatestIdentTs}"]`);
+            if (latestRow) {
+                latestRow.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                return;
+            }
+        }
+    } catch (e) {}
+
     // Restore scroll position after rebuild (pin to bottom if we were already there)
     if (preserveScroll) {
         list.scrollTop = wasAtBottom ? list.scrollHeight : savedScrollTop;
@@ -1334,7 +1479,7 @@ function updateReviewActiveButton(activeTs) {
     list.querySelectorAll("button[data-gap-ts]").forEach(btn => {
         const ts = btn.getAttribute("data-gap-ts");
         const row = btn.parentElement;
-        const isGapRow = row && row.style.borderLeft.includes("ff5252");
+        const isGapRow = !!(row && row.querySelector(".gapLabel"));
         if (ts === activeTs) {
             btn.style.background = isGapRow ? "#ff5252" : "#1a73e8";
             btn.style.color = "white";

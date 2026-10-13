@@ -37,5 +37,11 @@ let songListsLoading = false;
 // Previous results snapshot for identification detection (ts -> song text; null = not initialized yet)
 let jrpdPrevResultsMap = null;
 
+// Latest identification highlight (ts of most recent success/fail + outcome)
+let jrpdLatestIdentTs = null;
+let jrpdLatestIdentOk = false;
+// Set when a new identification needs a scroll-into-view after (re)render
+let jrpdLatestIdentNeedsScroll = false;
+
 // Flagged timestamps for manual review (persisted in localStorage, session-to-session)
 let flaggedTimestamps = new Set();
