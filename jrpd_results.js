@@ -446,7 +446,8 @@ function getResultsPanelLines() {
     list.querySelectorAll("[data-result-row]").forEach(row => {
         const tsSpan = row.querySelector("span.tsSpan");
         if (!tsSpan) return;
-        const ts = tsSpan.textContent.trim();
+        const ts = (tsSpan.textContent || "").trim().replace(/\s+/g, " ");
+        if (!ts) return;
         let content = "";
 
         const gapLabel = row.querySelector(".gapLabel");
@@ -455,13 +456,14 @@ function getResultsPanelLines() {
             if (songContainer) {
                 const songSpan = songContainer.querySelector("span[title]");
                 if (songSpan) {
-                    const raw = songSpan.title || songSpan.textContent.trim();
-                    content = raw === "Processing..." ? "Processing..." : songSpan.textContent.trim();
+                    const raw = (songSpan.title || songSpan.textContent || "").trim();
+                    // Flatten any embedded newlines so one row always equals one line
+                    content = (raw === "Processing..." ? "Processing..." : (songSpan.textContent || "").trim()).replace(/\r\n?/g, "\n").replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
                 } else {
                     const spans = songContainer.querySelectorAll("span");
                     for (const span of spans) {
-                        if (!span.textContent.includes('✏️')) {
-                            content = span.textContent.trim();
+                        if (!(span.textContent || "").includes('✏️')) {
+                            content = (span.textContent || "").trim().replace(/\r\n?/g, "\n").replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
                             break;
                         }
                     }
@@ -475,12 +477,13 @@ function getResultsPanelLines() {
         const flagSuffix = isFlagged ? " 🚩" : "";
 
         if (content && content !== "Processing...") {
-            lines.push(`${ts} ${content}${flagSuffix}`);
+            lines.push(`${ts} ${content}${flagSuffix}`.trim());
         } else {
-            lines.push(`${ts}${flagSuffix}`);
+            lines.push(`${ts}${flagSuffix}`.trim());
         }
     });
-    return lines;
+    // Drop any accidental blanks so join("\n") never yields "\n\n"
+    return lines.map(l => String(l || "").replace(/\r\n?/g, "\n").trim()).filter(l => l.length > 0);
 }
 
 /**
@@ -491,9 +494,13 @@ function getResultsPanelLines() {
  * @returns {string[]}
  */
 function splitLinesIntoChunks(lines, maxChars = 1000) {
+    const clean = (Array.isArray(lines) ? lines : [])
+        .map(l => String(l == null ? "" : l).replace(/\r\n?/g, "\n").trim())
+        .filter(l => l.length > 0)
+        .map(l => l.replace(/\n+/g, " "));
     const chunks = [];
     let current = "";
-    for (const line of lines) {
+    for (const line of clean) {
         const candidate = current ? current + "\n" + line : line;
         if (candidate.length < maxChars) {
             current = candidate;
@@ -592,7 +599,7 @@ function createResultsPanel() {
         const lines = getResultsPanelLines();
         if (!lines.length) return;
 
-        const textToCopy = lines.join("\n");
+        const textToCopy = lines.join("\n").replace(/\r\n?/g, "\n").replace(/\n{2,}/g, "\n");
         navigator.clipboard.writeText(textToCopy).then(() => {
             showToast("Results copied to clipboard!", "#4caf50");
             if (isReviewMode) {
@@ -628,7 +635,8 @@ function createResultsPanel() {
         try {
             for (let i = 0; i < chunks.length; i++) {
                 chunkCopyBtn.textContent = `${i + 1}/${chunks.length}`;
-                await navigator.clipboard.writeText(chunks[i]);
+                const chunkText = String(chunks[i] || "").replace(/\r\n?/g, "\n").replace(/\n{2,}/g, "\n");
+                await navigator.clipboard.writeText(chunkText);
                 if (i < chunks.length - 1) {
                     showToast(`Copied part ${i + 1}/${chunks.length} (${chunks[i].length} chars)...`, "#1565c0");
                     await jrpdSleep(delayMs);

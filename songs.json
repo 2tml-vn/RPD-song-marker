@@ -3,7 +3,8 @@
     "artist_orig": "Double Face/三毛縞 斑、桜河 こはく"
   },
   "#あくあ色ぱれっと": {
-    "intl": "Aqua Iro Paretto"
+    "intl": "Aqua Iro Paretto",
+    "artist_orig": "湊あくあ"
   },
   "#ラブコード": {
     "intl": "LoveCode",
@@ -145,6 +146,9 @@
   "BBiJilGe": {
     "artist_orig": "Ayatsuno Yuni"
   },
+  "Be My Guest": {
+    "artist_orig": "Azari"
+  },
   "Be My Princess♡": {
     "artist_orig": "Special for Princess!"
   },
@@ -168,6 +172,9 @@
   },
   "Believe again": {
     "artist_orig": "Saint Snow"
+  },
+  "Berry Verry Strawberry": {
+    "artist_orig": "TENKO SHIBUKI"
   },
   "Beyond the way": {
     "artist_orig": "Vivid BAD SQUAD"
@@ -283,7 +290,8 @@
     "artist_orig": "YENA"
   },
   "Catch Me If You Can": {
-    "artist_orig": "鳴潮 & Eileen Marine"
+    "artist_orig": "鳴潮 & Eileen Marine",
+    "see_artist": true
   },
   "Catch the Wave": {
     "artist_orig": "livetune"
@@ -686,6 +694,9 @@
   "Got Boost?": {
     "artist_orig": "FANTASTICS from EXILE TRIBE"
   },
+  "Grand Blue": {
+    "artist_orig": "湘南乃風"
+  },
   "Grateful allegiance": {
     "artist_orig": "Knights"
   },
@@ -803,10 +814,7 @@
     "artist_orig": "Justen & Sena"
   },
   "IKKITOUSEN!": {
-    "artist_orig": "梅とら",
-    "intl": "",
-    "artist_intl": "",
-    "remap": ""
+    "artist_orig": "梅とら"
   },
   "Illegal Musician": {
     "artist_orig": "Nopalzin",
@@ -1212,6 +1220,13 @@
   "MOVE": {
     "artist_orig": "태민"
   },
+  "Move on Now!": {
+    "artist_orig": "Risuko, Waka, Fūri, Sunao from STAR☆ANIS"
+  },
+  "Move on Now! 〜美月ソロ Ver.〜": {
+    "artist_orig": "りすこ",
+    "remap": "Move on Now!"
+  },
   "Move Your Body Till You Die!": {},
   "Mr. Showtime": {
     "artist_orig": "ひとしずく & やま△ Feat. 巡音ルカ, 初音ミク, 鏡音リン & 鏡音レン"
@@ -1400,6 +1415,10 @@
   },
   "OVERDRIVE": {
     "artist_orig": "TWS"
+  },
+  "P.A.R.T.Y. ～ユニバース・フェスティバル～": {
+    "artist_orig": "DA PUMP",
+    "intl": "P. A. R. T. Y. ~Universe Festival~"
   },
   "p.h.": {
     "artist_orig": "SEVENTHLINKS"
@@ -1875,6 +1894,9 @@
   "Twilight Pentagram": {
     "artist_orig": "オルタード／朔間 零、日々樹 渉、深海 奏汰、 斎宮 宗、逆先 夏目"
   },
+  "Twilight Twilight": {
+    "artist_orig": "PiKi"
+  },
   "T氏の話を信じるな": {
     "intl": "Don't Believe in T",
     "artist_orig": "ピノキオピー"
@@ -2113,6 +2135,10 @@
     "intl": "Ochame Kinou",
     "artist_orig": "ラマーズP"
   },
+  "おつかれSUMMER": {
+    "artist_orig": "HALCALI",
+    "intl": "Otsukare Summer"
+  },
   "おどるポンポコリン": {
     "intl": "Odoru Ponpokorin",
     "artist_orig": "B.B.クィーンズ",
@@ -2204,6 +2230,10 @@
   },
   "ぎぶみーAwesome!!!!": {
     "artist_orig": "Happy Around!"
+  },
+  "くりてぃかる♡ぷりちー": {
+    "artist_orig": "iLiFE!",
+    "intl": "Critical♡Pretty"
   },
   "けっかおーらい": {
     "intl": "Kekka Orai - My Hero Academia: Vigilantes Opening Theme Song",
@@ -2383,6 +2413,10 @@
     "intl": "NadeNade",
     "artist_orig": "白雪 風真(CV:こいぬ)"
   },
+  "なんじゃモンじゃ! ニンジャ祭り!": {
+    "artist_orig": "伊勢大貴",
+    "intl": "Nan Ja Mon Ja! Ninja Matsuri!"
+  },
   "にぎにぎにじたうん!": {
     "intl": "Niginigi Nijitown!",
     "artist_orig": "にじさんじ & 周央サンゴ",
@@ -2542,6 +2576,10 @@
   "もっとはやくそれになりたい！": {
     "intl": "Motto Hayaku Sore ni Naritai!"
   },
+  "もっふんろ〜る": {
+    "artist_orig": "すぷれあ",
+    "intl": "Moffu'n'Roll"
+  },
   "ももいろの鍵": {
     "intl": "The peachy key",
     "artist_orig": "MORE MORE JUMP!"
@@ -2559,6 +2597,10 @@
   "らびゅ&ピース伝説": {
     "intl": "Rabyu & Peace Densetsu",
     "artist_orig": "PM6:∞ & あんさんぶるスターズ!!"
+  },
+  "らぶきゅん♡うぉんてっど": {
+    "artist_orig": "きゅるりんってしてみて",
+    "intl": "Love-kyun♡Wanted"
   },
   "れもん☆れもねーど": {
     "intl": "Lemon☆Lemonade",
@@ -2605,6 +2647,10 @@
   "アイドル": {
     "intl": "Idol",
     "artist_orig": "YOASOBI"
+  },
+  "アイドルパワー": {
+    "artist_orig": "M!LK",
+    "intl": "IDOLPOWER"
   },
   "アイドルライフエクストラパック": {
     "intl": "idol life extra pack",
@@ -2839,6 +2885,10 @@
     "intl": "Kiss Me Patissier",
     "artist_orig": "CANDY TUNE"
   },
+  "キズナミュージック♪": {
+    "artist_orig": "Poppin'Party",
+    "intl": "KIZUNA MUSIC♪"
+  },
   "キセキヒカル": {
     "intl": "Kiseki Hikaru"
   },
@@ -2886,7 +2936,8 @@
     "artist_orig": "BABYMETAL"
   },
   "クノイチでも恋がしたい": {
-    "artist_orig": "みきとP"
+    "artist_orig": "みきとP",
+    "intl": "Kunoichi Demo Koi ga Shitai"
   },
   "クマクマレスQ": {
     "intl": "KumaKuma ResQ",
@@ -2974,9 +3025,7 @@
   },
   "サイバーパンクデッドボーイ": {
     "intl": "CYBER PUNK DEAD BOY",
-    "artist_orig": "ワンダーランズ×ショウタイム",
-    "artist_intl": "Wonderlands x Showtime",
-    "remap": ""
+    "artist_orig": "ワンダーランズ×ショウタイム"
   },
   "サイレントマジョリティー": {
     "intl": "Silent Majority",
@@ -3246,6 +3295,10 @@
   "チューリングラブ": {
     "intl": "Turing Love",
     "artist_orig": "ナナヲアカリ"
+  },
+  "チョコレイト・ディスコ": {
+    "artist_orig": "Perfume",
+    "intl": "Chocolate Disco"
   },
   "チルドレンレコード": {
     "intl": "Children Record",
@@ -3682,9 +3735,16 @@
     "intl": "Poppin' Candy Fever!",
     "artist_orig": "キノシタ"
   },
+  "ポニーテールとシュシュ": {
+    "artist_orig": "AKB48",
+    "intl": "Ponytail to Shushu"
+  },
   "マインドブランド": {
     "intl": "Mind Brand",
     "artist_orig": "25時、ナイトコードで。"
+  },
+  "マジ!Magic!PEACH!": {
+    "artist_orig": "VOLTACTION"
   },
   "マジLOVE1000%": {
     "intl": "Maji LOVE 1000%",
@@ -3915,6 +3975,14 @@
     "intl": "Rocket Cider",
     "artist_orig": "ナユタン星人"
   },
+  "ロストアンブレラ": {
+    "intl": "Lost Umbrella",
+    "artist_orig": "稲葉曇"
+  },
+  "ロストワンの号哭": {
+    "artist_orig": "Neru",
+    "intl": "Lost One no Goukoku"
+  },
   "ロッタラ ロッタラ": {
     "artist_orig": "Buono!"
   },
@@ -4044,6 +4112,10 @@
     "intl": "Fancy Dress Party",
     "artist_orig": "初星学園, 倉本千奈, 篠澤 広 & 月村手毬"
   },
+  "会いたかった": {
+    "artist_orig": "AKB48",
+    "intl": "Aitakatta"
+  },
   "但願人長久": {
     "artist_orig": "フェイ・ウォン"
   },
@@ -4076,6 +4148,10 @@
   },
   "元気全開 DAY! DAY! DAY!": {
     "intl": "Genki Zenkai DAY! DAY! DAY!"
+  },
+  "全力キング": {
+    "artist_orig": "古川貴之",
+    "intl": "Zenryoku King"
   },
   "全力全開! ゼンカイジャー": {
     "intl": "Zenryoku Zenkai! Zenkaiger",
@@ -4150,6 +4226,10 @@
   "只因你太美": {
     "artist_orig": "赵品霖, 朱云龙, 苟晨浩宇, 何屹繁"
   },
+  "可変3連MIXをおぼえる歌": {
+    "artist_orig": "iLiFE!",
+    "intl": "Kahen 3-ren MIX wo Oboeru Uta"
+  },
   "可変三連MIXをおぼえるうた": {
     "intl": "Kahen Sanren Mix wo Oboeru Uta",
     "artist_orig": "iLiFE!"
@@ -4171,6 +4251,10 @@
   "名前のない怪物": {
     "intl": "Namae No Nai Kaibutsu",
     "artist_orig": "EGOIST"
+  },
+  "名残り桜": {
+    "artist_orig": "AKB48",
+    "intl": "Nagori Zakura"
   },
   "君にしか読めない手紙": {
     "intl": "A letter only you can read.",
@@ -4297,6 +4381,10 @@
   "好き!雪!本気マジック": {
     "intl": "Suki! Yuki! Honki Magic",
     "artist_orig": "Mitchie M"
+  },
+  "好きish": {
+    "artist_orig": "AKB48",
+    "intl": "Suki-ish"
   },
   "好きすぎて滅!": {
     "intl": "Sukisugite METSU!",
@@ -4795,6 +4883,10 @@
   "罰ゲーム": {
     "intl": "Batsugame"
   },
+  "美しく生きろ": {
+    "artist_orig": "高嶺のなでしこ",
+    "intl": "Utsukishiku Ikiro"
+  },
   "美少女無罪♡パイレーツ": {
     "intl": "Bishoujyo Muzai Pirates",
     "artist_orig": "宝鐘マリン",
@@ -4860,6 +4952,10 @@
   "裏表ラバーズ": {
     "intl": "Uraomote Lovers",
     "artist_orig": "wowaka"
+  },
+  "言い訳Maybe": {
+    "artist_orig": "AKB48",
+    "intl": "Iiwake Maybe"
   },
   "誇り高きアイドル": {
     "intl": "Hokoritakaki idol",
@@ -4955,6 +5051,10 @@
     "intl": "Kyokiranbu",
     "artist_orig": "GARNiDELiA"
   },
+  "風は吹いている": {
+    "artist_orig": "AKB48",
+    "intl": "Kaze wa Fuiteiru"
+  },
   "飾って": {
     "intl": "Embellish",
     "artist_orig": "25時、ナイトコードで。"
@@ -4989,6 +5089,9 @@
   "전야": {
     "intl": "The Eve",
     "artist_orig": "EXO"
+  },
+  "해피나루송": {
+    "artist_orig": "Unknown"
   },
   "ＷＷＷ": {
     "intl": "",
