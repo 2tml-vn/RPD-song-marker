@@ -318,6 +318,17 @@ async function doUndo() {
  * @returns {Promise<void>}
  */
 async function doFinish() {
+    // Disarm any active gap loops first: after FINISH the video must stay
+    // ended instead of seeking back to a stale gap start when playback
+    // reaches the gap end (= video duration for the last gap).
+    try { reviewLoopActive = false; } catch (e) {}
+    try { reviewActiveGapTs = null; } catch (e) {}
+    try { currentGapStart = -1; } catch (e) {}
+    try { currentGapEnd = -1; } catch (e) {}
+    try { currentCandidates = []; } catch (e) {}
+    try { cleanupMarks = []; } catch (e) {}
+    try { if (typeof updateReviewActiveButton === "function") updateReviewActiveButton(null); } catch (e) {}
+    try { if (typeof updateCandidates === "function") updateCandidates([]); } catch (e) {}
     // Cross-platform video ID extraction
     const hostname = window.location.hostname;
     let videoId = 'default';

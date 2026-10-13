@@ -305,9 +305,10 @@
                         fetchResultsFile();
                     }
 
-                    // Seek-loop for the active panel gap (works while marking too)
+                    // Seek-loop for the active panel gap (works while marking too).
+                    // Never loop an ended video: it must stay ended.
                     const loopVideo = getVideoElement();
-                    if (loopVideo && reviewLoopActive && currentGapStart >= 0 && currentGapEnd > currentGapStart && loopVideo.currentTime >= currentGapEnd) {
+                    if (loopVideo && reviewLoopActive && !loopVideo.ended && currentGapStart >= 0 && currentGapEnd > currentGapStart && loopVideo.currentTime >= currentGapEnd) {
                         console.log(`JRPD: Looping gap ${currentGapStart} -> ${currentGapEnd}`);
                         loopVideo.currentTime = currentGapStart;
                     }
@@ -355,9 +356,9 @@
                         }
                     }
 
-                    // Cleanup gap loop
+                    // Cleanup gap loop. Never loop an ended video: it must stay ended.
                     const video = getVideoElement();
-                    if (video && currentCandidates.length > 0 && currentGapStart >= 0 && currentGapEnd > currentGapStart && video.currentTime >= currentGapEnd) {
+                    if (video && !video.ended && currentCandidates.length > 0 && currentGapStart >= 0 && currentGapEnd > currentGapStart && video.currentTime >= currentGapEnd) {
                         console.log(`JRPD: Looping gap ${currentGapStart} -> ${currentGapEnd}`);
                         video.currentTime = currentGapStart;
                     }
