@@ -741,6 +741,12 @@ function createResultsPanel() {
     list.style.cssText = "overflow-y: auto; flex-grow: 1; padding: 8px 10px; font-size: " + reviewFontSize + "px;";
     panel.appendChild(list);
 
+    // If a full rebuild was deferred while the pointer was over the list
+    // (to avoid eating an in-flight click), flush it once the pointer leaves.
+    list.addEventListener("mouseleave", () => {
+        if (typeof jrpdFlushPendingRerender === "function") jrpdFlushPendingRerender(true);
+    });
+
     // Make panel available during marking by default (unless explicitly closed)
     const isVisibleByDefault = prefs.panelVisible !== false;
     panel.style.display = isVisibleByDefault ? "flex" : "none";
@@ -1348,12 +1354,54 @@ function createResultRow(entry, idx, parsed) {
     return row;
 }
 
+// Deferred full-rebuild state (see renderResultsPanel). A full rebuild sets
+// list.textContent = "", detaching the button under the cursor; if that lands
+// between mousedown and mouseup, the click is silently lost.
+let jrpdPendingFullRerender = null;
+let jrpdPendingRerenderTimer = null;
+let jrpdFirstDeferAt = 0;
+const JRPD_RERENDER_DEFER_MS = 700;
+const JRPD_RERENDER_MAX_DEFER_MS = 2500;
+
+function jrpdResultsListHasPointer() {
+    try {
+        const list = document.getElementById("jrpd-results-list");
+        if (!list) return false;
+        if (list.matches(":hover")) return true;
+        const ae = document.activeElement;
+        if (ae && list.contains(ae)) return true;
+    } catch (e) {}
+    return false;
+}
+
+function jrpdFlushPendingRerender(fromLeave) {
+    if (jrpdPendingRerenderTimer) { clearTimeout(jrpdPendingRerenderTimer); jrpdPendingRerenderTimer = null; }
+    if (!jrpdPendingFullRerender) return;
+    if (jrpdResultsListHasPointer() && Date.now() - jrpdFirstDeferAt < JRPD_RERENDER_MAX_DEFER_MS) {
+        // Still hovering: re-arm the timer instead of rebuilding mid-click.
+        jrpdPendingRerenderTimer = setTimeout(() => jrpdFlushPendingRerender(false), JRPD_RERENDER_DEFER_MS);
+        return;
+    }
+    const p = jrpdPendingFullRerender;
+    jrpdPendingFullRerender = null;
+    jrpdFirstDeferAt = 0;
+    renderResultsPanel(p.lines, { forceFullRender: p.forceFullRender, preserveScroll: p.preserveScroll });
+}
+
 function renderResultsPanel(lines, options = {}) {
     const { forceFullRender = false, preserveScroll = true } = options;
     const list = document.getElementById("jrpd-results-list");
     if (!list) {
         console.log("JRPD: [DEBUG] renderResultsPanel - list element not found");
         return;
+    }
+
+    // A deferred full rebuild is pending and the pointer has left the list:
+    // fold it into this render (this call carries the latest lines).
+    if (!jrpdResultsListHasPointer() && jrpdPendingFullRerender) {
+        jrpdPendingFullRerender = null;
+        jrpdFirstDeferAt = 0;
+        if (jrpdPendingRerenderTimer) { clearTimeout(jrpdPendingRerenderTimer); jrpdPendingRerenderTimer = null; }
     }
     
     console.log("JRPD: [DEBUG] renderResultsPanel called with", lines.length, "lines");
@@ -1446,7 +1494,25 @@ function renderResultsPanel(lines, options = {}) {
         }
     }
     
-    // Full rebuild needed
+    // Full rebuild needed. This destroys every row button, so if it lands
+    // between mousedown and mouseup on a button, no click event ever fires
+    // and the user has to click a second time. Defer while the pointer is
+    // over the list (a click requires hovering it); in-place song-text
+    // updates above have already been applied, so nothing goes visibly stale.
+    if (jrpdResultsListHasPointer()) {
+        const now = Date.now();
+        if (!jrpdPendingFullRerender) jrpdFirstDeferAt = now;
+        jrpdPendingFullRerender = { lines, forceFullRender, preserveScroll };
+        // Don't defer forever while parked over the panel: flush after a cap.
+        if (now - jrpdFirstDeferAt < JRPD_RERENDER_MAX_DEFER_MS) {
+            if (!jrpdPendingRerenderTimer) {
+                jrpdPendingRerenderTimer = setTimeout(() => jrpdFlushPendingRerender(false), JRPD_RERENDER_DEFER_MS);
+            }
+            return;
+        }
+        jrpdPendingFullRerender = null;
+        jrpdFirstDeferAt = 0;
+    }
     list.textContent = "";
 
     parsed.forEach((entry, idx) => {
