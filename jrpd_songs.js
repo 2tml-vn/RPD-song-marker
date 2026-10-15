@@ -98,7 +98,7 @@ function createSongListPanels() {
 
     loadPanelCollapsePrefs();
 
-    const panelStyle = "position: fixed; top: 80px; width: 400px; height: 60vh; min-width: 250px; min-height: 200px; color: #eee; z-index: 9998; padding: 0; border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.6); display: none; flex-direction: column; font-family: Roboto, Arial, sans-serif; border: 1px solid #333; overflow: hidden; resize: both;";
+    const panelStyle = "position: fixed; top: 80px; width: 400px; height: 60vh; min-width: 250px; min-height: 200px; color: #eee; z-index: 9998; padding: 0; border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.6); display: none; flex-direction: column; font-family: Roboto, Arial, sans-serif; border: 1px solid #333; overflow: hidden; resize: none;";
 
     // Unified Songs Panel
     const unifiedPanel = document.createElement("div");
@@ -122,6 +122,26 @@ function createSongListPanels() {
     // Restore user-customized size/position (independent of main panel) + enable drag/resize
     restoreUnifiedGeometry();
     enableUnifiedPanelDragResize();
+    // Directional resize: drag any edge or corner.
+    try {
+        if (typeof jrpdEnableDirectionalResize === "function") {
+            jrpdEnableDirectionalResize(unifiedPanel, {
+                minWidth: 250,
+                minHeight: 200,
+                onResizeEnd: (r) => {
+                    unifiedPanel.dataset.userSized = "1";
+                    unifiedPanel.dataset.userMoved = "1";
+                    panelCollapsedState.unifiedW = r.width;
+                    panelCollapsedState.unifiedH = r.height;
+                    panelCollapsedState.unifiedL = r.left;
+                    panelCollapsedState.unifiedT = r.top;
+                    panelCollapsedState.unifiedSized = true;
+                    panelCollapsedState.unifiedMoved = true;
+                    savePanelCollapsePrefs();
+                }
+            });
+        }
+    } catch (e) {}
 }
 
 /**
@@ -260,6 +280,11 @@ function applyCollapseState(panelType, collapsed) {
             toggleBtn.textContent = "▶";
             toggleBtn.title = "Expand panel";
         }
+        // Collapsed = header only: vertical resize is meaningless, keep e/w.
+        panel.querySelectorAll(".jrpd-resize-handle").forEach((h) => {
+            const d = h.getAttribute("data-dir") || "";
+            h.style.display = (d.indexOf("n") !== -1 || d.indexOf("s") !== -1) ? "none" : "";
+        });
     } else {
         if (content) content.style.display = "flex";
         // Restore user-resized height when available, else default.
@@ -270,6 +295,7 @@ function applyCollapseState(panelType, collapsed) {
             toggleBtn.textContent = "▼";
             toggleBtn.title = "Collapse panel";
         }
+        panel.querySelectorAll(".jrpd-resize-handle").forEach((h) => { h.style.display = ""; });
     }
 }
 

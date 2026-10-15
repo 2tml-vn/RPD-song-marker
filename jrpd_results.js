@@ -535,7 +535,7 @@ function createResultsPanel() {
 
     const panel = document.createElement("div");
     panel.id = "jrpd-results-panel";
-    panel.style.cssText = "position: fixed; min-width: 280px; min-height: 200px; background: #1a1a2e; color: #eee; z-index: 9999; padding: 0; border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.6); display: none; flex-direction: column; font-family: Roboto, Arial, sans-serif; border: 1px solid #333; resize: both; overflow: hidden;";
+    panel.style.cssText = "position: fixed; min-width: 280px; min-height: 200px; background: #1a1a2e; color: #eee; z-index: 9999; padding: 0; border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.6); display: none; flex-direction: column; font-family: Roboto, Arial, sans-serif; border: 1px solid #333; resize: none; overflow: hidden;";
 
     const savedWidth = prefs.width || 400;
     const savedHeight = prefs.height || 400;
@@ -752,6 +752,16 @@ function createResultsPanel() {
     panel.style.display = isVisibleByDefault ? "flex" : "none";
 
     (typeof jrpdOverlayParent === "function" ? jrpdOverlayParent() : document.body).appendChild(panel);
+    // Directional resize: drag any edge or corner (w/n move position, e/s grow size).
+    try {
+        if (typeof jrpdEnableDirectionalResize === "function") {
+            jrpdEnableDirectionalResize(panel, {
+                minWidth: 280,
+                minHeight: 200,
+                onResizeEnd: (r) => savePanelPrefs({ width: r.width, height: r.height, left: r.left, top: r.top })
+            });
+        }
+    } catch (e) {}
     updatePanelToggleButton();
 
     if (isVisibleByDefault) {

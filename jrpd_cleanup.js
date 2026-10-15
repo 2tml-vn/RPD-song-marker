@@ -7,7 +7,20 @@ function createCleanupPanel() {
     if (document.getElementById("jrpd-cleanup-panel")) return;
     const panel = document.createElement("div");
     panel.id = "jrpd-cleanup-panel";
-    panel.style.cssText = "position: fixed; top: 100px; right: 20px; width: 300px; max-height: 80vh; background: #212121; color: white; z-index: 9999; padding: 15px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: none; flex-direction: column; font-family: Roboto, Arial, sans-serif; border: 1px solid #444;";
+    panel.style.cssText = "position: fixed; top: 100px; right: 20px; width: 300px; height: 400px; min-width: 240px; min-height: 200px; max-height: 80vh; background: #212121; color: white; z-index: 9999; padding: 15px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: none; flex-direction: column; font-family: Roboto, Arial, sans-serif; border: 1px solid #444; resize: none; overflow: hidden; box-sizing: border-box;";
+    try {
+        const raw = localStorage.getItem("jrpd-cleanup-prefs");
+        if (raw) {
+            const p = JSON.parse(raw);
+            if (p.width) panel.style.width = p.width + "px";
+            if (p.height) panel.style.height = p.height + "px";
+            if (p.left != null && p.top != null) {
+                panel.style.left = p.left + "px";
+                panel.style.top = p.top + "px";
+                panel.style.right = "auto";
+            }
+        }
+    } catch (e) {}
     
     // Header
     const header = document.createElement("div");
@@ -91,6 +104,18 @@ function createCleanupPanel() {
     panel.appendChild(btnRow);
 
     (typeof jrpdOverlayParent === "function" ? jrpdOverlayParent() : document.body).appendChild(panel);
+    // Directional resize: drag any edge or corner.
+    try {
+        if (typeof jrpdEnableDirectionalResize === "function") {
+            jrpdEnableDirectionalResize(panel, {
+                minWidth: 240,
+                minHeight: 200,
+                onResizeEnd: (r) => {
+                    try { localStorage.setItem("jrpd-cleanup-prefs", JSON.stringify(r)); } catch (e) {}
+                }
+            });
+        }
+    } catch (e) {}
 }
 
 function getCleanupServerUrl() {

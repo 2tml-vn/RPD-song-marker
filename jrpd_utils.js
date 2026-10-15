@@ -544,3 +544,139 @@ function jrpdReparentOverlaysForFullscreen() {
         }
     } catch (e) {}
 })();
+
+/**
+ * Enable directional resize on a fixed panel via its 4 edges + 4 corners.
+ * Each handle only moves its own edge(s): e grows right, w pushes left,
+ * s grows down, n pushes up; corners move both axes. This replaces the
+ * native `resize: both` handle (SE corner only) with true directional pull.
+ * @param {HTMLElement} panel - Fixed-position panel to make resizable
+ * @param {Object} [opts] - Options
+ * @param {number} [opts.minWidth=200] - Minimum width in px
+ * @param {number} [opts.minHeight=120] - Minimum height in px
+ * @param {number} [opts.edgeSize=8] - Edge hit-strip thickness in px
+ * @param {number} [opts.cornerSize=14] - Corner hit-square size in px
+ * @param {Function} [opts.onResizeEnd] - Called on release with {width,height,left,top}
+ * @returns {void}
+ */
+function jrpdEnableDirectionalResize(panel, opts) {
+    if (!panel || panel.dataset.jrpdResizeInit === "1") return;
+    try {
+        panel.dataset.jrpdResizeInit = "1";
+        const o = opts || {};
+        const EDGE = o.edgeSize || 8;
+        const CORNER = o.cornerSize || 14;
+        let minW = o.minWidth || 200;
+        let minH = o.minHeight || 120;
+        try {
+            const cs = window.getComputedStyle(panel);
+            if (cs) {
+                const cw = parseInt(cs.minWidth, 10);
+                const ch = parseInt(cs.minHeight, 10);
+                if (!isNaN(cw) && cw > minW) minW = cw;
+                if (!isNaN(ch) && ch > minH) minH = ch;
+            }
+        } catch (e) {}
+        // Drop the native SE-only handle; custom handles take over.
+        panel.style.resize = "none";
+        if (!panel.style.overflow) panel.style.overflow = "hidden";
+
+        const cursors = { n: "ns-resize", s: "ns-resize", e: "ew-resize", w: "ew-resize", ne: "nesw-resize", sw: "nesw-resize", nw: "nwse-resize", se: "nwse-resize" };
+        const dirs = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+        dirs.forEach((dir) => {
+            const h = document.createElement("div");
+            h.className = "jrpd-resize-handle";
+            h.setAttribute("data-dir", dir);
+            let s = "position: absolute; z-index: 60; padding: 0; margin: 0; background: transparent; touch-action: none; box-sizing: border-box;";
+            if (dir === "n") s += `top: 0; left: ${CORNER}px; right: ${CORNER}px; height: ${EDGE}px; cursor: ns-resize;`;
+            else if (dir === "s") s += `bottom: 0; left: ${CORNER}px; right: ${CORNER}px; height: ${EDGE}px; cursor: ns-resize;`;
+            else if (dir === "e") s += `right: 0; top: ${CORNER}px; bottom: ${CORNER}px; width: ${EDGE}px; cursor: ew-resize;`;
+            else if (dir === "w") s += `left: 0; top: ${CORNER}px; bottom: ${CORNER}px; width: ${EDGE}px; cursor: ew-resize;`;
+            else if (dir === "ne") s += `top: 0; right: 0; width: ${CORNER}px; height: ${CORNER}px; cursor: nesw-resize;`;
+            else if (dir === "nw") s += `top: 0; left: 0; width: ${CORNER}px; height: ${CORNER}px; cursor: nwse-resize;`;
+            else if (dir === "se") s += `bottom: 0; right: 0; width: ${CORNER}px; height: ${CORNER}px; cursor: nwse-resize;`;
+            else s += `bottom: 0; left: 0; width: ${CORNER}px; height: ${CORNER}px; cursor: nesw-resize;`;
+            h.style.cssText = s;
+            h.title = "Drag to resize";
+            h.addEventListener("mouseenter", () => { h.style.background = "rgba(130,177,255,0.45)"; });
+            h.addEventListener("mouseleave", () => { if (!h.dataset.active) h.style.background = "transparent"; });
+            h.addEventListener("pointerdown", (ev) => startResize(ev, dir, h));
+            h.addEventListener("mousedown", (ev) => { if (!window.PointerEvent) startResize(ev, dir, h); });
+            panel.appendChild(h);
+        });
+
+        function startResize(ev, dir, handle) {
+            try {
+                if (ev.button != null && ev.button !== 0) return;
+            } catch (e) {}
+            ev.preventDefault();
+            ev.stopPropagation();
+            const rect = panel.getBoundingClientRect();
+            const startX = ev.clientX, startY = ev.clientY;
+            const startW = rect.width, startH = rect.height;
+            const startL = rect.left, startT = rect.top;
+            // Pin to explicit left/top so w/n drags move the correct edge
+            // (panels anchored with right: must convert to left: first).
+            panel.style.left = startL + "px";
+            panel.style.top = startT + "px";
+            panel.style.right = "auto";
+            panel.style.bottom = "auto";
+            panel.style.width = startW + "px";
+            panel.style.height = startH + "px";
+            handle.dataset.active = "1";
+            handle.style.background = "rgba(130,177,255,0.6)";
+            const prevUserSelect = document.body.style.userSelect;
+            const prevCursor = document.body.style.cursor;
+            document.body.style.userSelect = "none";
+            document.body.style.cursor = cursors[dir] || "nwse-resize";
+            let done = false;
+            function onMove(e2) {
+                try {
+                    const dx = e2.clientX - startX, dy = e2.clientY - startY;
+                    let nl = startL, nt = startT, nw = startW, nh = startH;
+                    if (dir.indexOf("e") !== -1) nw = startW + dx;
+                    if (dir.indexOf("w") !== -1) { nw = startW - dx; nl = startL + dx; }
+                    if (dir.indexOf("s") !== -1) nh = startH + dy;
+                    if (dir.indexOf("n") !== -1) { nh = startH - dy; nt = startT + dy; }
+                    // Clamp to minimum (keep the opposite edge fixed).
+                    if (nw < minW) { if (dir.indexOf("w") !== -1) nl = startL + (startW - minW); nw = minW; }
+                    if (nh < minH) { if (dir.indexOf("n") !== -1) nt = startT + (startH - minH); nh = minH; }
+                    // Keep inside the viewport.
+                    if (nl < 0) { if (dir.indexOf("w") !== -1) nw += nl; nl = 0; }
+                    if (nt < 0) { if (dir.indexOf("n") !== -1) nh += nt; nt = 0; }
+                    if (nl + nw > window.innerWidth) nw = Math.max(minW, window.innerWidth - nl);
+                    if (nt + nh > window.innerHeight) nh = Math.max(minH, window.innerHeight - nt);
+                    if (nw < minW) nw = minW;
+                    if (nh < minH) nh = minH;
+                    panel.style.left = nl + "px";
+                    panel.style.top = nt + "px";
+                    panel.style.width = nw + "px";
+                    panel.style.height = nh + "px";
+                } catch (e) {}
+            }
+            function onUp() {
+                if (done) return;
+                done = true;
+                try {
+                    window.removeEventListener("pointermove", onMove);
+                    window.removeEventListener("pointerup", onUp);
+                    document.removeEventListener("mousemove", onMove);
+                    document.removeEventListener("mouseup", onUp);
+                } catch (e) {}
+                try { delete handle.dataset.active; handle.style.background = "transparent"; } catch (e) {}
+                try { document.body.style.userSelect = prevUserSelect; document.body.style.cursor = prevCursor; } catch (e) {}
+                try {
+                    if (o.onResizeEnd) o.onResizeEnd({ width: panel.offsetWidth, height: panel.offsetHeight, left: panel.offsetLeft, top: panel.offsetTop });
+                } catch (e) {}
+            }
+            try {
+                window.addEventListener("pointermove", onMove);
+                window.addEventListener("pointerup", onUp);
+            } catch (e) {}
+            document.addEventListener("mousemove", onMove);
+            document.addEventListener("mouseup", onUp);
+        }
+    } catch (e) {
+        console.warn("JRPD: directional resize failed", e);
+    }
+}
