@@ -19,6 +19,23 @@ ACR_CONFIG = {
     'access_secret': os.getenv('ACR_ACCESS_SECRET'),
 }
 
+# --- AHA Music Configuration ---
+# Public unauthenticated endpoint (fronts the same ACRCloud fingerprint DB).
+# AHA_ENABLED=0 disables the AHA fallback; AHA_TIMEOUT sets seconds.
+def _env_int(name, default):
+    try:
+        return int(os.getenv(name, default))
+    except (TypeError, ValueError):
+        return default
+
+
+AHA_CONFIG = {
+    'url': os.getenv('AHA_URL', 'https://aha-music.com/identify'),
+    'timeout': _env_int('AHA_TIMEOUT', 30),
+    'enabled': os.getenv('AHA_ENABLED', '1').strip().lower()
+    not in ('0', 'false', 'no', 'off', ''),
+}
+
 # --- Display Format ---
 # Variables: {ori_song}, {int_song}, {info}, {ori_artist}, {int_artist}
 # Sections in [...] are optional: only included if all variables inside have values.

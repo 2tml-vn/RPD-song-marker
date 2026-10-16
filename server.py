@@ -672,7 +672,9 @@ def _find_audio_file() -> Optional[Path]:
 
 
 async def handle_acr_identify(request: web.Request) -> web.Response:
-    """Handle /acr_identify endpoint - re-identify a single row with ACRCloud.
+    """Handle /acr_identify endpoint - re-identify a single row with AHA Music.
+
+    Falls back to ACRCloud when AHA Music finds no database match.
 
     Query params:
         ts: Timestamp of the row to identify (e.g. "1:30")
@@ -711,7 +713,8 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
 
     try:
         from shazamio import Shazam
-        from identifier import _identify_with_acrcloud
+        from identifier import _identify_with_acrcloud, _identify_with_aha
+        from config import AHA_CONFIG
     except Exception as e:
         logger.warning(f"[ACR_IDENTIFY] Identify backend unavailable: {e}")
         return await _json_response({"status": "error", "msg": "identify backend unavailable"})
@@ -727,35 +730,71 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
 
         found = None
         found_window = None
-        raw_hits: list = []
-        for i, (offset, d) in enumerate(sliding_windows):
-            logger.info(
-                " [ACRCloud] Window %d/%d: extract @ %.1fs (offset +%.1fs, dur %.1fs)",
-                i + 1, len(sliding_windows), current_sec + offset, offset, d,
-            )
-            temp_name = snippets_dir / f"seg_acr_row_{int(time.time() * 1000)}_{i}.wav"
-            try:
-                result = await _identify_with_acrcloud(
-                    shazam_en, temp_name, current_sec, offset, audio_path, sliding_windows, i,
-                    collect_raw=raw_hits,
+        found_source = None
+        aha_hits: list = []
+        if AHA_CONFIG.get('enabled', True):
+            for i, (offset, d) in enumerate(sliding_windows):
+                logger.info(
+                    " [AHA] Window %d/%d: extract @ %.1fs (offset +%.1fs, dur %.1fs)",
+                    i + 1, len(sliding_windows), current_sec + offset, offset, d,
                 )
-                if result and result != "Unidentified":
-                    found = result
-                    found_window = i + 1
-                    logger.info(f"[ACR_IDENTIFY] {ts} SUCCESS on window {i + 1}: {found}")
-                    break
-                else:
-                    logger.debug(f"[ACR_IDENTIFY] {ts} no match on window {i + 1}")
-            finally:
+                temp_name = snippets_dir / f"seg_aha_row_{int(time.time() * 1000)}_{i}.wav"
                 try:
-                    if temp_name.exists():
-                        temp_name.unlink()
-                except OSError:
-                    pass
+                    result = await _identify_with_aha(
+                        shazam_en, temp_name, current_sec, offset, audio_path, sliding_windows, i,
+                        collect_raw=aha_hits,
+                    )
+                    if result and result != "Unidentified":
+                        found = result
+                        found_window = i + 1
+                        found_source = "aha"
+                        logger.info(f"[ACR_IDENTIFY] {ts} AHA SUCCESS on window {i + 1}: {found}")
+                        break
+                    else:
+                        logger.debug(f"[ACR_IDENTIFY] {ts} AHA no match on window {i + 1}")
+                finally:
+                    try:
+                        if temp_name.exists():
+                            temp_name.unlink()
+                    except OSError:
+                        pass
+        else:
+            logger.debug(f"[ACR_IDENTIFY] {ts} AHA disabled via config, skipping")
 
-        # Best raw ACRCloud hit (first window that recognized anything), even
+        # ACRCloud fallback.
+        raw_hits: list = []
+        if not found:
+            logger.info(f"[ACR_IDENTIFY] {ts} AHA found no DB match, trying ACRCloud")
+            for i, (offset, d) in enumerate(sliding_windows):
+                logger.info(
+                    " [ACRCloud] Window %d/%d: extract @ %.1fs (offset +%.1fs, dur %.1fs)",
+                    i + 1, len(sliding_windows), current_sec + offset, offset, d,
+                )
+                temp_name = snippets_dir / f"seg_acr_row_{int(time.time() * 1000)}_{i}.wav"
+                try:
+                    result = await _identify_with_acrcloud(
+                        shazam_en, temp_name, current_sec, offset, audio_path, sliding_windows, i,
+                        collect_raw=raw_hits,
+                    )
+                    if result and result != "Unidentified":
+                        found = result
+                        found_window = i + 1
+                        found_source = "acrcloud"
+                        logger.info(f"[ACR_IDENTIFY] {ts} SUCCESS on window {i + 1}: {found}")
+                        break
+                    else:
+                        logger.debug(f"[ACR_IDENTIFY] {ts} no match on window {i + 1}")
+                finally:
+                    try:
+                        if temp_name.exists():
+                            temp_name.unlink()
+                    except OSError:
+                        pass
+
+        # Best raw hit (first window that recognized anything), even
         # when DB resolve failed — this is what the user inspects manually.
-        best_raw = raw_hits[0] if raw_hits else None
+        best_raw = aha_hits[0] if aha_hits else (raw_hits[0] if raw_hits else None)
+        raw_source = "aha" if aha_hits else ("acrcloud" if raw_hits else None)
         detail_payload = None
         candidates_payload = None
         if best_raw:
@@ -769,23 +808,25 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
             state.results[ts] = display
             # Explicit user fix: clear any manual-review flag
             state.flagged_ts.discard(ts)
-            logger.info(f"[ACR_IDENTIFY] {ts} -> {display}")
+            logger.info(f"[ACR_IDENTIFY] {ts} -> {display} (via {found_source})")
             return await _json_response({
                 "status": "ok", "identified": True, "song": display,
-                "window": found_window, "detail": detail_payload,
+                "window": found_window, "source": found_source,
+                "detail": detail_payload,
                 "candidates": candidates_payload,
-                "raw_windows": len(raw_hits),
+                "raw_windows": len(raw_hits) + len(aha_hits),
             })
 
-        logger.info(f"[ACR_IDENTIFY] {ts}: no match (raw_hits={len(raw_hits)})")
+        logger.info(f"[ACR_IDENTIFY] {ts}: no match (raw_hits={len(raw_hits)} aha_hits={len(aha_hits)})")
         if best_raw:
-            # Recognized by ACRCloud but no DB match/discard — still return
+            # Recognized but no DB match/discard — still return
             # the full details so the user can identify manually.
             return await _json_response({
                 "status": "ok", "identified": False,
                 "msg": "ACRCloud recognized audio but no database match",
+                "source": raw_source,
                 "detail": detail_payload, "candidates": candidates_payload,
-                "raw_windows": len(raw_hits),
+                "raw_windows": len(raw_hits) + len(aha_hits),
             })
         return await _json_response({"status": "ok", "identified": False, "msg": "ACRCloud found no match", "raw_windows": 0})
     except Exception as e:
@@ -894,6 +935,7 @@ def create_app() -> web.Application:
     app.router.add_get('/select', handle_select)
     app.router.add_get('/paren_exceptions', handle_paren_exceptions)
     app.router.add_get('/acr_identify', handle_acr_identify)
+    app.router.add_get('/aha_identify', handle_acr_identify)  # alias: same ACRCloud -> AHA flow
     app.router.add_get('/toggle_flag', handle_toggle_flag)
     app.router.add_post('/update_song_vars', handle_update_song_vars)
 

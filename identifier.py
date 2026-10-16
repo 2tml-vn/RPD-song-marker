@@ -10,7 +10,8 @@ from pathlib import Path
 from typing import Optional
 
 import acrcloud
-from config import ACR_CONFIG
+import aha_api
+from config import ACR_CONFIG, AHA_CONFIG
 from audio_utils import strip_extra_info
 from song_resolver import resolve_song_name
 import shared_utils
@@ -261,6 +262,93 @@ async def _identify_with_acrcloud(
     return None
 
 
+async def _identify_with_aha(
+    shazam_en,
+    temp_name: Path,
+    current_sec: float,
+    offset: float,
+    audio_path: Path,
+    sliding_windows: list,
+    i: int,
+    collect_raw: Optional[list] = None,
+) -> Optional[str]:
+    """
+    Attempt song identification using AHA Music (public ACRCloud-DB proxy).
+
+    Same contract as :func:`_identify_with_acrcloud`.
+
+    Args:
+        collect_raw: optional list that each raw aha_result dict is appended
+            to (even when DB resolve fails/discards), so callers such as the
+            /acr_identify endpoint can surface full details.
+
+    Returns:
+        Song name if identified, None otherwise
+    """
+    # Extract audio segment
+    if not await _extract_audio_segment(
+        audio_path, current_sec, offset, sliding_windows[i][1], temp_name
+    ):
+        return None
+
+    try:
+        aha_result = await aha_api.recognize(str(temp_name))
+
+        if aha_result:
+            if collect_raw is not None:
+                try:
+                    collect_raw.append(aha_result)
+                except Exception:
+                    pass
+            logger.info(
+                " [RAW AHA] (window %d/%d @ %.1fs) %s - %s (en: %s)",
+                i + 1, len(sliding_windows), current_sec + offset,
+                aha_result['title'], aha_result['artist'], aha_result.get('en_title'),
+            )
+
+            title_clean = shared_utils.clean_title(aha_result['title'])
+            artist = aha_result['artist']
+            en_hint = strip_extra_info(aha_result.get('en_title')) if aha_result.get('en_title') else None
+
+            logger.debug(" [AHA] Calling resolve_song_name with title_clean='%s' artist='%s' en_hint=%s", title_clean, artist, en_hint)
+            aha_match = await resolve_song_name(title_clean, artist, None, shazam_en, en_hint=en_hint)
+
+            # Check for discard (None return)
+            if aha_match is None:
+                logger.info(" [DISCARDED - AHA] '%s' marked as discard, continuing...", title_clean)
+                return None
+
+            logger.info(" [MATCH - AHA] %s", aha_match)
+            return aha_match
+        else:
+            logger.debug(" [AHA] No result from recognition")
+            return None
+    except KeyError as e:
+        logger.debug(" [AHA] Missing key in response: %s", e)
+    except Exception as e:
+        error_type = type(e).__name__
+        error_str = str(e)
+
+        # Diagnose the specific error
+        if "semaphore timeout" in error_str.lower():
+            logger.error(f" [AHA] NETWORK ERROR: Connection timeout")
+            logger.error(f" [AHA] DIAGNOSIS: Possible causes:")
+            logger.error(f" [AHA]   1. Internet connectivity issue")
+            logger.error(f" [AHA]   2. AHA Music server is down or overloaded")
+        elif "name or service not known" in error_str.lower() or "getaddrinfo" in error_str.lower():
+            logger.error(f" [AHA] DNS ERROR: Cannot resolve aha-music.com")
+        elif "connection refused" in error_str.lower():
+            logger.error(f" [AHA] CONNECTION REFUSED")
+        elif "timeout" in error_str.lower():
+            logger.error(f" [AHA] TIMEOUT: Request took too long")
+        else:
+            logger.error(f" [AHA] Error type: {error_type}")
+
+        logger.error(f" [AHA] Error: {e}")
+
+    return None
+
+
 async def identify_song(
     shazam,
     shazam_en,
@@ -272,7 +360,8 @@ async def identify_song(
     target: str = ""
 ) -> str:
     """
-    Identify a song from an audio segment using Shazam (primary) and ACRCloud (fallback).
+    Identify a song from an audio segment using Shazam (primary),
+    AHA Music (fallback) and ACRCloud (second fallback).
 
     Args:
         shazam: Shazam client instance
@@ -319,8 +408,35 @@ async def identify_song(
                 except OSError as e:
                     logger.warning("Could not remove temp file %s: %s", temp_name, e)
 
-    # Phase 2: ACRCloud Fallback
-    logger.info("[IDENTIFY] Phase 2: ACRCloud Fallback")
+    # Phase 2: AHA Music Fallback (public ACRCloud-DB proxy, no credentials)
+    if AHA_CONFIG.get('enabled', True):
+        logger.info("[IDENTIFY] Phase 2: AHA Music Fallback")
+
+        for i, (offset, d) in enumerate(sliding_windows):
+            logger.info(" [AHA] Window %d/%d: extract @ %.1fs (offset +%.1fs, dur %.1fs)", i+1, len(sliding_windows), current_sec + offset, offset, d)
+
+            temp_name = snippets_dir / f"seg_{int(time.time())}_aha.wav"
+            try:
+                result = await _identify_with_aha(
+                    shazam_en, temp_name, current_sec, offset, audio_path, sliding_windows, i
+                )
+                if result:
+                    logger.info(" [AHA] SUCCESS on window %d: %s", i+1, result)
+                    return result
+                else:
+                    logger.debug(" [AHA] No match on window %d", i+1)
+            finally:
+                # Cleanup temp file
+                if temp_name.exists():
+                    try:
+                        temp_name.unlink()
+                    except OSError as e:
+                        logger.warning("Could not remove temp file %s: %s", temp_name, e)
+    else:
+        logger.debug("[IDENTIFY] Phase 2 (AHA) disabled via config, skipping")
+
+    # Phase 3: ACRCloud Fallback
+    logger.info("[IDENTIFY] Phase 3: ACRCloud Fallback")
 
     for i, (offset, d) in enumerate(sliding_windows):
         logger.info(" [ACRCloud] Window %d/%d: extract @ %.1fs (offset +%.1fs, dur %.1fs)", i+1, len(sliding_windows), current_sec + offset, offset, d)
