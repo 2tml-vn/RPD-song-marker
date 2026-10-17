@@ -4,12 +4,14 @@ Handles communication between browser userscript and Python backend.
 
 Uses aiohttp for async I/O, eliminating thread overhead and improving concurrency.
 """
+import asyncio
 import json
 import os
 import logging
 import subprocess
 import re
 import time
+import uuid
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
@@ -834,6 +836,469 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
         return await _json_response({"status": "error", "msg": str(e)})
 
 
+def _summarize_identify_source(raw_hits: list, song=None, window=None, disabled=False) -> Dict[str, Any]:
+    """Build one engine's side-by-side payload for /identify_all.
+
+    Args:
+        raw_hits: raw recognize dicts collected across windows (first = best).
+        song: resolved DB display string, or None when no DB match.
+        window: 1-based window index where the DB match was found.
+        disabled: True when the engine was skipped via config.
+    """
+    best = raw_hits[0] if raw_hits else None
+    detail = best.get('detail') if isinstance(best, dict) else None
+    candidates = best.get('candidates') if isinstance(best, dict) else None
+    raw_title = best.get('title') if isinstance(best, dict) else None
+    raw_artist = best.get('artist') if isinstance(best, dict) else None
+    # Shazam detail carries title/artist too; fall back to it when present.
+    if (not raw_title or not raw_artist) and isinstance(detail, dict):
+        raw_title = raw_title or detail.get('title')
+        raw_artist = raw_artist or detail.get('artist')
+    return {
+        "song": song,
+        "window": window,
+        "detail": detail,
+        "candidates": candidates,
+        "raw_title": raw_title,
+        "raw_artist": raw_artist,
+        "raw_windows": len(raw_hits),
+        "disabled": disabled,
+    }
+
+
+# In-flight /identify_all jobs for progress polling: job_id -> dict with
+# ts / done / window (windows finished) / total / found (engine -> bool) /
+# results / error / cancelled / task. Finished jobs are pruned lazily.
+_identify_jobs: Dict[str, Dict[str, Any]] = {}
+_IDENTIFY_JOB_TTL = 600.0  # seconds
+
+
+def _prune_identify_jobs(now: Optional[float] = None) -> None:
+    """Drop finished identify jobs older than _IDENTIFY_JOB_TTL."""
+    now = now if now is not None else time.time()
+    stale = [
+        jid for jid, j in _identify_jobs.items()
+        if j.get("done") and now - j.get("finished_at", now) > _IDENTIFY_JOB_TTL
+    ]
+    for jid in stale:
+        _identify_jobs.pop(jid, None)
+
+
+def _prepare_identify_all(ts: str):
+    """Validate ts/audio and compute the gap for the /identify_all* endpoints.
+
+    Returns:
+        Tuple (prep, error) where prep is
+        {"current_sec", "gap", "audio_path"} or None when error is set.
+    """
+    try:
+        import shared_utils
+        current_sec = shared_utils.parse_ts(ts)
+    except Exception as e:
+        logger.warning(f"[IDENTIFY_ALL] Invalid timestamp '{ts}': {e}")
+        return None, "invalid ts"
+
+    audio_path = _find_audio_file()
+    if not audio_path:
+        return None, "audio file not available (server may have cleaned it up)"
+
+    # Determine the gap length from the next mark; fall back to 60s for the last row.
+    gap = 60.0
+    try:
+        import shared_utils
+        sorted_keys = sorted(state.results.keys(), key=shared_utils.parse_ts)
+        if ts in sorted_keys:
+            idx = sorted_keys.index(ts)
+            if idx + 1 < len(sorted_keys):
+                gap = shared_utils.parse_ts(sorted_keys[idx + 1]) - current_sec
+    except Exception as e:
+        logger.warning(f"[IDENTIFY_ALL] Error computing gap for '{ts}': {e}")
+    if gap <= 0:
+        gap = 60.0
+    return {"current_sec": current_sec, "gap": gap, "audio_path": audio_path}, None
+
+
+async def _run_identify_all_job(job_id: str, ts: str, prep: Dict[str, Any]) -> None:
+    """Background worker for /identify_all_start: fills the job dict."""
+    job = _identify_jobs.get(job_id)
+    if not job:
+        return
+    try:
+        from shazamio import Shazam
+        from identifier import (
+            _extract_audio_segment,
+            _recognize_shazam_snippet,
+            _recognize_aha_snippet,
+            _recognize_acrcloud_snippet,
+        )
+        from config import AHA_CONFIG
+    except Exception as e:
+        logger.warning(f"[IDENTIFY_ALL] Identify backend unavailable: {e}")
+        job["done"] = True
+        job["error"] = "identify backend unavailable"
+        job["finished_at"] = time.time()
+        return
+
+    try:
+        import shared_utils
+        current_sec = prep["current_sec"]
+        gap = prep["gap"]
+        audio_path = prep["audio_path"]
+        snippets_dir = Path(state.snippets_dir) if state.snippets_dir else audio_path.parent / "snippets"
+        snippets_dir.mkdir(parents=True, exist_ok=True)
+
+        shazam = Shazam(language='ja-JP', endpoint_country='JP')
+        shazam_en = Shazam(language='en-US', endpoint_country='US')
+        sliding_windows = shared_utils.get_optimal_sliding_windows(gap)
+        job["total"] = len(sliding_windows)
+        logger.info(f"[IDENTIFY_ALL] {ts} (start={current_sec:.1f}s gap={gap:.1f}s windows={len(sliding_windows)})")
+
+        aha_enabled = AHA_CONFIG.get('enabled', True)
+        if not aha_enabled:
+            logger.debug(f"[IDENTIFY_ALL] {ts} AHA disabled via config, skipping")
+
+        shazam_raw: list = []
+        aha_raw: list = []
+        acr_raw: list = []
+        found = {"shazam": None, "aha": None, "acrcloud": None}
+        found_window = {"shazam": None, "aha": None, "acrcloud": None}
+
+        for i, (offset, d) in enumerate(sliding_windows):
+            if found["shazam"] and (found["aha"] or not aha_enabled) and found["acrcloud"]:
+                break
+            logger.info(
+                " [IDENTIFY_ALL] Window %d/%d: extract @ %.1fs (offset +%.1fs, dur %.1fs)",
+                i + 1, len(sliding_windows), current_sec + offset, offset, d,
+            )
+            temp_name = snippets_dir / f"seg_all_row_{int(time.time() * 1000)}_{i}.wav"
+            # Live per-engine status for the progress modal. "Matched"
+            # engines keep their matched state across later windows.
+            job["window"] = i + 1
+            job["scan_sec"] = current_sec + offset
+            job["stage"] = "extracting"
+            prev_engines = job.get("engines", {})
+            def _carried(label):
+                """Keep a matched engine's full status (incl. its window #)."""
+                if not found[label]:
+                    return {"status": "waiting"}
+                prev = prev_engines.get(label) or {}
+                return {"status": "matched", "window": prev.get("window")}
+            job["engines"] = {
+                "shazam": _carried("shazam"),
+                "aha": {"status": "disabled"} if not aha_enabled else _carried("aha"),
+                "acrcloud": _carried("acrcloud"),
+            }
+            try:
+                ok = await _extract_audio_segment(
+                    audio_path, current_sec, offset, d, temp_name
+                )
+                if not ok:
+                    logger.debug(f"[IDENTIFY_ALL] {ts} window {i + 1}: extraction failed, skipping")
+                    continue
+
+                job["stage"] = "querying"
+                tasks = {}
+                if not found["shazam"]:
+                    fut = asyncio.ensure_future(_recognize_shazam_snippet(shazam, shazam_en, temp_name, collect_raw=shazam_raw))
+                    tasks[fut] = "shazam"
+                    job["engines"]["shazam"] = {"status": "running"}
+                if aha_enabled and not found["aha"]:
+                    fut = asyncio.ensure_future(_recognize_aha_snippet(shazam_en, temp_name, collect_raw=aha_raw))
+                    tasks[fut] = "aha"
+                    job["engines"]["aha"] = {"status": "running"}
+                if not found["acrcloud"]:
+                    fut = asyncio.ensure_future(_recognize_acrcloud_snippet(shazam_en, temp_name, collect_raw=acr_raw))
+                    tasks[fut] = "acrcloud"
+                    job["engines"]["acrcloud"] = {"status": "running"}
+                if not tasks:
+                    break
+
+                # Resolve engines one-by-one so the progress modal updates
+                # as each request finishes, not only after the whole window.
+                pending = set(tasks.keys())
+                while pending:
+                    done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+                    for fut in done:
+                        label = tasks[fut]
+                        try:
+                            outcome = fut.result()
+                        except Exception as e:
+                            logger.warning(f"[IDENTIFY_ALL] {ts} {label} window {i + 1} error: {e}")
+                            job["engines"][label] = {"status": "error"}
+                            continue
+                        if outcome and outcome != "Unidentified":
+                            found[label] = outcome
+                            found_window[label] = i + 1
+                            job["engines"][label] = {"status": "matched", "window": i + 1}
+                            logger.info(f"[IDENTIFY_ALL] {ts} {label.upper()} SUCCESS on window {i + 1}: {outcome}")
+                        else:
+                            job["engines"][label] = {"status": "no-match"}
+                            logger.debug(f"[IDENTIFY_ALL] {ts} {label} no DB match on window {i + 1}")
+                        job["found"] = {k: bool(v) for k, v in found.items()}
+            finally:
+                try:
+                    if temp_name.exists():
+                        temp_name.unlink()
+                except OSError:
+                    pass
+            job["windows_done"] = i + 1
+
+        job["results"] = {
+            "shazam": _summarize_identify_source(shazam_raw, found["shazam"], found_window["shazam"]),
+            "aha": _summarize_identify_source(aha_raw, found["aha"], found_window["aha"], disabled=not aha_enabled),
+            "acrcloud": _summarize_identify_source(acr_raw, found["acrcloud"], found_window["acrcloud"]),
+        }
+        logger.info(
+            f"[IDENTIFY_ALL] {ts} done: shazam={found['shazam']!r} aha={found['aha']!r} acrcloud={found['acrcloud']!r}"
+        )
+    except asyncio.CancelledError:
+        logger.info(f"[IDENTIFY_ALL] {ts} job {job_id} cancelled")
+        job["done"] = True
+        job["cancelled"] = True
+        raise
+    except Exception as e:
+        logger.warning(f"[IDENTIFY_ALL] Unexpected error for '{ts}': {e}")
+        job["error"] = str(e)
+    finally:
+        job["done"] = True
+        job["finished_at"] = time.time()
+
+
+async def handle_identify_all_start(request: web.Request) -> web.Response:
+    """Handle /identify_all_start - launch a background 3-engine identify job.
+
+    Returns immediately with a job id plus the window count so the
+    frontend can render progress. Poll /identify_all_job for status.
+
+    Query params:
+        ts: Timestamp of the row to identify (e.g. "1:30")
+    """
+    ts = request.query.get('ts')
+    if not ts:
+        return await _json_response({"status": "error", "msg": "missing ts"})
+
+    prep, error = _prepare_identify_all(ts)
+    if error:
+        return await _json_response({"status": "error", "msg": error})
+
+    try:
+        import shared_utils
+        total = len(shared_utils.get_optimal_sliding_windows(prep["gap"]))
+    except Exception as e:
+        logger.warning(f"[IDENTIFY_ALL] Error computing windows for '{ts}': {e}")
+        return await _json_response({"status": "error", "msg": "cannot compute windows"})
+
+    try:
+        from config import AHA_CONFIG
+        aha_enabled = AHA_CONFIG.get('enabled', True)
+    except Exception:
+        aha_enabled = True
+
+    _prune_identify_jobs()
+    job_id = uuid.uuid4().hex[:12]
+    _identify_jobs[job_id] = {
+        "ts": ts, "done": False, "window": 0, "total": total,
+        "windows_done": 0, "stage": "starting", "scan_sec": None,
+        "engines": {"shazam": {"status": "waiting"}, "aha": {"status": "waiting"}, "acrcloud": {"status": "waiting"}},
+        "aha_enabled": aha_enabled,
+        "found": {"shazam": False, "aha": False, "acrcloud": False},
+        "results": None, "error": None, "cancelled": False,
+        "started_at": time.time(),
+    }
+    task = asyncio.create_task(_run_identify_all_job(job_id, ts, prep))
+    _identify_jobs[job_id]["task"] = task
+    logger.info(f"[IDENTIFY_ALL] {ts} job {job_id} started ({total} windows)")
+    return await _json_response({"status": "ok", "job": job_id, "ts": ts, "total": total, "aha_enabled": aha_enabled})
+
+
+async def handle_identify_all_job(request: web.Request) -> web.Response:
+    """Handle /identify_all_job - poll a background identify job.
+
+    Query params:
+        job: Job id returned by /identify_all_start
+    """
+    job_id = request.query.get('job')
+    job = _identify_jobs.get(job_id) if job_id else None
+    if not job:
+        return await _json_response({"status": "error", "msg": "unknown job"})
+    payload: Dict[str, Any] = {
+        "status": "ok", "done": job["done"], "ts": job["ts"],
+        "window": job["window"], "total": job["total"], "found": job["found"],
+        "windows_done": job.get("windows_done", 0),
+        "stage": job.get("stage", ""),
+        "scan_sec": job.get("scan_sec"),
+        "engines": job.get("engines", {}),
+        "aha_enabled": job.get("aha_enabled", True),
+    }
+    if job.get("error"):
+        payload["job_error"] = job["error"]
+    if job.get("cancelled"):
+        payload["cancelled"] = True
+    if job["done"] and job.get("results") is not None:
+        payload["results"] = job["results"]
+    return await _json_response(payload)
+
+
+async def handle_identify_all_cancel(request: web.Request) -> web.Response:
+    """Handle /identify_all_cancel - cancel a background identify job.
+
+    Query params:
+        job: Job id returned by /identify_all_start
+    """
+    job_id = request.query.get('job')
+    job = _identify_jobs.get(job_id) if job_id else None
+    if not job:
+        return await _json_response({"status": "ok", "msg": "unknown job"})
+    task = job.get("task")
+    try:
+        if task and not task.done():
+            task.cancel()
+    except Exception as e:
+        logger.warning(f"[IDENTIFY_ALL] Error cancelling job {job_id}: {e}")
+    job["cancelled"] = True
+    return await _json_response({"status": "ok"})
+
+
+async def handle_identify_all(request: web.Request) -> web.Response:
+    """Handle /identify_all endpoint - re-identify one row with all 3 engines.
+
+    Runs Shazam (shazamio), AHA Music and ACRCloud over the same
+    sliding windows (one audio extraction per window, engines queried
+    concurrently) and returns each engine's best result side-by-side so
+    the user can pick which one to apply to the row. Nothing is written
+    to results.txt here — the frontend applies the chosen song via the
+    existing /update_result endpoint.
+
+    Query params:
+        ts: Timestamp of the row to identify (e.g. "1:30")
+    """
+    ts = request.query.get('ts')
+    if not ts:
+        return await _json_response({"status": "error", "msg": "missing ts"})
+
+    try:
+        import shared_utils
+        current_sec = shared_utils.parse_ts(ts)
+    except Exception as e:
+        logger.warning(f"[IDENTIFY_ALL] Invalid timestamp '{ts}': {e}")
+        return await _json_response({"status": "error", "msg": "invalid ts"})
+
+    audio_path = _find_audio_file()
+    if not audio_path:
+        return await _json_response({
+            "status": "error",
+            "msg": "audio file not available (server may have cleaned it up)",
+        })
+
+    # Determine the gap length from the next mark; fall back to 60s for the last row.
+    gap = 60.0
+    try:
+        import shared_utils
+        sorted_keys = sorted(state.results.keys(), key=shared_utils.parse_ts)
+        if ts in sorted_keys:
+            idx = sorted_keys.index(ts)
+            if idx + 1 < len(sorted_keys):
+                gap = shared_utils.parse_ts(sorted_keys[idx + 1]) - current_sec
+    except Exception as e:
+        logger.warning(f"[IDENTIFY_ALL] Error computing gap for '{ts}': {e}")
+    if gap <= 0:
+        gap = 60.0
+
+    try:
+        from shazamio import Shazam
+        from identifier import (
+            _extract_audio_segment,
+            _recognize_shazam_snippet,
+            _recognize_aha_snippet,
+            _recognize_acrcloud_snippet,
+        )
+        from config import AHA_CONFIG
+    except Exception as e:
+        logger.warning(f"[IDENTIFY_ALL] Identify backend unavailable: {e}")
+        return await _json_response({"status": "error", "msg": "identify backend unavailable"})
+
+    try:
+        import shared_utils
+        snippets_dir = Path(state.snippets_dir) if state.snippets_dir else audio_path.parent / "snippets"
+        snippets_dir.mkdir(parents=True, exist_ok=True)
+
+        shazam = Shazam(language='ja-JP', endpoint_country='JP')
+        shazam_en = Shazam(language='en-US', endpoint_country='US')
+        sliding_windows = shared_utils.get_optimal_sliding_windows(gap)
+        logger.info(f"[IDENTIFY_ALL] {ts} (start={current_sec:.1f}s gap={gap:.1f}s windows={len(sliding_windows)})")
+
+        aha_enabled = AHA_CONFIG.get('enabled', True)
+        if not aha_enabled:
+            logger.debug(f"[IDENTIFY_ALL] {ts} AHA disabled via config, skipping")
+
+        shazam_raw: list = []
+        aha_raw: list = []
+        acr_raw: list = []
+        found = {"shazam": None, "aha": None, "acrcloud": None}
+        found_window = {"shazam": None, "aha": None, "acrcloud": None}
+
+        for i, (offset, d) in enumerate(sliding_windows):
+            if found["shazam"] and (found["aha"] or not aha_enabled) and found["acrcloud"]:
+                break
+            logger.info(
+                " [IDENTIFY_ALL] Window %d/%d: extract @ %.1fs (offset +%.1fs, dur %.1fs)",
+                i + 1, len(sliding_windows), current_sec + offset, offset, d,
+            )
+            temp_name = snippets_dir / f"seg_all_row_{int(time.time() * 1000)}_{i}.wav"
+            try:
+                ok = await _extract_audio_segment(
+                    audio_path, current_sec, offset, d, temp_name
+                )
+                if not ok:
+                    logger.debug(f"[IDENTIFY_ALL] {ts} window {i + 1}: extraction failed, skipping")
+                    continue
+
+                jobs = []
+                labels = []
+                if not found["shazam"]:
+                    jobs.append(_recognize_shazam_snippet(shazam, shazam_en, temp_name, collect_raw=shazam_raw))
+                    labels.append("shazam")
+                if aha_enabled and not found["aha"]:
+                    jobs.append(_recognize_aha_snippet(shazam_en, temp_name, collect_raw=aha_raw))
+                    labels.append("aha")
+                if not found["acrcloud"]:
+                    jobs.append(_recognize_acrcloud_snippet(shazam_en, temp_name, collect_raw=acr_raw))
+                    labels.append("acrcloud")
+                if not jobs:
+                    break
+
+                outcomes = await asyncio.gather(*jobs, return_exceptions=True)
+                for label, outcome in zip(labels, outcomes):
+                    if isinstance(outcome, Exception):
+                        logger.warning(f"[IDENTIFY_ALL] {ts} {label} window {i + 1} error: {outcome}")
+                        continue
+                    if outcome and outcome != "Unidentified":
+                        found[label] = outcome
+                        found_window[label] = i + 1
+                        logger.info(f"[IDENTIFY_ALL] {ts} {label.upper()} SUCCESS on window {i + 1}: {outcome}")
+                    else:
+                        logger.debug(f"[IDENTIFY_ALL] {ts} {label} no DB match on window {i + 1}")
+            finally:
+                try:
+                    if temp_name.exists():
+                        temp_name.unlink()
+                except OSError:
+                    pass
+
+        results = {
+            "shazam": _summarize_identify_source(shazam_raw, found["shazam"], found_window["shazam"]),
+            "aha": _summarize_identify_source(aha_raw, found["aha"], found_window["aha"], disabled=not aha_enabled),
+            "acrcloud": _summarize_identify_source(acr_raw, found["acrcloud"], found_window["acrcloud"]),
+        }
+        logger.info(
+            f"[IDENTIFY_ALL] {ts} done: shazam={found['shazam']!r} aha={found['aha']!r} acrcloud={found['acrcloud']!r}"
+        )
+        return await _json_response({"status": "ok", "ts": ts, "results": results})
+    except Exception as e:
+        logger.warning(f"[IDENTIFY_ALL] Unexpected error for '{ts}': {e}")
+        return await _json_response({"status": "error", "msg": str(e)})
+
+
 async def handle_toggle_flag(request: web.Request) -> web.Response:
     """Handle /toggle_flag endpoint - flag/unflag a row for manual review.
 
@@ -936,6 +1401,10 @@ def create_app() -> web.Application:
     app.router.add_get('/paren_exceptions', handle_paren_exceptions)
     app.router.add_get('/acr_identify', handle_acr_identify)
     app.router.add_get('/aha_identify', handle_acr_identify)  # alias: same ACRCloud -> AHA flow
+    app.router.add_get('/identify_all', handle_identify_all)
+    app.router.add_get('/identify_all_start', handle_identify_all_start)
+    app.router.add_get('/identify_all_job', handle_identify_all_job)
+    app.router.add_get('/identify_all_cancel', handle_identify_all_cancel)
     app.router.add_get('/toggle_flag', handle_toggle_flag)
     app.router.add_post('/update_song_vars', handle_update_song_vars)
 

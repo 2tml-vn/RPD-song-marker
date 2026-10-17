@@ -81,54 +81,64 @@ async def _extract_audio_segment(
         return False
 
 
-async def _identify_with_shazam(
+async def _recognize_shazam_snippet(
     shazam,
     shazam_en,
-    temp_name: Path,
-    current_sec: float,
-    offset: float,
-    audio_path: Path,
-    sliding_windows: list,
-    i: int
+    snippet_path: Path,
+    collect_raw: Optional[list] = None,
 ) -> Optional[str]:
     """
-    Attempt song identification using Shazam.
+    Recognize an already-extracted audio snippet with Shazam.
+
+    Same resolve/discard contract as :func:`_identify_with_shazam` but
+    takes a ready file instead of extracting a window. Raw hits are
+    appended to ``collect_raw`` (even when DB resolve fails/discards)
+    as ``{"title", "artist", "track_id", "detail", "candidates"}`` so
+    callers such as the /identify_all endpoint can surface all engines
+    side-by-side.
 
     Returns:
-        Song name if identified, None otherwise
+        Resolved display name, "Unidentified" for wrong-matches, or
+        None when there is no recognition / the hit was discarded.
     """
-    # Extract audio segment
-    if not await _extract_audio_segment(
-        audio_path, current_sec, offset, sliding_windows[i][1], temp_name
-    ):
+    if not snippet_path.exists():
+        logger.error(f" [Shazam] Extracted file does not exist: {snippet_path}")
         return None
-    
-    # Verify the extracted file exists and has content
-    if not temp_name.exists():
-        logger.error(f" [Shazam] Extracted file does not exist: {temp_name}")
-        return None
-    
-    file_size = temp_name.stat().st_size
+
+    file_size = snippet_path.stat().st_size
     if file_size == 0:
-        logger.error(f" [Shazam] Extracted file is empty: {temp_name}")
+        logger.error(f" [Shazam] Extracted file is empty: {snippet_path}")
         return None
-    
+
     if file_size < 1000:
-        logger.warning(" [Shazam] Extracted file is very small (%d bytes): %s", file_size, temp_name)
+        logger.warning(" [Shazam] Extracted file is very small (%d bytes): %s", file_size, snippet_path)
     else:
         logger.debug(" [Shazam] Extracted file size: %d bytes", file_size)
 
     try:
         # Recognize with Shazam (let shazamio handle retries via aiohttp_retry)
-        out = await shazam.recognize(str(temp_name))
+        out = await shazam.recognize(str(snippet_path))
 
         if out and 'track' in out:
             track = out['track']
             logger.info(" [RAW SHAZAM] %s - %s (track_id=%s)", track['title'], track['subtitle'], track.get('key'))
 
-            title_clean = shared_utils.clean_title(track['title'])
-            artist = track['subtitle']
+            title = track.get('title', '')
+            artist = track.get('subtitle', '')
             track_id = track.get('key')
+            if collect_raw is not None:
+                try:
+                    collect_raw.append({
+                        'title': title,
+                        'artist': artist,
+                        'track_id': track_id,
+                        'detail': {'title': title, 'artist': artist, 'track_id': track_id},
+                        'candidates': [{'title': title, 'artist': artist, 'track_id': track_id}],
+                    })
+                except Exception:
+                    pass
+
+            title_clean = shared_utils.clean_title(title)
 
             logger.debug(" [SHAZAM] Calling resolve_song_name with title_clean='%s' artist='%s' track_id=%s", title_clean, artist, track_id)
             full_match_name = await resolve_song_name(title_clean, artist, track_id, shazam_en)
@@ -143,14 +153,14 @@ async def _identify_with_shazam(
         else:
             logger.debug(" [SHAZAM] No track in response")
             return None
-            
+
     except KeyError as e:
         logger.debug(" [Shazam] Missing key in response: %s", e)
         return None
     except Exception as e:
         error_type = type(e).__name__
         error_str = str(e)
-        
+
         # Enhanced diagnostic logging
         if "semaphore timeout" in error_str.lower():
             logger.error(f" [Shazam] NETWORK ERROR: Connection timeout to Shazam servers")
@@ -167,132 +177,24 @@ async def _identify_with_shazam(
             logger.error(f" [Shazam] TIMEOUT: Request took too long to complete")
         else:
             logger.error(f" [Shazam] Error type: {error_type}")
-        
+
         logger.error(f" [Shazam] Error: {e}")
         return None
 
 
-async def _identify_with_acrcloud(
+async def _recognize_aha_snippet(
     shazam_en,
-    temp_name: Path,
-    current_sec: float,
-    offset: float,
-    audio_path: Path,
-    sliding_windows: list,
-    i: int,
+    snippet_path: Path,
     collect_raw: Optional[list] = None,
 ) -> Optional[str]:
     """
-    Attempt song identification using ACRCloud.
+    Recognize an already-extracted audio snippet with AHA Music.
 
-    Args:
-        collect_raw: optional list that each raw acr_result dict is appended
-            to (even when DB resolve fails/discards), so callers such as the
-            /acr_identify endpoint can surface full ACRCloud details.
-
-    Returns:
-        Song name if identified, None otherwise
+    Same contract as :func:`_identify_with_aha` but takes a ready
+    file instead of extracting a window.
     """
-    # Extract audio segment
-    if not await _extract_audio_segment(
-        audio_path, current_sec, offset, sliding_windows[i][1], temp_name
-    ):
-        return None
-
     try:
-        acr_result = await acrcloud.recognize(
-            str(temp_name),
-            access_key=ACR_CONFIG['access_key'],
-            access_secret=ACR_CONFIG['access_secret'],
-            host=ACR_CONFIG['host']
-        )
-
-        if acr_result:
-            if collect_raw is not None:
-                try:
-                    collect_raw.append(acr_result)
-                except Exception:
-                    pass
-            logger.info(
-                " [RAW ACRCLOUD] (window %d/%d @ %.1fs) %s - %s (en: %s)",
-                i + 1, len(sliding_windows), current_sec + offset,
-                acr_result['title'], acr_result['artist'], acr_result.get('en_title'),
-            )
-
-            title_clean = shared_utils.clean_title(acr_result['title'])
-            artist = acr_result['artist']
-            en_hint = strip_extra_info(acr_result.get('en_title')) if acr_result.get('en_title') else None
-
-            logger.debug(" [ACRCloud] Calling resolve_song_name with title_clean='%s' artist='%s' en_hint=%s", title_clean, artist, en_hint)
-            acr_match = await resolve_song_name(title_clean, artist, None, shazam_en, en_hint=en_hint)
-
-            # Check for discard (None return)
-            if acr_match is None:
-                logger.info(" [DISCARDED - ACRCLOUD] '%s' marked as discard, continuing...", title_clean)
-                return None
-
-            logger.info(" [MATCH - ACRCLOUD] %s", acr_match)
-            return acr_match
-        else:
-            logger.debug(" [ACRCloud] No result from recognition")
-            return None
-    except KeyError as e:
-        logger.debug(" [ACRCloud] Missing key in response: %s", e)
-    except Exception as e:
-        error_type = type(e).__name__
-        error_str = str(e)
-        
-        # Diagnose the specific error
-        if "semaphore timeout" in error_str.lower():
-            logger.error(f" [ACRCloud] NETWORK ERROR: Connection timeout")
-            logger.error(f" [ACRCloud] DIAGNOSIS: Possible causes:")
-            logger.error(f" [ACRCloud]   1. Internet connectivity issue")
-            logger.error(f" [ACRCloud]   2. ACRCloud server is down or overloaded")
-        elif "name or service not known" in error_str.lower() or "getaddrinfo" in error_str.lower():
-            logger.error(f" [ACRCloud] DNS ERROR: Cannot resolve ACRCloud host")
-        elif "connection refused" in error_str.lower():
-            logger.error(f" [ACRCloud] CONNECTION REFUSED")
-        elif "timeout" in error_str.lower():
-            logger.error(f" [ACRCloud] TIMEOUT: Request took too long")
-        else:
-            logger.error(f" [ACRCloud] Error type: {error_type}")
-        
-        logger.error(f" [ACRCloud] Error: {e}")
-
-    return None
-
-
-async def _identify_with_aha(
-    shazam_en,
-    temp_name: Path,
-    current_sec: float,
-    offset: float,
-    audio_path: Path,
-    sliding_windows: list,
-    i: int,
-    collect_raw: Optional[list] = None,
-) -> Optional[str]:
-    """
-    Attempt song identification using AHA Music (public ACRCloud-DB proxy).
-
-    Same contract as :func:`_identify_with_acrcloud`.
-
-    Args:
-        collect_raw: optional list that each raw aha_result dict is appended
-            to (even when DB resolve fails/discards), so callers such as the
-            /acr_identify endpoint can surface full details.
-
-    Returns:
-        Song name if identified, None otherwise
-    """
-    # Extract audio segment
-    if not await _extract_audio_segment(
-        audio_path, current_sec, offset, sliding_windows[i][1], temp_name
-    ):
-        return None
-
-    try:
-        aha_result = await aha_api.recognize(str(temp_name))
+        aha_result = await aha_api.recognize(str(snippet_path))
 
         if aha_result:
             if collect_raw is not None:
@@ -301,8 +203,7 @@ async def _identify_with_aha(
                 except Exception:
                     pass
             logger.info(
-                " [RAW AHA] (window %d/%d @ %.1fs) %s - %s (en: %s)",
-                i + 1, len(sliding_windows), current_sec + offset,
+                " [RAW AHA] %s - %s (en: %s)",
                 aha_result['title'], aha_result['artist'], aha_result.get('en_title'),
             )
 
@@ -347,6 +248,172 @@ async def _identify_with_aha(
         logger.error(f" [AHA] Error: {e}")
 
     return None
+
+
+async def _recognize_acrcloud_snippet(
+    shazam_en,
+    snippet_path: Path,
+    collect_raw: Optional[list] = None,
+) -> Optional[str]:
+    """
+    Recognize an already-extracted audio snippet with ACRCloud.
+
+    Same contract as :func:`_identify_with_acrcloud` but takes a
+    ready file instead of extracting a window.
+    """
+    try:
+        acr_result = await acrcloud.recognize(
+            str(snippet_path),
+            access_key=ACR_CONFIG['access_key'],
+            access_secret=ACR_CONFIG['access_secret'],
+            host=ACR_CONFIG['host']
+        )
+
+        if acr_result:
+            if collect_raw is not None:
+                try:
+                    collect_raw.append(acr_result)
+                except Exception:
+                    pass
+            logger.info(
+                " [RAW ACRCLOUD] %s - %s (en: %s)",
+                acr_result['title'], acr_result['artist'], acr_result.get('en_title'),
+            )
+
+            title_clean = shared_utils.clean_title(acr_result['title'])
+            artist = acr_result['artist']
+            en_hint = strip_extra_info(acr_result.get('en_title')) if acr_result.get('en_title') else None
+
+            logger.debug(" [ACRCloud] Calling resolve_song_name with title_clean='%s' artist='%s' en_hint=%s", title_clean, artist, en_hint)
+            acr_match = await resolve_song_name(title_clean, artist, None, shazam_en, en_hint=en_hint)
+
+            # Check for discard (None return)
+            if acr_match is None:
+                logger.info(" [DISCARDED - ACRCLOUD] '%s' marked as discard, continuing...", title_clean)
+                return None
+
+            logger.info(" [MATCH - ACRCLOUD] %s", acr_match)
+            return acr_match
+        else:
+            logger.debug(" [ACRCloud] No result from recognition")
+            return None
+    except KeyError as e:
+        logger.debug(" [ACRCloud] Missing key in response: %s", e)
+    except Exception as e:
+        error_type = type(e).__name__
+        error_str = str(e)
+
+        # Diagnose the specific error
+        if "semaphore timeout" in error_str.lower():
+            logger.error(f" [ACRCloud] NETWORK ERROR: Connection timeout")
+            logger.error(f" [ACRCloud] DIAGNOSIS: Possible causes:")
+            logger.error(f" [ACRCloud]   1. Internet connectivity issue")
+            logger.error(f" [ACRCloud]   2. ACRCloud server is down or overloaded")
+        elif "name or service not known" in error_str.lower() or "getaddrinfo" in error_str.lower():
+            logger.error(f" [ACRCloud] DNS ERROR: Cannot resolve ACRCloud host")
+        elif "connection refused" in error_str.lower():
+            logger.error(f" [ACRCloud] CONNECTION REFUSED")
+        elif "timeout" in error_str.lower():
+            logger.error(f" [ACRCloud] TIMEOUT: Request took too long")
+        else:
+            logger.error(f" [ACRCloud] Error type: {error_type}")
+
+        logger.error(f" [ACRCloud] Error: {e}")
+
+    return None
+
+
+async def _identify_with_shazam(
+    shazam,
+    shazam_en,
+    temp_name: Path,
+    current_sec: float,
+    offset: float,
+    audio_path: Path,
+    sliding_windows: list,
+    i: int,
+    collect_raw: Optional[list] = None,
+) -> Optional[str]:
+    """
+    Attempt song identification using Shazam.
+
+    Args:
+        collect_raw: optional list that each raw Shazam hit is appended
+            to (even when DB resolve fails/discards), so callers such as
+            the /identify_all endpoint can surface all engines side-by-side.
+
+    Returns:
+        Song name if identified, None otherwise
+    """
+    # Extract audio segment
+    if not await _extract_audio_segment(
+        audio_path, current_sec, offset, sliding_windows[i][1], temp_name
+    ):
+        return None
+
+    return await _recognize_shazam_snippet(shazam, shazam_en, temp_name, collect_raw=collect_raw)
+
+
+async def _identify_with_acrcloud(
+    shazam_en,
+    temp_name: Path,
+    current_sec: float,
+    offset: float,
+    audio_path: Path,
+    sliding_windows: list,
+    i: int,
+    collect_raw: Optional[list] = None,
+) -> Optional[str]:
+    """
+    Attempt song identification using ACRCloud.
+
+    Args:
+        collect_raw: optional list that each raw acr_result dict is appended
+            to (even when DB resolve fails/discards), so callers such as the
+            /acr_identify endpoint can surface full ACRCloud details.
+
+    Returns:
+        Song name if identified, None otherwise
+    """
+    # Extract audio segment
+    if not await _extract_audio_segment(
+        audio_path, current_sec, offset, sliding_windows[i][1], temp_name
+    ):
+        return None
+
+    return await _recognize_acrcloud_snippet(shazam_en, temp_name, collect_raw=collect_raw)
+
+
+async def _identify_with_aha(
+    shazam_en,
+    temp_name: Path,
+    current_sec: float,
+    offset: float,
+    audio_path: Path,
+    sliding_windows: list,
+    i: int,
+    collect_raw: Optional[list] = None,
+) -> Optional[str]:
+    """
+    Attempt song identification using AHA Music (public ACRCloud-DB proxy).
+
+    Same contract as :func:`_identify_with_acrcloud`.
+
+    Args:
+        collect_raw: optional list that each raw aha_result dict is appended
+            to (even when DB resolve fails/discards), so callers such as the
+            /acr_identify endpoint can surface full details.
+
+    Returns:
+        Song name if identified, None otherwise
+    """
+    # Extract audio segment
+    if not await _extract_audio_segment(
+        audio_path, current_sec, offset, sliding_windows[i][1], temp_name
+    ):
+        return None
+
+    return await _recognize_aha_snippet(shazam_en, temp_name, collect_raw=collect_raw)
 
 
 async def identify_song(

@@ -286,6 +286,475 @@ function identifyRowWithAcr(ts, btn) {
 }
 
 /**
+ * Re-identify a result row with all 3 engines (Shazam + AHA + ACRCloud).
+ * Shows the 3 results side-by-side and lets the user pick one to apply.
+ * Uses the server's local audio file; nothing is written until the user
+ * chooses a result (applied via /update_result).
+ * @param {string} ts - Timestamp of the row to identify
+ * @param {HTMLElement} [btn] - The button element (shows spinner while busy)
+ */
+function restoreIdentifyBtn(btn) {
+    if (!btn) return;
+    btn.dataset.busy = "";
+    btn.textContent = btn.dataset.origText || "🔍";
+    btn.style.opacity = "0.7";
+    btn.disabled = false;
+}
+
+function identifyRowWithAll(ts, btn) {
+    if (!ts) return;
+    if (btn) {
+        if (btn.dataset.busy === "1") return;
+        btn.dataset.busy = "1";
+        btn.dataset.origText = btn.textContent;
+        btn.textContent = "⏳";
+        btn.style.opacity = "1";
+        btn.disabled = true;
+    }
+    reviewFetch(getReviewServerUrl() + `/identify_all_start?ts=${encodeURIComponent(ts)}`)
+    .then(r => {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+    })
+    .then(res => {
+        if (res.status === "ok" && res.job) {
+            pollIdentifyAllJob(ts, res.job, res.total || 0, btn);
+        } else {
+            showToast("Identify failed: " + (res.msg || "unknown error"), "#c62828");
+            restoreIdentifyBtn(btn);
+        }
+    })
+    .catch(e => {
+        console.error("JRPD: identify_all_start failed", e);
+        const msg = String((e && e.message) || e);
+        if (msg.includes("404")) {
+            showToast("identify_all endpoint missing — restart python server", "#c62828");
+        } else {
+            showToast(`Identify failed for ${ts}`, "#c62828");
+        }
+        restoreIdentifyBtn(btn);
+    });
+}
+
+/**
+ * Poll a background /identify_all job and drive the progress modal.
+ * When the job finishes, the progress modal is replaced by the results modal.
+ * @param {string} ts - Timestamp of the row
+ * @param {string} jobId - Job id from /identify_all_start
+ * @param {number} total - Window count from /identify_all_start
+ * @param {HTMLElement} [btn] - Row button (busy until the job ends)
+ */
+function pollIdentifyAllJob(ts, jobId, total, btn) {
+    const prog = showIdentifyProgressModal(ts, total, () => {
+        reviewFetch(getReviewServerUrl() + `/identify_all_cancel?job=${encodeURIComponent(jobId)}`).catch(() => {});
+    });
+    updateIdentifyProgress(prog, { window: 0, total: total, found: {}, done: false });
+    let finished = false;
+    const timer = setInterval(() => {
+        // Progress modal closed (cancelled): stop polling, free the button.
+        if (!document.body.contains(prog.overlay)) {
+            if (!finished) {
+                finished = true;
+                clearInterval(timer);
+                restoreIdentifyBtn(btn);
+            }
+            return;
+        }
+        reviewFetch(getReviewServerUrl() + `/identify_all_job?job=${encodeURIComponent(jobId)}`)
+        .then(r => {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+        })
+        .then(js => {
+            if (finished) return;
+            if (js.status !== "ok") throw new Error(js.msg || "unknown job");
+            if (js.job_error) {
+                finished = true;
+                clearInterval(timer);
+                prog.overlay.remove();
+                restoreIdentifyBtn(btn);
+                showToast("Identify failed: " + js.job_error, "#c62828");
+                return;
+            }
+            updateIdentifyProgress(prog, js);
+            if (js.done) {
+                finished = true;
+                clearInterval(timer);
+                prog.overlay.remove();
+                restoreIdentifyBtn(btn);
+                if (js.results) {
+                    showIdentifyAllModal(ts, js.results);
+                } else if (!js.cancelled) {
+                    showToast("Identify failed: no results", "#c62828");
+                }
+            }
+        })
+        .catch(e => {
+            if (finished) return;
+            finished = true;
+            clearInterval(timer);
+            console.error("JRPD: identify_all_job poll failed", e);
+            try { prog.overlay.remove(); } catch (err) {}
+            restoreIdentifyBtn(btn);
+            showToast(`Identify failed for ${ts}`, "#c62828");
+        });
+    }, 500);
+}
+
+/**
+ * Inject the shimmer keyframes for the progress bar once.
+ * Styles inside the userscript sandbox aren't always picked up from
+ * CSS text, so a real <style> tag in <head> is the reliable route.
+ */
+function ensureIdentProgressKeyframes() {
+    if (document.getElementById("jrpd-ident-prog-style")) return;
+    const style = document.createElement("style");
+    style.id = "jrpd-ident-prog-style";
+    style.textContent =
+        "@keyframes jrpdIdentShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}" +
+        "@keyframes jrpdIdentPulse{0%,100%{opacity:1}50%{opacity:.55}}";
+    document.head.appendChild(style);
+}
+
+/**
+ * Show a progress modal for a running /identify_all job.
+ * @param {string} ts - Timestamp of the row
+ * @param {number} total - Total window count
+ * @param {Function} onCancel - Called when the user cancels
+ * @returns {Object} Handles {overlay, fill, label, eng} for updateIdentifyProgress
+ */
+function showIdentifyProgressModal(ts, total, onCancel) {
+    ensureIdentProgressKeyframes();
+    document.querySelectorAll(".jrpd-identprog-modal-overlay").forEach(el => el.remove());
+    const overlay = document.createElement("div");
+    overlay.className = "jrpd-identprog-modal-overlay";
+    overlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10001; display: flex; align-items: center; justify-content: center;";
+
+    const modal = document.createElement("div");
+    modal.style.cssText = "background: #1e1e30; color: #eee; padding: 18px 20px; border-radius: 10px; min-width: 380px; max-width: 480px; box-shadow: 0 4px 24px rgba(0,0,0,0.8); font-size: 12px; line-height: 1.6;";
+
+    const title = document.createElement("h3");
+    title.style.cssText = "margin: 0 0 10px 0; color: #82b1ff; font-size: 14px;";
+    title.textContent = `🔍 Re-identifying ${ts}…`;
+    modal.appendChild(title);
+
+    const barOuter = document.createElement("div");
+    barOuter.style.cssText = "background: #333; border-radius: 5px; height: 12px; overflow: hidden; margin-bottom: 6px;";
+    const fill = document.createElement("div");
+    // Shimmer + min-width make the bar visibly "alive" even while a long
+    // window is still in progress (nothing ticks between polls).
+    fill.style.cssText = "height: 100%; width: 0%; border-radius: 5px; transition: width 0.3s; overflow: hidden;" +
+        "background: linear-gradient(90deg, #1565c0 0%, #42a5f5 35%, #7e57c2 65%, #42a5f5 100%); background-size: 200% 100%;" +
+        "animation: jrpdIdentShimmer 1.6s linear infinite;";
+    barOuter.appendChild(fill);
+    modal.appendChild(barOuter);
+
+    const label = document.createElement("div");
+    label.style.cssText = "color: #aaa; margin-bottom: 8px; animation: jrpdIdentPulse 1.2s ease-in-out infinite;";
+    label.textContent = `Preparing…`;
+    modal.appendChild(label);
+
+    const eng = {};
+    [["shazam", "🎵 Shazam"], ["aha", "🅰️ AHA Music"], ["acrcloud", "☁️ ACRCloud"]].forEach(([key, name]) => {
+        const row = document.createElement("div");
+        row.style.cssText = "color: #ccc; margin-left: 4px;";
+        row.textContent = `⏳ ${name}: waiting…`;
+        modal.appendChild(row);
+        eng[key] = { row: row, name: name };
+    });
+
+    const btnBar = document.createElement("div");
+    btnBar.style.cssText = "display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.style.cssText = "padding: 6px 14px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;";
+    const doCancel = () => {
+        try { if (onCancel) onCancel(); } catch (e) {}
+        overlay.remove();
+    };
+    cancelBtn.onclick = doCancel;
+    btnBar.appendChild(cancelBtn);
+    modal.appendChild(btnBar);
+
+    overlay.appendChild(modal);
+    overlay.addEventListener("mousedown", (e) => { if (e.target === overlay) doCancel(); });
+    (typeof jrpdOverlayParent === "function" ? jrpdOverlayParent() : document.body).appendChild(overlay);
+    return { overlay: overlay, fill: fill, label: label, eng: eng };
+}
+
+/**
+ * Update the progress modal from an /identify_all_job payload.
+ * Renders the current scan position (ts @ audio-second), extraction vs
+ * querying stage, and each engine's live status from the job.
+ * @param {Object} prog - Handles from showIdentifyProgressModal
+ * @param {Object} js - Job status ({window, windows_done, total, stage, scan_sec, engines, found, done})
+ */
+function updateIdentifyProgress(prog, js) {
+    try {
+        const win = js.window || 0;
+        const doneCount = (js.windows_done != null) ? js.windows_done : win;
+        const total = js.total || 0;
+        const engStatus = js.engines || {};
+        const found = js.found || {};
+        const running = !js.done;
+
+        // Monotonic fill on completed windows; never return to 0 mid-run.
+        let pct = total > 0 ? Math.min(100, Math.round((doneCount / total) * 100)) : 0;
+        // While running, keep a small visual minimum so the shimmer is visible.
+        if (running && doneCount === 0) pct = 3;
+        prog.fill.style.width = pct + "%";
+
+        // Headline: stage + position within the audio.
+        let stageTxt;
+        if (js.done) {
+            stageTxt = `Done · ${doneCount}/${total || "?"} windows`;
+        } else {
+            const stage = js.stage === "extracting" ? "extracting snippet" : "querying engines";
+            const scanSec = js.scan_sec != null ? ` @ ${formatScanClock(js.scan_sec)}` : "";
+            stageTxt = `Window ${win}/${total || "?"}${scanSec} · ${stage}…`;
+        }
+        prog.label.textContent = stageTxt;
+        prog.label.style.animation = js.done ? "none" : prog.label.style.animation || "";
+
+        // Per-engine live lines. Old {window,found}-only payloads keep working.
+        Object.keys(prog.eng).forEach(key => {
+            const slot = prog.eng[key];
+            const st = (engStatus[key] && engStatus[key].status) || "";
+            if (st) {
+                renderEngineStatus(slot, st, engStatus[key]);
+            } else if (found[key]) {
+                renderEngineStatus(slot, "matched", { window: null });
+            } else if (js.done) {
+                renderEngineStatus(slot, "no-match", {});
+            } else {
+                renderEngineStatus(slot, "running", {});
+            }
+        });
+    } catch (e) {
+        console.error("JRPD: updateIdentifyProgress failed", e);
+    }
+}
+
+/**
+ * One engine line of the progress modal.
+ * @param {Object} slot - {row, name} handles
+ * @param {string} status - waiting|running|matched|no-match|error|disabled
+ * @param {Object} [info] - extra payload ({window})
+ */
+function renderEngineStatus(slot, status, info) {
+    const mark = {
+        "waiting": "⏳", "running": "⏳", "matched": "✅",
+        "no-match": "—", "error": "⚠️", "disabled": "🚫",
+    }[status] || "⏳";
+    let text;
+    switch (status) {
+        case "waiting": text = `⏳ ${slot.name}: waiting…`; break;
+        case "running": text = `⏳ ${slot.name}: querying…`; break;
+        case "matched": {
+            const w = info && info.window;
+            text = `✅ ${slot.name}: matched${w ? ` (window ${w})` : ""}`;
+            break;
+        }
+        case "no-match": text = `— ${slot.name}: no match`; break;
+        case "error": text = `⚠️ ${slot.name}: failed (retrying next window)`; break;
+        case "disabled": text = `🚫 ${slot.name}: disabled in config`; break;
+        default: text = `⏳ ${slot.name}: …`;
+    }
+    slot.row.textContent = text;
+    slot.row.style.color = status === "matched" ? "#9ccc65"
+        : status === "error" ? "#ff8a80"
+        : status === "no-match" || status === "disabled" ? "#888" : "#ccc";
+    // Small pulse on running rows so something is visibly moving.
+    slot.row.style.animation = (status === "running") ? "jrpdIdentPulse 1.2s ease-in-out infinite" : "";
+}
+
+/**
+ * Format seconds as m:ss for the scan-position readout.
+ * @param {number} sec
+ * @returns {string}
+ */
+function formatScanClock(sec) {
+    const s = Math.max(0, Math.round(sec));
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/**
+ * Apply a chosen engine result to a row via the server.
+ * @param {string} ts - Timestamp of the row
+ * @param {string} song - Resolved song display text to write
+ * @param {string} source - Engine label (shazam/aha/acrcloud) for the toast
+ * @param {HTMLElement} [overlay] - Modal overlay to close on success
+ */
+function applyIdentifyChoice(ts, song, source, overlay) {
+    if (!ts || !song) return;
+    let oldSong = "";
+    const row = document.querySelector(`[data-result-row][data-row-ts="${ts}"]`);
+    if (row) {
+        const songSpan = row.querySelector(".songContainer span[title]");
+        if (songSpan) oldSong = songSpan.title || songSpan.textContent.trim();
+    }
+    reviewFetch(getReviewServerUrl() + `/update_result?ts=${encodeURIComponent(ts)}&song=${encodeURIComponent(song)}&old_song=${encodeURIComponent(oldSong)}`)
+    .then(r => r.json())
+    .then(res => {
+        if (res.replaced) {
+            unflagRow(ts);
+            jrpdNotifyIdentPopup(jrpdBuildIdentPopupText(ts, song), true);
+            try { jrpdSetLatestIdent(ts, true); } catch (e) {}
+            // Suppress the auto-detection duplicate (poll will see the same resolved value)
+            try { if (jrpdPrevResultsMap) jrpdPrevResultsMap[ts] = song; } catch (e) {}
+            showToast(`${ts} set via ${source}`, "#2e7d32");
+            if (overlay) overlay.remove();
+            reviewLastMtime = 0;
+            fetchResultsFile({ forceFullRender: true });
+        } else {
+            showToast("Apply failed — timestamp not found", "#c62828");
+        }
+    })
+    .catch(e => {
+        console.error("JRPD: apply identify choice failed", e);
+        showToast("Apply failed", "#c62828");
+    });
+}
+
+/**
+ * Show a modal with the 3 engine results for a row.
+ * Each engine card shows its DB-resolved song (if any) plus the raw
+ * recognition, and a "Use this" button to apply that engine's song.
+ * @param {string} ts - Timestamp of the row
+ * @param {Object} results - {shazam, aha, acrcloud} payloads from /identify_all
+ */
+function showIdentifyAllModal(ts, results) {
+    try {
+        document.querySelectorAll(".jrpd-identall-modal-overlay").forEach(el => el.remove());
+        const order = [
+            ["shazam", "🎵 Shazam", "#ab47bc"],
+            ["aha", "🅰️ AHA Music", "#26a69a"],
+            ["acrcloud", "☁️ ACRCloud", "#42a5f5"],
+        ];
+        const overlay = document.createElement("div");
+        overlay.className = "jrpd-identall-modal-overlay";
+        overlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10001; display: flex; align-items: center; justify-content: center;";
+
+        const modal = document.createElement("div");
+        modal.style.cssText = "background: #1e1e30; color: #eee; padding: 18px 20px; border-radius: 10px; min-width: 420px; max-width: 600px; max-height: 84vh; overflow-y: auto; box-shadow: 0 4px 24px rgba(0,0,0,0.8); font-size: 12px; line-height: 1.6;";
+
+        const title = document.createElement("h3");
+        title.style.cssText = "margin: 0 0 10px 0; color: #82b1ff; font-size: 14px;";
+        title.textContent = `🔍 Re-identify — ${ts} (pick one)`;
+        modal.appendChild(title);
+
+        order.forEach(([key, label, color]) => {
+            const r = (results && results[key]) || {};
+            const card = document.createElement("div");
+            card.style.cssText = `border: 1px solid ${color}; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; background: #23233a;`;
+
+            const head = document.createElement("div");
+            head.style.cssText = `font-weight: bold; font-size: 13px; color: ${color}; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;`;
+            const nameSpan = document.createElement("span");
+            nameSpan.textContent = label;
+            head.appendChild(nameSpan);
+            const badge = document.createElement("span");
+            if (r.disabled) {
+                badge.textContent = "disabled";
+                badge.style.cssText = "font-size: 10px; color: #888; border: 1px solid #555; border-radius: 3px; padding: 1px 6px;";
+            } else if (r.song) {
+                badge.textContent = `match (w${r.window || "?"})`;
+                badge.style.cssText = "font-size: 10px; color: #fff; background: #2e7d32; border-radius: 3px; padding: 1px 6px;";
+            } else if (r.raw_title || (r.detail && (r.detail.title || r.detail.artist))) {
+                badge.textContent = "raw only (no DB match)";
+                badge.style.cssText = "font-size: 10px; color: #000; background: #ffb74d; border-radius: 3px; padding: 1px 6px;";
+            } else {
+                badge.textContent = "no match";
+                badge.style.cssText = "font-size: 10px; color: #ccc; border: 1px solid #555; border-radius: 3px; padding: 1px 6px;";
+            }
+            head.appendChild(badge);
+            card.appendChild(head);
+
+            const songLine = document.createElement("div");
+            songLine.style.cssText = "font-weight: bold; color: #fff; margin-bottom: 2px; user-select: text;";
+            songLine.textContent = r.song || "(no database match)";
+            if (!r.song) songLine.style.color = "#888";
+            card.appendChild(songLine);
+
+            const rawTitle = r.raw_title || (r.detail && r.detail.title) || "?";
+            const rawArtist = r.raw_artist || (r.detail && r.detail.artist) || "?";
+            const rawLine = document.createElement("div");
+            rawLine.style.cssText = "color: #aaa; margin-bottom: 4px; user-select: text;";
+            rawLine.textContent = `raw: ${rawTitle} - ${rawArtist}`;
+            card.appendChild(rawLine);
+
+            const d = r.detail || {};
+            const extras = [];
+            if (d.album) extras.push(`album: ${d.album}`);
+            if (d.score != null) extras.push(`score: ${d.score}`);
+            if (d.release_date) extras.push(`release: ${d.release_date}`);
+            if (d.play_offset_ms != null) extras.push(`offset: ${d.play_offset_ms}ms`);
+            if (extras.length) {
+                const exLine = document.createElement("div");
+                exLine.style.cssText = "color: #888; font-size: 11px; margin-bottom: 6px; user-select: text;";
+                exLine.textContent = extras.join(" · ");
+                card.appendChild(exLine);
+            }
+
+            const btnBar = document.createElement("div");
+            btnBar.style.cssText = "display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px;";
+
+            const copyBtn = document.createElement("button");
+            copyBtn.textContent = "📋 Copy";
+            copyBtn.style.cssText = "padding: 5px 12px; background: #0f3460; color: white; border: none; border-radius: 4px; cursor: pointer;";
+            copyBtn.onclick = () => {
+                const lines = [
+                    r.song ? `Song: ${r.song}` : null,
+                    `Raw: ${rawTitle} - ${rawArtist}`,
+                    d.album ? `Album: ${d.album}` : null,
+                    d.release_date ? `Release: ${d.release_date}` : null,
+                    d.score != null ? `Score: ${d.score}` : null,
+                ].filter(Boolean).join("\n");
+                try {
+                    navigator.clipboard.writeText(lines || `${rawTitle} - ${rawArtist}`).then(() => showToast(`${label} copied`, "#2e7d32"));
+                } catch (e) {
+                    console.warn("JRPD: copy failed", e);
+                }
+            };
+            btnBar.appendChild(copyBtn);
+
+            const useBtn = document.createElement("button");
+            useBtn.textContent = r.song ? `✅ Use this (${key})` : "✅ Use this";
+            useBtn.title = r.song ? `Write "${r.song}" to ${ts}` : "No database match to apply";
+            useBtn.disabled = !r.song;
+            useBtn.style.cssText = `padding: 5px 12px; background: ${r.song ? "#2e7d32" : "#444"}; color: ${r.song ? "white" : "#888"}; border: none; border-radius: 4px; cursor: ${r.song ? "pointer" : "not-allowed"}; font-weight: bold;`;
+            if (r.song) {
+                useBtn.onclick = () => applyIdentifyChoice(ts, r.song, key, overlay);
+            }
+            btnBar.appendChild(useBtn);
+            card.appendChild(btnBar);
+
+            modal.appendChild(card);
+        });
+
+        const hint = document.createElement("div");
+        hint.style.cssText = "color: #888; font-size: 11px; margin-bottom: 10px;";
+        hint.textContent = "Nothing is written until you press “Use this”. Raw-only results need a manual add via ➕.";
+        modal.appendChild(hint);
+
+        const footBar = document.createElement("div");
+        footBar.style.cssText = "display: flex; gap: 8px; justify-content: flex-end;";
+        const closeBtn = document.createElement("button");
+        closeBtn.textContent = "Close";
+        closeBtn.style.cssText = "padding: 6px 14px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;";
+        closeBtn.onclick = () => overlay.remove();
+        footBar.appendChild(closeBtn);
+        modal.appendChild(footBar);
+
+        overlay.appendChild(modal);
+        overlay.addEventListener("mousedown", (e) => { if (e.target === overlay) overlay.remove(); });
+        (typeof jrpdOverlayParent === "function" ? jrpdOverlayParent() : document.body).appendChild(overlay);
+    } catch (e) {
+        console.error("JRPD: showIdentifyAllModal failed", e);
+    }
+}
+
+/**
  * Show a modal with full ACRCloud details for a row.
  * Lets the user copy title/artist/album/links for manual identification
  * even when there is no songs.json database match.
@@ -1283,15 +1752,15 @@ function createResultRow(entry, idx, parsed) {
     };
     row.appendChild(clearBtn);
 
-    // ACRCloud identify button (re-identify this row via server audio)
+    // Re-identify button (all 3 engines: Shazam + AHA + ACRCloud, pick result)
     const acrBtn = document.createElement("button");
     acrBtn.textContent = "🔍";
-    acrBtn.title = `Identify with ACRCloud (${entry.ts})`;
+    acrBtn.title = `Re-identify with Shazam + AHA + ACRCloud (${entry.ts})`;
     acrBtn.className = "acrBtn";
     acrBtn.style.cssText = "padding: 1px 4px; border: none; border-radius: 3px; cursor: pointer; font-size: 11px; flex-shrink: 0; background: transparent; opacity: 0.7;";
     acrBtn.onclick = (e) => {
         e.stopPropagation();
-        identifyRowWithAcr(entry.ts, acrBtn);
+        identifyRowWithAll(entry.ts, acrBtn);
     };
     row.appendChild(acrBtn);
 
