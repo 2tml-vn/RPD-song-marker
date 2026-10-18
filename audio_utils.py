@@ -110,14 +110,14 @@ _yt_dlp_last_update = 0
 _yt_dlp_update_interval = 86400  # 24 hours in seconds
 
 # aria2c parallel-download args for yt-dlp (--external-downloader aria2c).
-# NOTE: aria2c is for YouTube only. Bilibili's CDN (upos-hz-mirrorakam)
-# tears down multi-connection transfers mid-flight — long cascades of
-# "Got EOF from the server" / "Failed to receive data (SEC_E_INVALID_HANDLE,
-# 80090301)" from Windows aria2c's TLS layer, speed collapsing from ~10MiB/s
-# to <100KiB/s, then aria2c exiting code 1 partway through. Even conservative
-# -x4/-s4 loses this race. Bilibili downloads therefore use yt-dlp's native
-# downloader (single connection, auto-resume + "Retrying (N/10)" recovery on
-# mid-read EOFs) on EVERY attempt — see ensure_audio() below.
+# NOTE: _ARIA2C_ARGS_DEFAULT is for YouTube only. Bilibili's CDN
+# (upos-hz-mirrorakam) tears down multi-connection transfers mid-flight —
+# long cascades of "Got EOF from the server" / "Failed to receive data
+# (SEC_E_INVALID_HANDLE, 80090301)" from Windows aria2c's TLS layer, speed
+# collapsing from ~10MiB/s to <100KiB/s, then aria2c exiting code 1
+# partway through — but only if it gives up. With a big retry budget the
+# kill-resume ride actually finishes fast (2026-10-18 test: 52MiB anthology
+# audio, exit 0, 70s at 822KiB/s vs ~6-8min on the throttled native path).
 # -k1M lets small audio files actually split; --file-allocation=none avoids
 # slow pre-allocation on Windows; retry/timeout flags let aria2c recover
 # from single-connection drops instead of aborting the whole transfer.
@@ -125,6 +125,17 @@ _ARIA2C_ARGS_DEFAULT = (
     "aria2c:-x 8 -s 8 -k 1M --file-allocation=none --check-certificate=false "
     "--retry-wait=3 --max-tries=5 --timeout=60 --connect-timeout=20 "
     "--allow-overwrite=true --auto-file-renaming=false --conditional-get=true"
+)
+
+# Kill-resistant aria2c profile for Bilibili. The CDN still decays the
+# connection count (CN:8 -> CN:1) and throttles to <1MiB/s per link, but
+# --max-tries=100 + --retry-wait=1 make aria2c re-open dropped chunks
+# instead of dying (the old --max-tries=5 profile lost that race and
+# exited code 1 partway through).
+_ARIA2C_ARGS_BILI = (
+    "aria2c:-x 8 -s 8 -k 1M --file-allocation=none --check-certificate=false "
+    "--retry-wait=1 --max-tries=100 --timeout=30 --connect-timeout=15 "
+    "--allow-overwrite=true --auto-file-renaming=false"
 )
 
 # Native-downloader retry budget for Bilibili CDN connection kills. Each
@@ -142,6 +153,29 @@ _YT_DLP_PROGRESS_ARGS = ["--newline", "--progress"]
 _PROGRESS_LOG_INTERVAL = 10.0  # seconds between progress lines
 _PROGRESS_PCT_STEP = 10.0  # log when percent jumps by this much
 _PCT_RE = re.compile(r'(\d+(?:\.\d+)?)%')
+
+# yt-dlp native-downloader mid-read kill:
+#   "Got error: <n> bytes read, <m> more expected. Retrying (k/20)..."
+# = IncompleteRead/ContentTooShortError: the CDN closed the connection
+# after <n> bytes and the downloader immediately resumes from the .part
+# offset. Reword it so the cmd log reads as recovery, not an error.
+_GOT_ERROR_RE = re.compile(
+    r'^(?:\[download\] )?Got error: (\d+) bytes read(?:, (\d+) more expected)?\s*'
+    r'\.\s*Retrying \((\d+/\d+)\)\.\.\.$'
+)
+
+
+def _reword_ytdlp_kill(line: str) -> str:
+    """Reword yt-dlp's IncompleteRead retry line into plain-language status."""
+    m = _GOT_ERROR_RE.match(line)
+    if m is None:
+        return line
+    read, expected, retry = m.group(1), m.group(2), m.group(3)
+    read_kib = int(read) // 1024
+    if expected:
+        pct = int(read) * 100 // (int(read) + int(expected))
+        return f"CDN dropped connection at ~{pct}% ({read_kib} KiB); resuming ({retry})"
+    return f"CDN dropped connection ({read_kib} KiB); resuming ({retry})"
 
 
 def _progress_percent(line: str):
@@ -162,31 +196,19 @@ def _progress_percent(line: str):
 
 
 def _aria2c_extra_args(is_bilibili: bool = False) -> list:
-    """Return yt-dlp external-downloader args.
+    """Return yt-dlp external-downloader args for the shared base_cmd.
 
-    Bilibili always gets []: its CDN aborts multi-connection aria2c
-    transfers, so those use the native (single-connection) downloader
-    instead. YouTube gets aria2c args when aria2c is installed, else [].
+    Only the YouTube fast path runs base_cmd/aria2c here. Bilibili builds
+    dedicated commands instead (_bili_aria2c_cmd on attempts 1-2,
+    _native_yt_dlp_cmd on attempts 3-4), so it always gets [] here.
     """
     if is_bilibili:
-        logger.debug("[DL] Bilibili: native downloader only (CDN kills aria2c connections)")
+        logger.debug("[DL] Bilibili: dedicated aria2c/native attempt builders — base_cmd unused")
         return []
     if shutil.which("aria2c"):
         return ["--external-downloader", "aria2c", "--downloader-args", _ARIA2C_ARGS_DEFAULT]
     logger.warning("[DL] aria2c not found on PATH, falling back to native downloader")
     return []
-
-
-def _clean_aria2_control_files(video_dir: Path) -> None:
-    """Remove stale aria2c control (*.aria2) files before a native retry."""
-    try:
-        for stale in video_dir.glob("*.aria2"):
-            try:
-                stale.unlink()
-            except OSError:
-                pass
-    except Exception:
-        pass
 
 
 def _remove_partial_downloads(video_dir: Path) -> None:
@@ -235,6 +257,28 @@ def _native_yt_dlp_cmd(video_dir: Path, url: str, is_youtube: bool, retries: int
         *_YT_DLP_PROGRESS_ARGS,
         "--retries", str(retries), "--fragment-retries", "10",
         "--concurrent-fragments", "4",
+        "-o", str(video_dir / "audio.%(ext)s"),
+        url
+    ]
+
+
+def _bili_aria2c_cmd(video_dir: Path, url: str) -> list:
+    """Build a yt-dlp command using the kill-resistant aria2c profile.
+
+    Bilibili's CDN kills individual connections, but aria2c re-opens them
+    (resume via its .aria2 control file — it must NOT be cleaned while
+    aria2c attempts remain) and finishes far faster than the throttled
+    native single-connection crawl. Callers MUST wipe partials before
+    switching to the native downloader: a multi-connection aria2c partial
+    is sparse (holes where killed segments never landed), so resuming it
+    by byte offset would corrupt the file.
+    """
+    return [
+        "yt-dlp", "-f", "ba/b", "-x", "--audio-format", "best",
+        "--no-check-certificates",
+        "--remote-components", "ejs:github",
+        *_YT_DLP_PROGRESS_ARGS,
+        "--external-downloader", "aria2c", "--downloader-args", _ARIA2C_ARGS_BILI,
         "-o", str(video_dir / "audio.%(ext)s"),
         url
     ]
@@ -313,6 +357,7 @@ def _run_yt_dlp(cmd: list, timeout: int = 300):
             stripped = line.strip()
             if not stripped:
                 continue
+            stripped = _reword_ytdlp_kill(stripped)
             output_lines.append(stripped)
             is_progress, pct = _progress_percent(stripped)
             if not is_progress:
@@ -599,9 +644,9 @@ def ensure_audio(video_id, video_dir):
                 return path
             # File was invalid and removed, continue to download
 
-    # Download audio: aria2c parallelism for YouTube only — Bilibili's CDN
-    # aborts multi-connection transfers, so Bilibili always uses the native
-    # (single-connection, resumable) downloader on every attempt.
+    # Download audio: aria2c parallelism for YouTube; Bilibili runs the
+    # kill-resistant aria2c profile first (attempts 1-2) with the native
+    # single-connection downloader as fallback (attempts 3-4).
     url = normalize_video_url(video_id)
     is_youtube = "youtube.com" in url or "youtu.be" in url
     platform = "YouTube" if is_youtube else "Bilibili"
@@ -620,10 +665,11 @@ def ensure_audio(video_id, video_dir):
     # Track if we should force yt-dlp refresh due to repeated failures
     force_yt_dlp_refresh = False
 
-    # Bilibili: EVERY attempt is native-downloader/single-connection —
-    # aria2c only burns attempts on this CDN. Attempts 1-3 resume any
-    # partial; attempt 4 starts fresh (partials wiped — recovers HTTP 416
-    # from a stale resume offset that can never succeed).
+    # Bilibili: attempts 1-2 run the kill-resistant aria2c profile
+    # (resume via its .aria2 control file between them), attempts 3-4
+    # fall back to the native single-connection downloader; attempt 4
+    # starts fresh (partials wiped — recovers HTTP 416 from a stale
+    # resume offset that can never succeed).
     # YouTube: attempts 1-2 are the aria2c parallel fast path, 3-4 native
     # fallback.
     max_attempts = 4
@@ -644,18 +690,23 @@ def ensure_audio(video_id, video_dir):
                 force_yt_dlp_refresh = False
 
             if is_bilibili:
-                # Bilibili: native downloader every time — single connection
-                # survives the CDN's EOF/keep-alive kills, aria2c does not.
-                if attempt == max_attempts - 1:
-                    # Final attempt: wipe partials first. A stale resume
-                    # offset + a fresh signed URL can 416 forever.
-                    _remove_partial_downloads(video_dir)
+                if attempt <= 1:
+                    # Bilibili fast path: kill-resistant aria2c. Its .aria2
+                    # control file is kept intact between these attempts so
+                    # a failed run resumes instead of restarting.
+                    cmd = _bili_aria2c_cmd(video_dir, url)
+                    attempt_timeout = _native_attempt_timeout(true_duration)
+                    logger.info(f"[DL] Attempt {attempt + 1}: aria2c kill-resistant for {platform}")
                 else:
-                    # Clean stale .aria2 control files so they don't linger.
-                    _clean_aria2_control_files(video_dir)
-                cmd = _native_yt_dlp_cmd(video_dir, url, is_youtube=False, retries=_BILI_NATIVE_RETRIES)
-                attempt_timeout = _native_attempt_timeout(true_duration)
-                logger.info(f"[DL] Attempt {attempt + 1}: Native downloader for {platform} (single connection, resumable)")
+                    # Bilibili fallback: native single-connection downloader
+                    # survives CDN EOF/keep-alive kills without aria2c.
+                    # MUST wipe partials first: an aria2c multi-connection
+                    # partial is sparse, native resume by offset would
+                    # corrupt it.
+                    _remove_partial_downloads(video_dir)
+                    cmd = _native_yt_dlp_cmd(video_dir, url, is_youtube=False, retries=_BILI_NATIVE_RETRIES)
+                    attempt_timeout = _native_attempt_timeout(true_duration)
+                    logger.info(f"[DL] Attempt {attempt + 1}: Native downloader for {platform} (single connection, resumable)")
             elif attempt <= 1:
                 # YouTube fast path: aria2c parallel download; attempt 2 is a plain retry.
                 cmd = base_cmd.copy()
@@ -665,11 +716,11 @@ def ensure_audio(video_id, video_dir):
                 else:
                     logger.info(f"[DL] Attempt {attempt + 1}: Plain retry for {platform}")
             else:  # YouTube attempts 3-4: native downloader fallback (no aria2c).
-                if attempt == max_attempts - 1:
-                    # Final attempt: wipe partials first (recovers HTTP 416).
-                    _remove_partial_downloads(video_dir)
-                else:
-                    _clean_aria2_control_files(video_dir)
+                # MUST wipe partials first: an aria2c multi-connection
+                # partial is sparse (holes), native resume by byte offset
+                # would corrupt it. Final attempt wipe also recovers a
+                # stale-resume-offset HTTP 416 that can never succeed.
+                _remove_partial_downloads(video_dir)
                 cmd = _native_yt_dlp_cmd(video_dir, url, is_youtube=True)
                 attempt_timeout = 600
                 logger.info(f"[DL] Attempt {attempt + 1}: Native fallback (web client, no aria2c)")
@@ -700,7 +751,7 @@ def ensure_audio(video_id, video_dir):
                 elif "aria2c exited" in stderr_lower or "errorcode=" in stderr_lower:
                     logger.warning(
                         f"[DL] Attempt {attempt + 1}: aria2c rejected by {platform} CDN "
-                        f"(multi-connection throttled; native fallback follows)"
+                        f"(CDN throttled the multi-connection transfer)"
                     )
                 logger.warning(f"[DL] Download attempt {attempt + 1} failed: {tail}")
                 continue
