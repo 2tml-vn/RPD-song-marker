@@ -17,9 +17,9 @@ from typing import Optional, Dict, Any, List
 
 from aiohttp import web
 
-from config import PORT, MISIDENTIFIED_SONGS_FILE, MISSED_SONGS_FILE, SONG_OVERRIDES_FILE, SONG_NAME_PARENS_EXCEPTIONS_FILE, EDITOR_PATH, RUNS_DIR
-from audio_utils import format_display_name
-from song_db import SONG_OVERRIDES, MISSED_SONGS, SONG_NAME_PARENS_EXCEPTIONS, save_song_overrides, load_song_overrides
+from config import PORT, MISIDENTIFIED_SONGS_FILE, MISSED_SONGS_FILE, SONG_OVERRIDES_FILE, EDITOR_PATH, RUNS_DIR
+from audio_utils import format_display_name, strip_extra_info
+from song_db import SONG_OVERRIDES, MISSED_SONGS, MISIDENTIFIED_SONGS, save_song_overrides, load_song_overrides
 
 # Note: load_song_overrides() is called by the main script, not here
 
@@ -134,6 +134,7 @@ class ServerState:
         self.current_seek_ts = -1
         self.cleanup_candidates: List[str] = []
         self.results: Dict[str, str] = {}
+        self.results_keys: Dict[str, str] = {}  # row ts -> registered song key (exact row ownership)
         self.is_finished = False
         self.is_session_done = False
         self.results_file_path: Optional[str] = None
@@ -148,6 +149,7 @@ class ServerState:
         self.current_seek_ts = -1
         self.cleanup_candidates = []
         self.results = {}
+        self.results_keys = {}
         self.is_finished = False
         self.is_session_done = False
         self.flagged_ts = set()
@@ -351,13 +353,18 @@ async def handle_update_result(request: web.Request) -> web.Response:
         logger.info(f"[UPDATE_RESULT] Looking for timestamp: '{ts}'")
         canonical, _ = _split_flag_marker(song)
         replaced = update_results_line(Path(state.results_file_path), ts, canonical)
-        
+
         result["replaced"] = replaced
         if replaced:
             result["actions"].append("updated_results")
         # Keep in-memory results in sync so the next save_state() (triggered by
         # the next mark or identification) does not revert this edit.
         state.results[ts] = canonical
+        if canonical:
+            _note_row_key(ts, display=canonical)
+        else:
+            # Blanked row: drop ownership binding
+            state.results_keys.pop(ts, None)
         # Assigning (or blanking) a song is an explicit fix: clear any manual-review flag
         state.flagged_ts.discard(ts)
         logger.info(f"[UPDATE_RESULT] {ts} -> {canonical}")
@@ -411,6 +418,7 @@ async def handle_add_song_and_update(request: web.Request) -> web.Response:
                 result["actions"].append("updated_results")
             # Keep in-memory results in sync so save_state() preserves the edit
             state.results[ts] = new_song_display
+            _note_row_key(ts, key=new_song_key)
             # Assigning a new song is an explicit fix: clear any manual-review flag
             state.flagged_ts.discard(ts)
             logger.info(f"[ADD_SONG] Updated results.txt: {ts} -> {new_song_display}")
@@ -462,6 +470,109 @@ async def handle_get_song_data(request: web.Request) -> web.Response:
     return await _json_response(result)
 
 
+def _exact_display_to_key(display):
+    """Exact reverse match: rebuild each known key's display and compare.
+
+    Returns the owning key or None. (Keys are raw engine titles now, so a row
+    display like "A (something) (EN name) - artist" can't be parsed from text;
+    the display format belongs to the server.)
+    """
+    stores = (SONG_OVERRIDES, MISSED_SONGS, MISIDENTIFIED_SONGS)
+    for store in stores:
+        for key, data in store.items():
+            try:
+                candidate = format_display_name(
+                    key,
+                    data.get('intl'),
+                    data.get('artist_orig'),
+                    data.get('artist_intl'),
+                    data.get('info')
+                )
+            except Exception:
+                continue
+            if candidate == display:
+                return key
+    return None
+
+
+def _note_row_key(ts, key=None, display=None):
+    """Record which registered song key a results row belongs to.
+
+    The binding is persisted in progress.json (results_keys) and drives exact
+    row identification for the edit modal and row rewrites. When only display
+    text is available, an exact format match resolves the key; otherwise an
+    existing binding is kept (raw text edits rarely change the underlying song).
+    """
+    if not ts:
+        return
+    if key:
+        state.results_keys[ts] = key
+        return
+    if not display:
+        return
+    matched = _exact_display_to_key(display)
+    if matched:
+        state.results_keys[ts] = matched
+    # No exact match: keep the existing binding (if any) untouched.
+
+
+async def handle_song_key_from_display(request: web.Request) -> web.Response:
+    """Handle /song_key_from_display endpoint.
+
+    Reverse-match a results-row display string back to its registration key.
+
+    1) Row key binding (exact): if progress.json recorded the row's key, it wins.
+    2) Exact match: rebuild each known key's display and compare.
+    3) Heuristic fallback: song part before " - ", then paren-stripped
+       (server-side strip_extra_info, which honors the exceptions list).
+    """
+    ts = (request.query.get('ts') or '').strip()
+    bound = state.results_keys.get(ts) if ts else None
+    if bound:
+        return web.json_response({"key": bound, "exact": True}, headers=_cors_headers())
+
+    display = (request.query.get('display') or '').strip()
+
+    if not display:
+        return web.json_response({"key": bound or None, "exact": False}, headers=_cors_headers())
+
+    key = _exact_display_to_key(display)
+    if key:
+        return web.json_response({"key": key, "exact": True}, headers=_cors_headers())
+
+    # Heuristic fallback: song part before " - ", then paren-stripped
+    song_part = display.split(' - ')[0].strip()
+    if song_part:
+        for store in (SONG_OVERRIDES, MISSED_SONGS, MISIDENTIFIED_SONGS):
+            if song_part in store:
+                return web.json_response({"key": song_part, "exact": False}, headers=_cors_headers())
+        stripped = strip_extra_info(song_part)
+        if stripped and stripped != song_part:
+            for store in (SONG_OVERRIDES, MISSED_SONGS, MISIDENTIFIED_SONGS):
+                if stripped in store:
+                    return web.json_response({"key": stripped, "exact": False}, headers=_cors_headers())
+
+    return web.json_response({"key": song_part or None, "exact": False}, headers=_cors_headers())
+
+
+def _row_matches_song_part(song_part, key, known_keys):
+    """Decide whether a results row's song text belongs to `key`.
+
+    Match rule: `song_part` must START WITH `key` (key followed by a space,
+    "(", or the exact end), AND no other longer known key may also prefix it.
+    Longest-match keeps sibling raw variants separate: the row
+    "A (Movie Ver.) - other" belongs to key "A (Movie Ver.)", never to "A".
+    Plain substring search is unsafe with short raw keys (key "A" would match
+    unrelated rows via letters inside e.g. "Artist"/"Another Song").
+    """
+    def _pref(k):
+        return song_part == k or song_part.startswith(k + " ") or song_part.startswith(k + "(")
+
+    if not song_part or not _pref(key):
+        return False
+    return not any(len(k) > len(key) and _pref(k) for k in known_keys)
+
+
 async def handle_update_song_vars(request: web.Request) -> web.Response:
     """Handle /update_song_vars endpoint."""
     try:
@@ -469,10 +580,13 @@ async def handle_update_song_vars(request: web.Request) -> web.Response:
         post_data = await request.post()
 
         song_key = post_data.get('key')
+        new_song_key = (post_data.get('new_key') or '').strip()
+        renaming = bool(new_song_key and new_song_key != song_key)
+        edit_ts = (post_data.get('ts') or '').strip()  # the row the user clicked (optional exact anchor)
 
         # DEBUG: Log incoming parameters
         logger.info(f"[UPDATE_SONG_VARS] DEBUG: Received request")
-        logger.info(f"[UPDATE_SONG_VARS] DEBUG: song_key='{song_key}'")
+        logger.info(f"[UPDATE_SONG_VARS] DEBUG: song_key='{song_key}' new_key='{new_song_key}' renaming={renaming}")
         for _f in ('intl', 'artist_orig', 'artist_intl', 'info', 'remap', 'discard', 'see_artist', 'intl_override'):
             logger.info(f"[UPDATE_SONG_VARS] DEBUG: {_f}='{post_data.get(_f, '')}'")
         logger.info(f"[UPDATE_SONG_VARS] DEBUG: SONG_OVERRIDES keys count={len(SONG_OVERRIDES)}")
@@ -501,47 +615,110 @@ async def handle_update_song_vars(request: web.Request) -> web.Response:
         for field in bool_fields:
             if field in post_data:
                 bool_vals[field] = _is_truthy(post_data.get(field))
-        entry = SONG_OVERRIDES.get(song_key)
-        if entry is None:
-            # Don't create a new entry when all inputs are empty —
-            # untouched fields must not materialize as "" or {}.
-            if not any(vals.values()) and not any(bool_vals.values()):
-                logger.info(f"[UPDATE_SONG_VARS] No fields to store for new key: {song_key} (skipped)")
+        if renaming:
+            # Rename semantics: the old key becomes a pure redirect
+            # ({remap: new_key}); its stored fields move to the new key
+            # (fill-empty-only when the target already exists).
+            old_entry = SONG_OVERRIDES.get(song_key)
+            if old_entry is None:
+                result = {"status": "error", "msg": f"key '{song_key}' not found in songs.json"}
+                return await _json_response(result)
+
+            target_entry = SONG_OVERRIDES.setdefault(new_song_key, {})
+            moved_any = False
+            for field in text_fields:
+                # 'remap' is never moved: it becomes the marker of the old shell
+                if field != 'remap' and field in old_entry and not target_entry.get(field):
+                    target_entry[field] = old_entry[field]
+                    moved_any = True
+            for field in bool_fields:
+                if old_entry.get(field) and not target_entry.get(field):
+                    target_entry[field] = old_entry[field]
+                    moved_any = True
+
+            # A target that was a pure redirect shell but just received real
+            # fields becomes its own record: clear its remap.
+            if moved_any and 'remap' in target_entry:
+                target_entry.pop('remap')
+                result["actions"].append(f"cleared_target_remap: {new_song_key}")
+
+            # A rename must mean only that: fields move to the new key under
+            # fill-empty semantics, old key keeps only the redirect. The form's
+            # field values (prefilled from the OLD entry) are NOT replayed here —
+            # replaying them would clobber the target's existing values. Field
+            # edits are only honored in plain (non-rename) edits.
+            logger.info("[UPDATE_SONG_VARS] Rename: form field edits ignored (fill-empty semantics only)")
+
+            # Old key keeps only the redirect rule.
+            old_entry.clear()
+            old_entry['remap'] = new_song_key
+
+            # Re-label row key bindings: rows owned by the old raw key now
+            # belong to the canonical new key (no results.txt text changes).
+            relabeled = 0
+            for row_ts, bound in list(state.results_keys.items()):
+                if bound == song_key:
+                    state.results_keys[row_ts] = new_song_key
+                    relabeled += 1
+            if relabeled:
+                logger.info(f"[UPDATE_SONG_VARS] Re-labeled {relabeled} row key binding(s): {song_key} -> {new_song_key}")
+
+            save_song_overrides()
+            result["actions"].append(f"renamed: {song_key} -> {new_song_key}")
+            logger.info(f"[UPDATE_SONG_VARS] Renamed '{song_key}' -> '{new_song_key}' (fields moved; old key now remaps)")
+        else:
+            entry = SONG_OVERRIDES.get(song_key)
+            if entry is None:
+                # Don't create a new entry when all inputs are empty —
+                # untouched fields must not materialize as "" or {}.
+                if not any(vals.values()) and not any(bool_vals.values()):
+                    logger.info(f"[UPDATE_SONG_VARS] No fields to store for new key: {song_key} (skipped)")
+                else:
+                    entry = SONG_OVERRIDES.setdefault(song_key, {})
+                    for field, val in vals.items():
+                        if val:
+                            entry[field] = val
+                    for field, on in bool_vals.items():
+                        if on:
+                            entry[field] = True
             else:
-                entry = SONG_OVERRIDES.setdefault(song_key, {})
                 for field, val in vals.items():
                     if val:
                         entry[field] = val
+                    else:
+                        entry.pop(field, None)
                 for field, on in bool_vals.items():
                     if on:
                         entry[field] = True
-        else:
-            for field, val in vals.items():
-                if val:
-                    entry[field] = val
-                else:
-                    entry.pop(field, None)
-            for field, on in bool_vals.items():
-                if on:
-                    entry[field] = True
-                else:
-                    entry.pop(field, None)
+                    else:
+                        entry.pop(field, None)
 
-        save_song_overrides()
-        result["actions"].append(f"updated_song: {song_key}")
-        logger.info(f"[UPDATE_SONG_VARS] Updated song: {song_key}")
+            save_song_overrides()
+            result["actions"].append(f"updated_song: {song_key}")
+            logger.info(f"[UPDATE_SONG_VARS] Updated song: {song_key}")
 
-        # Also update results.txt if it exists
+        # Rewrite results.txt rows so rows reflect the change.
+        # Plain edits: rows owned by song_key are rebuilt from its record.
+        # Renames: rows owned by the OLD key are rebuilt from the NEW key's
+        #   record (bindings were re-labeled just above).
+        # Row ownership, most exact first:
+        #   1. progress.json key binding (state.results_keys[ts])
+        #   2. the row the user clicked in the review panel (ts anchor, plain
+        #      edits only — a rename's anchor row is covered by its binding)
+        #   3. legacy text matching for unbound rows (longest-match, see
+        #      _row_matches_song_part; keeps sibling raw variants separate)
+        # Rows bound to a DIFFERENT key are never rewritten.
         if state.results_file_path and Path(state.results_file_path).exists():
-            # Get the updated song data
-            song_data = SONG_OVERRIDES.get(song_key, {})
+            record_key = new_song_key if renaming else song_key
+            song_data = SONG_OVERRIDES.get(record_key, {})
             new_display = format_display_name(
-                song_key,
+                record_key,
                 song_data.get('intl'),
                 song_data.get('artist_orig'),
                 song_data.get('artist_intl'),
                 song_data.get('info')
             )
+            known_keys = list(SONG_OVERRIDES.keys())
 
             # Read and update results.txt
             with open(state.results_file_path, "r", encoding="utf-8") as f:
@@ -551,19 +728,39 @@ async def handle_update_song_vars(request: web.Request) -> web.Response:
             updated_count = 0
             for line in lines:
                 stripped = line.rstrip('\n').rstrip('\r')
-                # Check if this line contains the song key
-                if song_key in stripped:
-                    # Extract timestamp if present
-                    m = _TIMESTAMP_PATTERN.match(stripped)
+                m = _TIMESTAMP_PATTERN.match(stripped)
+                line_ts = m.group(1) if m else None
+                song_part, _ = _split_flag_marker((m.group(2) or "") if m else stripped)
+                song_part = song_part.strip()
+                bound_key = state.results_keys.get(line_ts) if line_ts else None
+                if renaming:
+                    # Bindings were re-labeled old -> new, so post-relabel
+                    # bindings pointing at the new key are owned rows. Unbound
+                    # legacy rows keep the old raw text: match by old name.
+                    matched = bound_key == record_key or (
+                        bound_key is None and _row_matches_song_part(song_part, song_key, known_keys)
+                    )
+                else:
+                    if bound_key == song_key:
+                        matched = True
+                    elif line_ts and edit_ts and line_ts == edit_ts:
+                        matched = True
+                    elif bound_key is None:
+                        matched = _row_matches_song_part(song_part, song_key, known_keys)
+                    else:
+                        matched = False
+                if matched:
                     if m:
-                        ts = m.group(1)
+                        ts = line_ts
                         # Preserve any manual-review flag on this row
                         _, was_flagged = _split_flag_marker(m.group(2) or "")
                         new_lines.append(f"{ts} {new_display} {FLAG_MARKER}\n" if was_flagged else f"{ts} {new_display}\n")
                         if was_flagged:
                             state.flagged_ts.add(ts)
                         updated_count += 1
-                        # Mirror into in-memory results so save_state() preserves it
+                        # Bind ownership + mirror into in-memory results so
+                        # save_state() preserves both
+                        state.results_keys[ts] = record_key
                         state.results[ts] = new_display
                         logger.info(f"[UPDATE_SONG_VARS] Updated results.txt: {ts} -> {new_display}")
                     else:
@@ -808,6 +1005,7 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
             if state.results_file_path:
                 update_results_line(Path(state.results_file_path), ts, display)
             state.results[ts] = display
+            _note_row_key(ts, display=display)
             # Explicit user fix: clear any manual-review flag
             state.flagged_ts.discard(ts)
             logger.info(f"[ACR_IDENTIFY] {ts} -> {display} (via {found_source})")
@@ -1368,11 +1566,6 @@ async def handle_toggle_flag(request: web.Request) -> web.Response:
         return await _json_response({"status": "error", "msg": str(e)})
 
 
-async def handle_paren_exceptions(request: web.Request) -> web.Response:
-    """Return the list of song names that should preserve their parentheses."""
-    return web.json_response(list(SONG_NAME_PARENS_EXCEPTIONS), headers=_cors_headers())
-
-
 def create_app() -> web.Application:
     """Create and configure the aiohttp application."""
     app = web.Application()
@@ -1398,7 +1591,7 @@ def create_app() -> web.Application:
     app.router.add_get('/add_song_and_update', handle_add_song_and_update)
     app.router.add_get('/review_seek', handle_review_seek)
     app.router.add_get('/select', handle_select)
-    app.router.add_get('/paren_exceptions', handle_paren_exceptions)
+    app.router.add_get('/song_key_from_display', handle_song_key_from_display)
     app.router.add_get('/acr_identify', handle_acr_identify)
     app.router.add_get('/aha_identify', handle_acr_identify)  # alias: same ACRCloud -> AHA flow
     app.router.add_get('/identify_all', handle_identify_all)

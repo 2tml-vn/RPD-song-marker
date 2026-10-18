@@ -88,8 +88,17 @@ async def main():
 
     if progress_file.exists():
         with progress_file.open("r", encoding="utf-8") as f:
-            raw_results = json.load(f)
+            raw_data = json.load(f)
+        # New format: {"results": {ts: display}, "keys": {ts: song_key}}
+        # Legacy format: flat {ts: display}
+        if isinstance(raw_data, dict) and "results" in raw_data and isinstance(raw_data["results"], dict):
+            raw_results = raw_data.get("results") or {}
+            raw_keys = raw_data.get("keys") or {}
+        else:
+            raw_results = raw_data
+            raw_keys = {}
         server.state.results = {format_timestamp_for_youtube(shared_utils.parse_ts(k)): v for k, v in raw_results.items()}
+        server.state.results_keys = {format_timestamp_for_youtube(shared_utils.parse_ts(k)): v for k, v in raw_keys.items()}
         insertion_order = sorted(server.state.results.keys(), key=shared_utils.parse_ts)
         for m in server.state.results:
             if server.state.results[m] == "" or server.state.results[m] is None:
@@ -116,8 +125,13 @@ async def main():
     def save_state():
         """Save current progress to disk."""
         try:
+            # New format carries the per-row key bindings so edits can identify
+            # the owning song key exactly (legacy flat format still loads).
             with progress_file.open("w", encoding="utf-8") as f:
-                json.dump(server.state.results, f, ensure_ascii=False, indent=2)
+                json.dump(
+                    {"results": server.state.results, "keys": server.state.results_keys},
+                    f, ensure_ascii=False, indent=2
+                )
             with youtube_out.open("w", encoding="utf-8", newline='') as f:
                 for m in sorted(server.state.results.keys(), key=shared_utils.parse_ts):
                     val = shared_utils.format_song_entry(server.state.results[m])
@@ -146,6 +160,7 @@ async def main():
                         logger.info(f"[UNDO] Removed: {last_added}")
                         if last_added in server.state.results:
                             del server.state.results[last_added]
+                        server.state.results_keys.pop(last_added, None)
                     else:
                         logger.warning("[UNDO] Requested but no markers to remove.")
                     save_state()
@@ -193,6 +208,8 @@ async def main():
             found_name = await identify_song(shazam, shazam_en, audio_path, current_sec, gap, snippets_dir, (idx + 1 == len(sorted_keys)), target)
             if target in server.state.results:
                 server.state.results[target] = shared_utils.format_song_entry(found_name) if found_name != "Unidentified" else "Unidentified"
+                if found_name != "Unidentified":
+                    server._note_row_key(target, display=server.state.results[target])
                 save_state()
         elif server.state.is_finished and not any(res == "Processing..." for res in server.state.results.values()):
             worker_task.cancel()
@@ -238,6 +255,7 @@ async def main():
                                     auto_register_song(song_key, entry.get('intl'), entry.get('artist_orig'), entry.get('artist_intl'))
                                     display = format_missed_entry(song_key, entry)
                                     server.state.results[k] = display
+                                    server.state.results_keys[k] = song_key
                                     logger.info(f"✓ Added & Assigned: {display}")
                                     candidate_pairs = get_missed_candidates()
                                     server.state.cleanup_candidates = [d for d, _ in candidate_pairs]
@@ -250,6 +268,7 @@ async def main():
                         if 0 <= val < len(candidate_pairs):
                             display, song_key = candidate_pairs[val]
                             server.state.results[k] = display
+                            server.state.results_keys[k] = song_key
                             data = MISSED_SONGS.get(song_key, {})
                             auto_register_song(song_key, data.get('intl'), data.get('artist_orig'), data.get('artist_intl'))
                             logger.info(f"✓ Assigned: {display}")

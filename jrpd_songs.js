@@ -761,7 +761,8 @@ async function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, 
     const form = document.createElement("form");
     form.style.cssText = "display: flex; flex-direction: column; gap: 10px;";
     
-    // Song Key (readonly, always visible)
+    // Song Key (editable — renaming moves fields to the new key and turns the
+    // old key into a remap rule pointing at it)
     const keyLabel = document.createElement("label");
     keyLabel.textContent = "Song Key:";
     keyLabel.style.fontWeight = "bold";
@@ -770,7 +771,7 @@ async function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, 
     const keyInput = document.createElement("input");
     keyInput.type = "text";
     keyInput.value = songKey;
-    keyInput.readOnly = true;
+    keyInput.title = "Renaming this key: fields move to the new key and the old key becomes a remap rule for future identifications";
     keyInput.style.cssText = "padding: 6px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; margin-bottom: 10px;";
     form.appendChild(keyInput);
 
@@ -864,8 +865,15 @@ async function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, 
         e.preventDefault();
     
         // Prepare form data for POST request (all fields; empty text = delete, unchecked = false/remove)
+        // A changed key adds new_key: server renames the entry — fields move to
+        // the new key, the old key becomes a remap rule, and rows owned by the
+        // old key are rewritten to the new name (bindings re-labeled).
+        const newKeyValue = keyInput.value.trim();
         const params = new URLSearchParams();
         params.append('key', songKey);
+        if (newKeyValue && newKeyValue !== songKey) {
+            params.append('new_key', newKeyValue);
+        }
         ["intl", "artist_orig", "artist_intl", "info", "remap"].forEach(k => {
             params.append(k, (fieldInputs[k] ? fieldInputs[k].value.trim() : ""));
         });
@@ -876,6 +884,7 @@ async function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, 
         // DEBUG: Log what's being sent
         console.log("JRPD: [DEBUG] Sending update_song_vars request");
         console.log("JRPD: [DEBUG] songKey:", songKey);
+        console.log("JRPD: [DEBUG] newKeyValue:", newKeyValue);
         console.log("JRPD: [DEBUG] params:", params.toString());
     
         songFetch(`${getSongServerUrl()}/update_song_vars`, {
@@ -888,7 +897,11 @@ async function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, 
         .then(r => r.json())
         .then(res => {
             if (res.status === "ok") {
-                showToast(`Updated song: ${songKey}`, "#2e7d32");
+                if (newKeyValue && newKeyValue !== songKey) {
+                    showToast(`Renamed: ${songKey} → ${newKeyValue} (old key now remaps)`, "#2e7d32");
+                } else {
+                    showToast(`Updated song: ${songKey}`, "#2e7d32");
+                }
                 // Close modal and refresh the song lists
                 overlay.remove();
                 // Refresh the song lists to show updated values

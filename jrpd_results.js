@@ -51,34 +51,6 @@ function updatePanelToggleButton() {
     if (btn) btn.style.opacity = isResultsPanelVisible() ? "1" : "0.55";
 }
 
-// Cache for parentheses exceptions (song names that should NOT have parentheses stripped)
-let parenExceptionsCache = null;
-
-/**
- * Fetch the list of song names that should preserve their parentheses.
- * Results are cached to avoid redundant API calls.
- * @returns {Promise<Set<string>>} Set of song names that should keep parentheses
- */
-async function fetchParenExceptions() {
-    if (parenExceptionsCache !== null) {
-        return parenExceptionsCache;
-    }
-    try {
-        const response = await reviewFetch(getReviewServerUrl() + "/paren_exceptions");
-        if (response.ok) {
-            const exceptions = await response.json();
-            parenExceptionsCache = new Set(exceptions);
-            console.log("JRPD: Loaded", parenExceptionsCache.size, "parentheses exceptions");
-        } else {
-            parenExceptionsCache = new Set();
-        }
-    } catch (e) {
-        console.warn("JRPD: Failed to fetch parentheses exceptions:", e);
-        parenExceptionsCache = new Set();
-    }
-    return parenExceptionsCache;
-}
-
 function loadPanelPrefs() {
     try {
         const raw = localStorage.getItem(PREFS_KEY);
@@ -187,6 +159,112 @@ function saveFlaggedTimestamps() {
     } catch (e) {
         console.error("JRPD: Failed to save flag marks:", e);
     }
+}
+
+/**
+ * Show a raw text editor for a result row: edit the literal text stored on the
+ * results.txt line (saved via /update_result, like other row-text fixes).
+ * Saving also clears the row's 🚩 flag (explicit fix semantics, server-side).
+ * @param {string} ts - Timestamp of the row
+ * @param {string} currentText - Current row text (already flag-stripped)
+ */
+function showRawRowEditForm(ts, currentText) {
+    if (!ts) return;
+
+    const overlay = document.createElement("div");
+    overlay.className = "jrpd-modal-overlay";
+    overlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center;";
+
+    const modal = document.createElement("div");
+    modal.style.cssText = "background: #2a2a3e; color: #eee; padding: 20px; border-radius: 10px; width: 640px; max-width: 90vw; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 24px rgba(0,0,0,0.8);";
+
+    const title = document.createElement("h3");
+    title.textContent = `RAW Edit Row: ${ts}`;
+    title.style.marginTop = "0";
+    title.style.color = "#82b1ff";
+    modal.appendChild(title);
+
+    // The literal text of the line in results.txt (timestamp + flag excluded)
+    const textInput = document.createElement("textarea");
+    textInput.rows = 3;
+    textInput.value = currentText || "";
+    textInput.placeholder = "Row text as written on results.txt";
+    textInput.style.cssText = "width: 100%; box-sizing: border-box; padding: 6px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; font-size: 12px; resize: vertical;";
+    modal.appendChild(textInput);
+
+    const hint = document.createElement("div");
+    hint.style.cssText = "color: #888; font-size: 11px; margin-top: 4px;";
+    hint.textContent = "Writes exactly this text to the results.txt line. If the row was 🚩 flagged, the flag is cleared (treated as a manual fix).";
+    modal.appendChild(hint);
+
+    const buttonsDiv = document.createElement("div");
+    buttonsDiv.style.cssText = "display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.style.cssText = "padding: 8px 16px; background: #757575; color: white; border: none; border-radius: 4px; cursor: pointer;";
+    cancelBtn.onclick = () => overlay.remove();
+
+    const saveBtn = document.createElement("button");
+    saveBtn.textContent = "Save";
+    saveBtn.style.cssText = "padding: 8px 16px; background: #2e7d32; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;";
+    saveBtn.onclick = () => {
+        const newText = (textInput.value || "").replace(/\r?\n/g, " ").trim();
+        reviewFetch(getReviewServerUrl() + `/update_result?ts=${encodeURIComponent(ts)}&song=${encodeURIComponent(newText)}&old_song=${encodeURIComponent(currentText || "")}`)
+        .then(r => r.json())
+        .then(res => {
+            overlay.remove();
+            if (res.replaced) {
+                showToast(`${ts} raw text saved`, "#2e7d32");
+                reviewLastMtime = 0;
+                fetchResultsFile({ forceFullRender: true });
+            } else {
+                showToast("Raw edit failed — timestamp not found", "#c62828");
+            }
+        })
+        .catch(e => {
+            console.error("JRPD: raw row edit failed", e);
+            showToast("Raw edit failed", "#c62828");
+            overlay.remove();
+        });
+    };
+
+    buttonsDiv.appendChild(cancelBtn);
+    buttonsDiv.appendChild(saveBtn);
+    modal.appendChild(buttonsDiv);
+
+    // Ctrl+Enter saves, Escape cancels
+    overlay.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") { e.stopPropagation(); overlay.remove(); }
+        else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveBtn.click(); }
+    });
+
+    overlay.appendChild(modal);
+    (typeof jrpdOverlayParent === "function" ? jrpdOverlayParent() : document.body).appendChild(overlay);
+    textInput.focus();
+}
+
+/**
+ * Build the RAW edit button for a resolved results row.
+ * Shared by the row builder and the incremental row updater.
+ * @param {string} ts - Timestamp of the row
+ * @param {string} songText - Current row text (used as the editor's initial value)
+ * @returns {HTMLElement} The raw edit button
+ */
+function createRawEditButton(ts, songText) {
+    const rawBtn = document.createElement("button");
+    rawBtn.textContent = "RAW";
+    rawBtn.setAttribute("data-raw-edit", "1");
+    rawBtn.title = "Edit the raw text of this row as stored on results.txt";
+    rawBtn.style.cssText = "padding: 2px 4px; background: #444; color: #ccc; border: none; border-radius: 3px; cursor: pointer; font-size: 9px; flex-shrink: 0;";
+    rawBtn.onmouseenter = () => { rawBtn.style.background = "#555"; };
+    rawBtn.onmouseleave = () => { rawBtn.style.background = "#444"; };
+    rawBtn.onclick = (e) => {
+        e.stopPropagation();
+        showRawRowEditForm(ts, songText);
+    };
+    return rawBtn;
 }
 
 /**
@@ -1490,6 +1568,11 @@ function updateSongInRow(row, resolvedSong) {
             }
         };
         editBtn.parentNode.replaceChild(newEditBtn, editBtn);
+
+        // A row that just resolved in-place needs the RAW text button added
+        if (!isEffectiveProcessing && !songContainer.querySelector("button[data-raw-edit]")) {
+            songContainer.appendChild(createRawEditButton(ts, effectiveSong));
+        }
     }
     return true;
 }
@@ -1811,6 +1894,11 @@ function createResultRow(entry, idx, parsed) {
         };
         songContainer.appendChild(editBtn);
 
+        // RAW edit button: edit the literal text stored on this results.txt line
+        if (!isProcessing) {
+            songContainer.appendChild(createRawEditButton(entry.ts, entry.song));
+        }
+
         row.appendChild(songContainer);
     }
 
@@ -2036,19 +2124,24 @@ function updateReviewActiveButton(activeTs) {
 }
 
 async function showEditSongFormForRow(timestamp, songDisplay) {
-    // Parse the display string to extract current values
+    // Parse the display string to prefill the form
     const displayParts = songDisplay.split(" - ");
     const songPart = displayParts[0] || "";
     const artistPart = displayParts[1] || "";
 
-    // Extract song key from display string
-    // Format is typically: "original_song [(international)] - original_artist [(international_artist)]"
+    // Resolve the row's display back to its true registration key.
+    // Keys are raw engine titles now, so the display cannot be reliably parsed
+    // here — ask the server to reverse-match (exact match over all known keys,
+    // paren-strip-fallback otherwise).
     let songKey = songPart.trim();
-    // Remove any parentheses content to get the base song name
-    // Exception: preserve parentheses for songs in the exceptions list
-    const exceptions = await fetchParenExceptions();
-    if (!exceptions.has(songKey)) {
-        songKey = songKey.replace(/\s*\([^)]+\)\s*/g, '').trim();
+    try {
+        const resp = await reviewFetch(`${getReviewServerUrl()}/song_key_from_display?ts=${encodeURIComponent(timestamp)}&display=${encodeURIComponent(songDisplay.trim())}`);
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data && data.key) songKey = data.key;
+        }
+    } catch (e) {
+        console.warn("JRPD: song_key_from_display failed, using display-derived key", e);
     }
 
     // Create overlay modal for editing (show loading state)
@@ -2120,7 +2213,8 @@ async function showEditSongFormForRow(timestamp, songDisplay) {
     const form = document.createElement("form");
     form.style.cssText = "display: flex; flex-direction: column; gap: 10px;";
 
-    // Song Key (readonly, always visible)
+    // Song Key (editable — renaming moves fields to the new key and turns the
+    // old key into a remap rule pointing at it)
     const keyLabel = document.createElement("label");
     keyLabel.textContent = "Song Key:";
     keyLabel.style.fontWeight = "bold";
@@ -2129,7 +2223,7 @@ async function showEditSongFormForRow(timestamp, songDisplay) {
     const keyInput = document.createElement("input");
     keyInput.type = "text";
     keyInput.value = songKey;
-    keyInput.readOnly = true;
+    keyInput.title = "Renaming this key: fields move to the new key and the old key becomes a remap rule for future identifications";
     keyInput.style.cssText = "padding: 6px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; margin-bottom: 10px;";
     form.appendChild(keyInput);
 
@@ -2223,8 +2317,16 @@ async function showEditSongFormForRow(timestamp, songDisplay) {
         e.preventDefault();
     
         // Prepare form data for POST request (all fields; empty text = delete, unchecked = false/remove)
+        // A changed key adds new_key: server renames the entry — fields move to
+        // the new key, the old key becomes a remap rule, and rows owned by the
+        // old key are rewritten to the new name (bindings re-labeled).
+        const newKeyValue = keyInput.value.trim();
         const params = new URLSearchParams();
         params.append('key', songKey);
+        params.append('ts', timestamp); // the row we clicked — exact row anchor for rewrites
+        if (newKeyValue && newKeyValue !== songKey) {
+            params.append('new_key', newKeyValue);
+        }
         ["intl", "artist_orig", "artist_intl", "info", "remap"].forEach(k => {
             params.append(k, (fieldInputs[k] ? fieldInputs[k].value.trim() : ""));
         });
@@ -2235,8 +2337,9 @@ async function showEditSongFormForRow(timestamp, songDisplay) {
         // DEBUG: Log what's being sent
         console.log("JRPD: [DEBUG] Sending update_song_vars request (from results panel)");
         console.log("JRPD: [DEBUG] songKey:", songKey);
+        console.log("JRPD: [DEBUG] newKeyValue:", newKeyValue);
         console.log("JRPD: [DEBUG] params:", params.toString());
-    
+
         reviewFetch(getReviewServerUrl() + '/update_song_vars', {
             method: 'POST',
             headers: {
@@ -2247,7 +2350,11 @@ async function showEditSongFormForRow(timestamp, songDisplay) {
         .then(r => r.json())
         .then(res => {
             if (res.status === "ok") {
-                showToast(`Updated song: ${songKey}`, "#2e7d32");
+                if (newKeyValue && newKeyValue !== songKey) {
+                    showToast(`Renamed: ${songKey} → ${newKeyValue} (old key now remaps)`, "#2e7d32");
+                } else {
+                    showToast(`Updated song: ${songKey}`, "#2e7d32");
+                }
                 // Close modal and refresh the results
                 overlay2.remove();
                 reviewLastMtime = 0;

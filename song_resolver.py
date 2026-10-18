@@ -50,7 +50,9 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None, 
     Also auto-registers new songs into the overrides JSON.
     Returns the formatted display name string, or None if discard flag is set.
     """
-    title_clean = strip_extra_info(title_clean)
+    # Raw registration: the engine-reported title is kept as-is and used as the
+    # lookup key / registration name. No paren/version stripping on the key.
+    # (strip_extra_info is still applied to Shazam EN / en_hint intl titles.)
     artist = clean_artist_name(artist)
     logger.info("[RESOLVE] Input: title_clean='%s' artist='%s' track_id=%s en_hint=%s", title_clean, artist, track_id, en_hint)
 
