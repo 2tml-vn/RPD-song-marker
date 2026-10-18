@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         JRPD Live Marker Pro
-// @version      8.9
+// @version      8.10
 // @description  Modular userscript for marking songs in YouTube and Bilibili videos
 // @author       Gemini CLI
 // @match        *://*.youtube.com/*
@@ -211,29 +211,43 @@
             }
         }
         if (typeof updatePanelToggleButton === "function") updatePanelToggleButton();
-        console.log("JRPD: Bar Controls Injected");
     }
     
     let jrpdControlObserver = null;
+    let jrpdControlBarCache = null;
     function injectControls() {
         const platform = getPlatform();
         const controlBar = getControlBar();
         if (controlBar) {
             if (jrpdControlObserver) { jrpdControlObserver.disconnect(); jrpdControlObserver = null; }
+            // Poll runs every second: only re-seat when the bar element changed
+            // (fullscreen/SPA swaps) or the buttons went missing (player rebuilt
+            // its subtree). Skipping avoids the deep selector queries and DOM
+            // appends every tick during normal playback.
+            if (jrpdControlBarCache === controlBar && document.getElementById("jrpd-undo-btn")) return;
+            jrpdControlBarCache = controlBar;
             injectButtonsToControlBar(controlBar, platform);
             return;
         }
+        jrpdControlBarCache = null;
         
         // Control bar not ready yet (Bilibili loads it dynamically): watch once.
         if (platform === 'bilibili' && !jrpdControlObserver && document.body) {
+            // Watch only the player subtree. An observer on document.body fires
+            // for every unrelated mutation on busy pages (danmaku, comments,
+            // progress UI) and each callback costs several querySelectors.
+            const watchRoot = document.querySelector('#bilibili-player') ||
+                              document.querySelector('.bilibili-player') ||
+                              document.body;
             jrpdControlObserver = new MutationObserver(() => {
                 const bar = getControlBar();
                 if (bar) {
                     if (jrpdControlObserver) { jrpdControlObserver.disconnect(); jrpdControlObserver = null; }
+                    jrpdControlBarCache = bar;
                     injectButtonsToControlBar(bar, platform);
                 }
             });
-            jrpdControlObserver.observe(document.body, { childList: true, subtree: true });
+            jrpdControlObserver.observe(watchRoot, { childList: true, subtree: true });
             // Timeout after 10 seconds
             setTimeout(() => { if (jrpdControlObserver) { jrpdControlObserver.disconnect(); jrpdControlObserver = null; } }, 10000);
         }
@@ -258,7 +272,10 @@
     function jrpdHandleFullscreenChange() {
         try {
             const bar = getControlBar();
-            if (bar) injectButtonsToControlBar(bar, getPlatform());
+            if (bar) {
+                jrpdControlBarCache = bar;
+                injectButtonsToControlBar(bar, getPlatform());
+            }
         } catch (e) {}
     }
     document.addEventListener("fullscreenchange", jrpdHandleFullscreenChange);

@@ -82,7 +82,7 @@ function toggleFlagMark(ts) {
             updateFlagRowState(ts);
             showToast(flagged ? `${ts} flagged for manual fix` : `${ts} unflagged`, flagged ? "#f57f17" : "#2e7d32");
             reviewLastMtime = 0;
-            fetchResultsFile({ forceFullRender: true });
+            fetchResultsFile();
         } else {
             if (flagBtn) flagBtn.disabled = false;
             updateFlagRowState(ts);
@@ -218,7 +218,7 @@ function showRawRowEditForm(ts, currentText) {
             if (res.replaced) {
                 showToast(`${ts} raw text saved`, "#2e7d32");
                 reviewLastMtime = 0;
-                fetchResultsFile({ forceFullRender: true });
+                fetchResultsFile();
             } else {
                 showToast("Raw edit failed — timestamp not found", "#c62828");
             }
@@ -285,7 +285,7 @@ function clearResultRow(ts) {
             unflagRow(ts);
             showToast(`${ts} cleared (blank)`, "#ff9800");
             reviewLastMtime = 0;
-            fetchResultsFile({ forceFullRender: true });
+            fetchResultsFile();
         } else {
             showToast("Clear failed — timestamp not found", "#c62828");
         }
@@ -329,7 +329,7 @@ function identifyRowWithAcr(ts, btn) {
             try { if (jrpdPrevResultsMap) jrpdPrevResultsMap[ts] = res.song; } catch (e) {}
             if (res.detail) showAcrDetailModal(ts, res.detail, res.candidates, true);
             reviewLastMtime = 0;
-            fetchResultsFile({ forceFullRender: true });
+            fetchResultsFile();
         } else if (res.status === "ok" && !res.identified) {
             try { jrpdSetLatestIdent(ts, false); } catch (e) {}
             if (res.detail) {
@@ -683,7 +683,7 @@ function applyIdentifyChoice(ts, song, source, overlay) {
             showToast(`${ts} set via ${source}`, "#2e7d32");
             if (overlay) overlay.remove();
             reviewLastMtime = 0;
-            fetchResultsFile({ forceFullRender: true });
+            fetchResultsFile();
         } else {
             showToast("Apply failed — timestamp not found", "#c62828");
         }
@@ -1336,7 +1336,17 @@ function parseResultsLine(line) {
  */
 function syncFlagsFromParsed(parsed) {
     if (typeof flaggedTimestamps === "undefined") return;
-    flaggedTimestamps = new Set(parsed.filter(e => e.flagged).map(e => e.ts));
+    const next = new Set(parsed.filter(e => e.flagged).map(e => e.ts));
+    // This runs on every render (i.e. at least once per poll tick). Skip the
+    // reassign + synchronous localStorage write when nothing actually changed.
+    let same = next.size === flaggedTimestamps.size;
+    if (same) {
+        for (const t of next) {
+            if (!flaggedTimestamps.has(t)) { same = false; break; }
+        }
+    }
+    if (same) return;
+    flaggedTimestamps = next;
     saveFlaggedTimestamps();
 }
 
@@ -1654,32 +1664,69 @@ function addOptimisticResultRow(ts, status = "Processing...") {
     const existing = list.querySelector(`[data-row-ts="${ts}"]`);
     if (existing) return;
 
-    const existingRows = Array.from(list.querySelectorAll("[data-result-row]"));
-    const entries = existingRows.map(r => {
-        const rTs = r.getAttribute("data-row-ts");
-        const songSpan = r.querySelector(".songContainer span[title]");
-        const isGap = r.querySelector(".gapLabel") !== null;
-        const isFlagged = r.querySelector(".flagBadge") !== null;
-        return { ts: rTs, song: isGap ? "" : (songSpan ? (songSpan.title || songSpan.textContent.trim()) : ""), flagged: isFlagged };
-    });
+    // Insert just before the next chronologically larger row (O(log n) scan
+    // for the position, then a single insertBefore). The old path cleared the
+    // whole list and rebuilt every row, which barfed with large results lists.
+    const allRows = Array.from(list.querySelectorAll("[data-result-row]"));
+    const tNew = typeof parseTimestampToSeconds === "function" ? parseTimestampToSeconds(ts) : 0;
+    let insertIdx = allRows.length;
+    for (let i = 0; i < allRows.length; i++) {
+        const t = parseTimestampToSeconds(allRows[i].getAttribute("data-row-ts"));
+        if (t > tNew) { insertIdx = i; break; }
+    }
 
-    entries.push({ ts: ts, song: status, flagged: false });
-    entries.sort((a, b) => {
-        const tA = typeof parseTimestampToSeconds === "function" ? parseTimestampToSeconds(a.ts) : 0;
-        const tB = typeof parseTimestampToSeconds === "function" ? parseTimestampToSeconds(b.ts) : 0;
-        return tA - tB;
-    });
-
-    list.textContent = "";
-    entries.forEach((entry, idx) => {
-        const row = createResultRow(entry, idx, entries);
+    const row = createResultRow({ ts: ts, song: status, flagged: false });
+    if (insertIdx < allRows.length) {
+        allRows[insertIdx].parentNode.insertBefore(row, allRows[insertIdx]);
+    } else {
         list.appendChild(row);
-    });
+    }
+    // The brand-new row is never flagged, so only stale-adjacent rows could
+    // diverge; cheap single-row sync instead of rebuilding everything.
+    const adj = allRows[insertIdx];
+    if (adj && !adj.querySelector(".flagBadge") &&
+        typeof flaggedTimestamps !== "undefined" && flaggedTimestamps.has(adj.getAttribute("data-row-ts"))) {
+        syncRowFlagInPlace(adj);
+    }
 
     // Auto-scroll to newly added row
-    const newRow = list.querySelector(`[data-row-ts="${ts}"]`);
-    if (newRow) {
-        newRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/**
+ * Update a row's flag UI in place when it diverges from flaggedTimestamps.
+ * Avoids the previous "walk every row's flag badge after every insert" pass.
+ * @param {HTMLElement} row - Row element to sync
+ * @returns {void}
+ */
+function syncRowFlagInPlace(row) {
+    if (!row) return;
+    const ts = row.getAttribute("data-row-ts");
+    const isFlagged = typeof flaggedTimestamps !== "undefined" && flaggedTimestamps.has(ts);
+    const hasBadge = row.querySelector(".flagBadge") !== null;
+    if (hasBadge === isFlagged) {
+        // Also keep the flag button label in step when created before a flag landed.
+        const flagBtn = row.querySelector(".flagBtn");
+        if (flagBtn) {
+            const want = isFlagged ? "🚩" : "🏳️";
+            if (flagBtn.textContent !== want) {
+                flagBtn.textContent = want;
+                flagBtn.title = isFlagged ? "Unflag (done)" : "Flag for manual fix";
+                flagBtn.style.background = isFlagged ? "#ffeb3b" : "transparent";
+                flagBtn.style.opacity = isFlagged ? "1" : "0.45";
+            }
+        }
+        return;
+    }
+    if (isFlagged) {
+        const badge = document.createElement("span");
+        badge.className = "flagBadge";
+        badge.textContent = "🚩 CHECK";
+        badge.style.cssText = "background: #ffeb3b; color: #000; font-weight: bold; padding: 1px 6px; border-radius: 3px; font-size: 10px; flex-shrink: 0; margin-left: auto; white-space: nowrap;";
+        row.appendChild(badge);
+    } else {
+        const badge = row.querySelector(".flagBadge");
+        if (badge) badge.remove();
     }
 }
 
@@ -1706,7 +1753,6 @@ function removeOptimisticResultRow(ts) {
         renderResultsPanel([]);
     }
 }
-
 // Make accessible globally
 if (typeof window !== "undefined") {
     window.addOptimisticResultRow = addOptimisticResultRow;
@@ -1715,12 +1761,10 @@ if (typeof window !== "undefined") {
 
 /**
  * Create a result row element.
- * @param {Object} entry - The entry object with ts and song properties
- * @param {number} idx - The index in the parsed array
- * @param {Array} parsed - The full parsed array (for next timestamp lookup)
+ * @param {Object} entry - The entry object with ts, song and flagged properties
  * @returns {HTMLElement} The row element
  */
-function createResultRow(entry, idx, parsed) {
+function createResultRow(entry) {
     const isGap = !entry.song;
     const isProcessing = entry.song === "Processing...";
     const row = document.createElement("div");
@@ -1780,10 +1824,13 @@ function createResultRow(entry, idx, parsed) {
         video.play();
         lastSeekTs = startSec;
 
+        // Loop end = next mark's ts, read from the live row order. Reading the
+        // DOM (not a snapshot captured at row creation) stays correct after
+        // per-row inserts/removes and partial renders.
         let endSec = video.duration;
-        if (idx + 1 < parsed.length) {
-            endSec = parseTimestampToSeconds(parsed[idx + 1].ts);
-        }
+        const nextRow = row.nextElementSibling;
+        const nextTs = nextRow ? nextRow.getAttribute("data-row-ts") : null;
+        if (nextTs) endSec = parseTimestampToSeconds(nextTs);
 
         currentGapStart = startSec;
         currentGapEnd = endSec;
@@ -2015,8 +2062,18 @@ function renderResultsPanel(lines, options = {}) {
                     const wasGap = row.querySelector(".gapLabel") !== null;
                     const isNowGap = !entry.song;
                     
-                    // If gap status changed, mark for full rebuild
+                    // If gap status changed, rebuild just this row. A whole-list
+                    // rebuild for a single row transition costs O(n) DOM churn on
+                    // every resolution; swapping one row is room-temperature.
+                    // Fall back to the (deferred) full rebuild while the pointer
+                    // is over the list so an in-flight click is never eaten.
                     if (wasGap !== isNowGap) {
+                        if (!jrpdResultsListHasPointer()) {
+                            try {
+                                row.replaceWith(createResultRow(entry));
+                                return;
+                            } catch (e) { /* fall through to full rebuild */ }
+                        }
                         needsFullRebuild = true;
                         return;
                     }
@@ -2037,7 +2094,6 @@ function renderResultsPanel(lines, options = {}) {
                         updateFlagRowState(entry.ts);
                     }
                 });
-                
                 if (!needsFullRebuild) {
                     // A fresh identification just landed: bring its row into view once.
                     try {
@@ -2082,9 +2138,8 @@ function renderResultsPanel(lines, options = {}) {
     }
     list.textContent = "";
 
-    parsed.forEach((entry, idx) => {
-        const row = createResultRow(entry, idx, parsed);
-        list.appendChild(row);
+    parsed.forEach((entry) => {
+        list.appendChild(createResultRow(entry));
     });
 
     // A fresh identification just landed: bring its row into view once

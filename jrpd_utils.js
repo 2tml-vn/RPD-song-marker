@@ -238,9 +238,9 @@ async function doMark() {
         } catch (e) {
             console.error('JRPD: Mark exception', e);
         }
-        // Refresh the live results panel shortly after the server records the mark
-        setTimeout(refreshVisibleResultsPanel, 300);
-        setTimeout(refreshVisibleResultsPanel, 800);
+        // No follow-up timers: the 1s poll refreshes a visible results panel and
+        // the mark response above refreshes immediately; the extra 300/800ms
+        // timers each caused another full-file fetch + render per mark.
     }
 }
 
@@ -307,9 +307,7 @@ async function doUndo() {
     } catch (e) {
         console.error('JRPD: UNDO exception', e);
     }
-
-    setTimeout(refreshVisibleResultsPanel, 300);
-    setTimeout(refreshVisibleResultsPanel, 800);
+    // No follow-up timers (same rationale as doMark)
 }
 
 /**
