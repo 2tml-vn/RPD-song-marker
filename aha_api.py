@@ -10,6 +10,9 @@ Conforms to the ``acrcloud.py`` workflow contract:
   ``title``, ``en_title``, ``artist`` plus ``detail`` (flattened useful
   fields), ``raw`` (full music object), ``candidates`` (summary list)
   and ``status`` — or ``None`` when there is no match.
+  When the endpoint keeps answering HTTP 429 across all retry attempts,
+  ``AhaRateLimitedError`` is raised (not swallowed) so sweeps can skip
+  the remaining AHA windows and the UI can show "rate-limited".
 - Same helper shapes (``is_japanese``, ``summarize_candidate``,
   ``extract_track_detail``) so callers (``identifier.py``, ``server.py``)
   and the results-panel modal can treat AHA and ACRCloud hits
@@ -33,13 +36,33 @@ import asyncio
 import json
 import logging
 import os
+import random
 import re
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from curl_cffi import requests as cf_requests, CurlMime
+from curl_cffi.requests.exceptions import HTTPError
 
 logger = logging.getLogger("JRPD")
+
+
+class AhaRateLimitedError(Exception):
+    """AHA identify endpoint kept answering HTTP 429 through every retry.
+
+    Raised (not swallowed) so per-sweep callers can stop re-firing AHA
+    windows and surface a real "rate-limited" status instead of a
+    misleading "no match".
+    """
+
+    def __init__(self, attempts: int, wait_seconds: float = 0.0) -> None:
+        self.attempts = attempts
+        self.wait_seconds = round(wait_seconds, 1)
+        super().__init__(
+            f"AHA rate-limited: HTTP 429 after {attempts} attempts "
+            f"({self.wait_seconds:.1f}s total backoff)"
+        )
 
 try:
     # Preferred: shared config (URL / timeout / enabled via env).
@@ -52,6 +75,8 @@ except Exception:
         "timeout": int(os.getenv("AHA_TIMEOUT", "30") or 30),
         "enabled": os.getenv("AHA_ENABLED", "1").strip().lower()
         not in ("0", "false", "no", "off", ""),
+        "retry_attempts": int(os.getenv("AHA_RETRY_ATTEMPTS", "5") or 5),
+        "retry_base_wait": float(os.getenv("AHA_RETRY_BASE_WAIT", "0.5") or 0.5),
     }
 
 URL = AHA_CONFIG.get("url", "https://aha-music.com/identify")
@@ -70,6 +95,10 @@ HEADERS = {
 
 MIME = {".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav",
         ".m4a": "audio/mp4", ".flac": "audio/flac", ".webm": "audio/webm"}
+
+# Statuses worth retrying with exponential backoff — the same set shazamio's
+# aiohttp_retry config retries ({500, 502, 503, 504, 429}).
+_RETRIABLE_STATUSES = {429, 500, 502, 503, 504}
 
 
 def is_japanese(text):
@@ -187,9 +216,57 @@ def extract_track_detail(music: Dict[str, Any], en_title: Optional[str] = None) 
     }
 
 
+def _retry_wait(attempt: int) -> float:
+    """Exponential backoff wait for attempt N (1-based): base * 2^(N-1), with jitter.
+
+    Mirrors shazamio's aiohttp_retry.ExponentialRetry ladder
+    (start_timeout × factor^attempt), scaled up so HTTP-level waits are
+    meaningful against AHA's per-IP window.
+    """
+    base = AHA_CONFIG.get("retry_base_wait", 0.5)
+    try:
+        base = float(base)
+    except (TypeError, ValueError):
+        base = 0.5
+    wait = base * (2 ** (attempt - 1))
+    wait = min(wait, 30.0)
+    # Small jitter so overlapping sweeps don't march in lock-step.
+    return wait + random.uniform(0.0, max(wait * 0.25, 0.05))
+
+
 def _post_sync(mime: str, filename: str, file_path_str: str, url: str, timeout: int) -> Dict[str, Any]:
-    """Blocking AHA identify call (runs inside ``asyncio.to_thread``)."""
+    """Blocking AHA identify call (runs inside ``asyncio.to_thread``).
+
+    Changes vs the pre-retry version:
+
+    - The snippet is read fully into memory and uploaded as ``data=`` —
+      no ``local_path``, so curl never keeps a file handle open after a
+      dead upload (the cause of WinError 32 / locked ``seg_*.wav``).
+    - Retriable statuses (HTTP 429 + 5xx, same set shazamio retries) are
+      re-sent with an exponential backoff ladder
+      (``AHA_RETRY_BASE_WAIT * 2^attempt`` + jitter, honoring a
+      ``Retry-After`` header when present).
+
+    Raises:
+        AhaRateLimitedError: HTTP 429 on every attempt — propagate so
+            sweeps can skip AHA and the UI can show "rate-limited".
+        HTTPError: other non-2xx statuses (unchanged behavior).
+        Exception: last transport error when attempts exhaust.
+    """
+    try:
+        attempts = max(1, int(AHA_CONFIG.get("retry_attempts", 5)))
+    except (TypeError, ValueError):
+        attempts = 5
+
+    # Read snippet bytes BEFORE any request — the same buffer is reused
+    # for every attempt and no file handle outlives the call.
+    with open(file_path_str, "rb") as f:
+        content = f.read()
+
     s = cf_requests.Session(impersonate="chrome124")
+    total_backoff = 0.0
+    raised: Optional[BaseException] = None
+    last_status: Optional[int] = None
     try:
         try:
             # Warm-up: fetch session cookies like the browser client does.
@@ -198,14 +275,62 @@ def _post_sync(mime: str, filename: str, file_path_str: str, url: str, timeout: 
         except Exception as e:
             logger.debug(f"[AHA] Warm-up failed (continuing): {e}")
 
-        mp = CurlMime()
-        mp.addpart(name="sample", content_type=mime,
-                   filename=filename, local_path=file_path_str)
-        mp.addpart(name="marker", data="        ")
+        for attempt in range(1, attempts + 1):
+            # Fresh mime per attempt: curl consumes the multipart body.
+            mp = CurlMime()
+            mp.addpart(name="sample", content_type=mime,
+                       filename=filename, data=content)
+            mp.addpart(name="marker", data="        ")
+            try:
+                r = s.post(url, headers=HEADERS, multipart=mp, timeout=timeout)
+            except Exception as e:
+                # Transport failure (e.g. H2 stream cut mid-upload).
+                raised = e
+                last_status = None
+                if attempt >= attempts:
+                    break
+                wait = _retry_wait(attempt)
+                total_backoff += wait
+                logger.debug(
+                    f"[AHA] Transport error (attempt {attempt}/{attempts}): {e} — retrying in {wait:.1f}s"
+                )
+                time.sleep(wait)
+                continue
 
-        r = s.post(url, headers=HEADERS, multipart=mp, timeout=timeout)
-        r.raise_for_status()
-        return r.json()
+            if r.status_code in _RETRIABLE_STATUSES:
+                last_status = r.status_code
+                raised = None
+                if attempt >= attempts:
+                    break
+                # Honor server-provided Retry-After when present.
+                ra = r.headers.get("Retry-After") if r.headers else None
+                try:
+                    wait = min(float(ra), 60.0) if ra else _retry_wait(attempt)
+                except (TypeError, ValueError):
+                    wait = _retry_wait(attempt)
+                total_backoff += wait
+                logger.info(
+                    "[AHA] HTTP %s (attempt %d/%d) — retrying in %.1fs",
+                    r.status_code, attempt, attempts, wait,
+                )
+                time.sleep(wait)
+                continue
+
+            r.raise_for_status()
+            return r.json()
+
+        # Attempt ladder exhausted without a usable response.
+        if last_status == 429:
+            logger.warning(
+                "[AHA] rate-limited: HTTP 429 on all %d attempts (%.1fs total backoff) — reporting rate_limited",
+                attempts, total_backoff,
+            )
+            raise AhaRateLimitedError(attempts, total_backoff)
+        if raised is not None:
+            raise raised
+        if last_status is not None:
+            raise HTTPError(f"HTTP Error {last_status}", 0, None)
+        raise RuntimeError("[AHA] identify attempts exhausted without a response")
     finally:
         try:
             s.close()
@@ -220,6 +345,9 @@ async def recognize(file_path, timeout=None) -> Optional[Dict[str, Any]]:
     'detail' (flattened useful fields), 'raw' (full music object),
     'candidates' (summary list) and 'status'.
     Returns None if not found.
+
+    Raises AhaRateLimitedError when the endpoint answers HTTP 429 on
+    every retry attempt (never converted to a silent None / "no match").
     """
     if not AHA_CONFIG.get('enabled', True):
         logger.debug("[AHA] Disabled via config (AHA_ENABLED=0), skipping")
@@ -250,6 +378,10 @@ async def recognize(file_path, timeout=None) -> Optional[Dict[str, Any]]:
 
     try:
         payload = await asyncio.to_thread(_post_sync, mime, filename, str(p), url, tout)
+    except AhaRateLimitedError:
+        # Propagate: sweeps catch this to skip remaining AHA windows and
+        # the UI reports "rate-limited" instead of a fake "no match".
+        raise
     except Exception as e:
         logger.debug(f"[AHA] Network error: {e}")
         return None

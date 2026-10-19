@@ -22,9 +22,19 @@ ACR_CONFIG = {
 # --- AHA Music Configuration ---
 # Public unauthenticated endpoint (fronts the same ACRCloud fingerprint DB).
 # AHA_ENABLED=0 disables the AHA fallback; AHA_TIMEOUT sets seconds.
+# Shazamio-style retry ladder: retriable statuses (429/5xx) are re-sent
+# with exponential waits: base_wait * 2^attempt (with jitter), up to
+# AHA_RETRY_ATTEMPTS total attempts.
 def _env_int(name, default):
     try:
         return int(os.getenv(name, default))
+    except (TypeError, ValueError):
+        return default
+
+
+def _env_float(name, default):
+    try:
+        return float(os.getenv(name, default))
     except (TypeError, ValueError):
         return default
 
@@ -34,6 +44,8 @@ AHA_CONFIG = {
     'timeout': _env_int('AHA_TIMEOUT', 30),
     'enabled': os.getenv('AHA_ENABLED', '1').strip().lower()
     not in ('0', 'false', 'no', 'off', ''),
+    'retry_attempts': _env_int('AHA_RETRY_ATTEMPTS', 5),
+    'retry_base_wait': _env_float('AHA_RETRY_BASE_WAIT', 0.5),
 }
 
 # --- Display Format ---

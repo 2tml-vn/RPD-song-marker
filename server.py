@@ -913,6 +913,9 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
     try:
         from shazamio import Shazam
         from identifier import _identify_with_acrcloud, _identify_with_aha
+        from aha_api import AhaRateLimitedError
+        import acrcloud
+        from acrcloud import AcrQuotaExceededError
         from config import AHA_CONFIG
     except Exception as e:
         logger.warning(f"[ACR_IDENTIFY] Identify backend unavailable: {e}")
@@ -931,6 +934,7 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
         found_window = None
         found_source = None
         aha_hits: list = []
+        aha_rate_limited = False
         if AHA_CONFIG.get('enabled', True):
             for i, (offset, d) in enumerate(sliding_windows):
                 logger.info(
@@ -951,6 +955,15 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
                         break
                     else:
                         logger.debug(f"[ACR_IDENTIFY] {ts} AHA no match on window {i + 1}")
+                except AhaRateLimitedError as e:
+                    # 429 through the whole retry ladder: stop firing AHA
+                    # for the remaining windows of this pass and fall
+                    # through to the ACRCloud fallback.
+                    aha_rate_limited = True
+                    logger.warning(
+                        f"[ACR_IDENTIFY] {ts} AHA rate-limited (HTTP 429 x{e.attempts}) — skipping remaining AHA windows, trying ACRCloud"
+                    )
+                    break
                 finally:
                     try:
                         if temp_name.exists():
@@ -962,7 +975,8 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
 
         # ACRCloud fallback.
         raw_hits: list = []
-        if not found:
+        acr_quota_exhausted = acrcloud.quota_exhausted()
+        if not found and not acr_quota_exhausted:
             logger.info(f"[ACR_IDENTIFY] {ts} AHA found no DB match, trying ACRCloud")
             for i, (offset, d) in enumerate(sliding_windows):
                 logger.info(
@@ -983,12 +997,24 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
                         break
                     else:
                         logger.debug(f"[ACR_IDENTIFY] {ts} no match on window {i + 1}")
+                except AcrQuotaExceededError as e:
+                    # Account limit confirmed live: the module flag now
+                    # blocks every later ACR call in this process; stop
+                    # firing the remaining windows of this pass too.
+                    acr_quota_exhausted = True
+                    acrcloud._quota_exhausted = True
+                    logger.warning(
+                        f"[ACR_IDENTIFY] {ts} ACRCloud quota exceeded (code {e.code}) — skipping remaining ACR windows"
+                    )
+                    break
                 finally:
                     try:
                         if temp_name.exists():
                             temp_name.unlink()
                     except OSError:
                         pass
+        elif acr_quota_exhausted:
+            logger.warning(f"[ACR_IDENTIFY] {ts} ACRCloud quota already exhausted (3003) this run — skipping ACR fallback")
 
         # Best raw hit (first window that recognized anything), even
         # when DB resolve failed — this is what the user inspects manually.
@@ -1015,6 +1041,8 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
                 "detail": detail_payload,
                 "candidates": candidates_payload,
                 "raw_windows": len(raw_hits) + len(aha_hits),
+                "aha_rate_limited": aha_rate_limited,
+                "acr_quota_exceeded": acr_quota_exhausted,
             })
 
         logger.info(f"[ACR_IDENTIFY] {ts}: no match (raw_hits={len(raw_hits)} aha_hits={len(aha_hits)})")
@@ -1027,14 +1055,24 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
                 "source": raw_source,
                 "detail": detail_payload, "candidates": candidates_payload,
                 "raw_windows": len(raw_hits) + len(aha_hits),
+                "aha_rate_limited": aha_rate_limited,
+                "acr_quota_exceeded": acr_quota_exhausted,
             })
-        return await _json_response({"status": "ok", "identified": False, "msg": "ACRCloud found no match", "raw_windows": 0})
+        if acr_quota_exhausted and not aha_hits:
+            msg = "ACRCloud quota exceeded (requests limit reached — upgrade or wait for the plan reset)"
+        elif acr_quota_exhausted:
+            msg = "AHA found no match; ACRCloud quota exceeded (requests limit reached)"
+        elif aha_rate_limited:
+            msg = "AHA rate-limited; ACRCloud found no match"
+        else:
+            msg = "ACRCloud found no match"
+        return await _json_response({"status": "ok", "identified": False, "msg": msg, "raw_windows": 0, "aha_rate_limited": aha_rate_limited, "acr_quota_exceeded": acr_quota_exhausted})
     except Exception as e:
         logger.warning(f"[ACR_IDENTIFY] Unexpected error for '{ts}': {e}")
         return await _json_response({"status": "error", "msg": str(e)})
 
 
-def _summarize_identify_source(raw_hits: list, song=None, window=None, disabled=False) -> Dict[str, Any]:
+def _summarize_identify_source(raw_hits: list, song=None, window=None, disabled=False, blocked=None) -> Dict[str, Any]:
     """Build one engine's side-by-side payload for /identify_all.
 
     Args:
@@ -1042,6 +1080,8 @@ def _summarize_identify_source(raw_hits: list, song=None, window=None, disabled=
         song: resolved DB display string, or None when no DB match.
         window: 1-based window index where the DB match was found.
         disabled: True when the engine was skipped via config.
+        blocked: None, or a reason string when live probing was cut short
+            (e.g. "rate_limited" after the endpoint 429-ed every attempt).
     """
     best = raw_hits[0] if raw_hits else None
     detail = best.get('detail') if isinstance(best, dict) else None
@@ -1061,6 +1101,7 @@ def _summarize_identify_source(raw_hits: list, song=None, window=None, disabled=
         "raw_artist": raw_artist,
         "raw_windows": len(raw_hits),
         "disabled": disabled,
+        "blocked": blocked,
     }
 
 
@@ -1129,6 +1170,9 @@ async def _run_identify_all_job(job_id: str, ts: str, prep: Dict[str, Any]) -> N
             _recognize_aha_snippet,
             _recognize_acrcloud_snippet,
         )
+        from aha_api import AhaRateLimitedError
+        import acrcloud
+        from acrcloud import AcrQuotaExceededError
         from config import AHA_CONFIG
     except Exception as e:
         logger.warning(f"[IDENTIFY_ALL] Identify backend unavailable: {e}")
@@ -1154,6 +1198,10 @@ async def _run_identify_all_job(job_id: str, ts: str, prep: Dict[str, Any]) -> N
         aha_enabled = AHA_CONFIG.get('enabled', True)
         if not aha_enabled:
             logger.debug(f"[IDENTIFY_ALL] {ts} AHA disabled via config, skipping")
+        aha_rate_limited = False  # set once the endpoint 429s through the retry ladder
+        # ACR in-process quota stop-flag: true once code 3003 was confirmed
+        # anywhere in this process (auto path, /acr_identify, or this sweep).
+        acr_quota_exhausted = acrcloud.quota_exhausted()
 
         shazam_raw: list = []
         aha_raw: list = []
@@ -1162,7 +1210,7 @@ async def _run_identify_all_job(job_id: str, ts: str, prep: Dict[str, Any]) -> N
         found_window = {"shazam": None, "aha": None, "acrcloud": None}
 
         for i, (offset, d) in enumerate(sliding_windows):
-            if found["shazam"] and (found["aha"] or not aha_enabled) and found["acrcloud"]:
+            if found["shazam"] and (found["aha"] or not aha_enabled or aha_rate_limited) and (found["acrcloud"] or acr_quota_exhausted):
                 break
             logger.info(
                 " [IDENTIFY_ALL] Window %d/%d: extract @ %.1fs (offset +%.1fs, dur %.1fs)",
@@ -1181,10 +1229,20 @@ async def _run_identify_all_job(job_id: str, ts: str, prep: Dict[str, Any]) -> N
                     return {"status": "waiting"}
                 prev = prev_engines.get(label) or {}
                 return {"status": "matched", "window": prev.get("window")}
+            def _aha_slot():
+                if not aha_enabled:
+                    return {"status": "disabled"}
+                if aha_rate_limited:
+                    return {"status": "rate_limited"}
+                return _carried("aha")
+            def _acr_slot():
+                if acr_quota_exhausted:
+                    return {"status": "quota_exceeded"}
+                return _carried("acrcloud")
             job["engines"] = {
                 "shazam": _carried("shazam"),
-                "aha": {"status": "disabled"} if not aha_enabled else _carried("aha"),
-                "acrcloud": _carried("acrcloud"),
+                "aha": _aha_slot(),
+                "acrcloud": _acr_slot(),
             }
             try:
                 ok = await _extract_audio_segment(
@@ -1200,11 +1258,11 @@ async def _run_identify_all_job(job_id: str, ts: str, prep: Dict[str, Any]) -> N
                     fut = asyncio.ensure_future(_recognize_shazam_snippet(shazam, shazam_en, temp_name, collect_raw=shazam_raw))
                     tasks[fut] = "shazam"
                     job["engines"]["shazam"] = {"status": "running"}
-                if aha_enabled and not found["aha"]:
+                if aha_enabled and not found["aha"] and not aha_rate_limited:
                     fut = asyncio.ensure_future(_recognize_aha_snippet(shazam_en, temp_name, collect_raw=aha_raw))
                     tasks[fut] = "aha"
                     job["engines"]["aha"] = {"status": "running"}
-                if not found["acrcloud"]:
+                if not found["acrcloud"] and not acr_quota_exhausted:
                     fut = asyncio.ensure_future(_recognize_acrcloud_snippet(shazam_en, temp_name, collect_raw=acr_raw))
                     tasks[fut] = "acrcloud"
                     job["engines"]["acrcloud"] = {"status": "running"}
@@ -1220,6 +1278,30 @@ async def _run_identify_all_job(job_id: str, ts: str, prep: Dict[str, Any]) -> N
                         label = tasks[fut]
                         try:
                             outcome = fut.result()
+                        except AhaRateLimitedError as e:
+                            # Server is 429-ing everything now. Stop firing
+                            # AHA for the remaining windows of THIS sweep;
+                            # the next sweep (next mark / re-identify click)
+                            # retries normally with the backoff ladder.
+                            aha_rate_limited = True
+                            job["engines"][label] = {"status": "rate_limited"}
+                            logger.warning(
+                                f"[IDENTIFY_ALL] {ts} AHA rate-limited (HTTP 429 x{e.attempts}) — skipping remaining AHA windows this sweep"
+                            )
+                            continue
+                        except AcrQuotaExceededError as e:
+                            # Account limit confirmed: stop firing ACR for
+                            # the remaining windows of THIS sweep; the
+                            # module flag now blocks every later call in
+                            # this process (next sweeps skip without
+                            # spending a single request).
+                            acr_quota_exhausted = True
+                            acrcloud._quota_exhausted = True
+                            job["engines"][label] = {"status": "quota_exceeded"}
+                            logger.warning(
+                                f"[IDENTIFY_ALL] {ts} ACRCloud quota exceeded (code {e.code}) — skipping remaining ACR windows this sweep"
+                            )
+                            continue
                         except Exception as e:
                             logger.warning(f"[IDENTIFY_ALL] {ts} {label} window {i + 1} error: {e}")
                             job["engines"][label] = {"status": "error"}
@@ -1243,11 +1325,13 @@ async def _run_identify_all_job(job_id: str, ts: str, prep: Dict[str, Any]) -> N
 
         job["results"] = {
             "shazam": _summarize_identify_source(shazam_raw, found["shazam"], found_window["shazam"]),
-            "aha": _summarize_identify_source(aha_raw, found["aha"], found_window["aha"], disabled=not aha_enabled),
-            "acrcloud": _summarize_identify_source(acr_raw, found["acrcloud"], found_window["acrcloud"]),
+            "aha": _summarize_identify_source(aha_raw, found["aha"], found_window["aha"], disabled=not aha_enabled, blocked="rate_limited" if aha_rate_limited else None),
+            "acrcloud": _summarize_identify_source(acr_raw, found["acrcloud"], found_window["acrcloud"], blocked="quota_exceeded" if acr_quota_exhausted else None),
         }
         logger.info(
             f"[IDENTIFY_ALL] {ts} done: shazam={found['shazam']!r} aha={found['aha']!r} acrcloud={found['acrcloud']!r}"
+            + (f" (aha rate-limited)" if aha_rate_limited else "")
+            + (f" (acr quota-exceeded)" if acr_quota_exhausted else "")
         )
     except asyncio.CancelledError:
         logger.info(f"[IDENTIFY_ALL] {ts} job {job_id} cancelled")
@@ -1410,6 +1494,9 @@ async def handle_identify_all(request: web.Request) -> web.Response:
             _recognize_aha_snippet,
             _recognize_acrcloud_snippet,
         )
+        from aha_api import AhaRateLimitedError
+        import acrcloud
+        from acrcloud import AcrQuotaExceededError
         from config import AHA_CONFIG
     except Exception as e:
         logger.warning(f"[IDENTIFY_ALL] Identify backend unavailable: {e}")
@@ -1428,6 +1515,10 @@ async def handle_identify_all(request: web.Request) -> web.Response:
         aha_enabled = AHA_CONFIG.get('enabled', True)
         if not aha_enabled:
             logger.debug(f"[IDENTIFY_ALL] {ts} AHA disabled via config, skipping")
+        aha_rate_limited = False  # set once the endpoint 429s through the retry ladder
+        # ACR in-process quota stop-flag: true once code 3003 was confirmed
+        # anywhere in this process (auto path, /acr_identify, or this sweep).
+        acr_quota_exhausted = acrcloud.quota_exhausted()
 
         shazam_raw: list = []
         aha_raw: list = []
@@ -1436,7 +1527,7 @@ async def handle_identify_all(request: web.Request) -> web.Response:
         found_window = {"shazam": None, "aha": None, "acrcloud": None}
 
         for i, (offset, d) in enumerate(sliding_windows):
-            if found["shazam"] and (found["aha"] or not aha_enabled) and found["acrcloud"]:
+            if found["shazam"] and (found["aha"] or not aha_enabled or aha_rate_limited) and (found["acrcloud"] or acr_quota_exhausted):
                 break
             logger.info(
                 " [IDENTIFY_ALL] Window %d/%d: extract @ %.1fs (offset +%.1fs, dur %.1fs)",
@@ -1456,10 +1547,10 @@ async def handle_identify_all(request: web.Request) -> web.Response:
                 if not found["shazam"]:
                     jobs.append(_recognize_shazam_snippet(shazam, shazam_en, temp_name, collect_raw=shazam_raw))
                     labels.append("shazam")
-                if aha_enabled and not found["aha"]:
+                if aha_enabled and not found["aha"] and not aha_rate_limited:
                     jobs.append(_recognize_aha_snippet(shazam_en, temp_name, collect_raw=aha_raw))
                     labels.append("aha")
-                if not found["acrcloud"]:
+                if not found["acrcloud"] and not acr_quota_exhausted:
                     jobs.append(_recognize_acrcloud_snippet(shazam_en, temp_name, collect_raw=acr_raw))
                     labels.append("acrcloud")
                 if not jobs:
@@ -1467,6 +1558,24 @@ async def handle_identify_all(request: web.Request) -> web.Response:
 
                 outcomes = await asyncio.gather(*jobs, return_exceptions=True)
                 for label, outcome in zip(labels, outcomes):
+                    if isinstance(outcome, AhaRateLimitedError):
+                        # Endpoint 429-ed through the retry ladder: stop
+                        # firing AHA for the rest of this sweep.
+                        aha_rate_limited = True
+                        logger.warning(
+                            f"[IDENTIFY_ALL] {ts} AHA rate-limited (HTTP 429 x{outcome.attempts}) — skipping remaining AHA windows this sweep"
+                        )
+                        continue
+                    if isinstance(outcome, AcrQuotaExceededError):
+                        # Account limit confirmed: stop firing ACR for the
+                        # rest of this sweep; the module flag blocks every
+                        # later call in this process.
+                        acr_quota_exhausted = True
+                        acrcloud._quota_exhausted = True
+                        logger.warning(
+                            f"[IDENTIFY_ALL] {ts} ACRCloud quota exceeded (code {outcome.code}) — skipping remaining ACR windows this sweep"
+                        )
+                        continue
                     if isinstance(outcome, Exception):
                         logger.warning(f"[IDENTIFY_ALL] {ts} {label} window {i + 1} error: {outcome}")
                         continue
@@ -1485,11 +1594,13 @@ async def handle_identify_all(request: web.Request) -> web.Response:
 
         results = {
             "shazam": _summarize_identify_source(shazam_raw, found["shazam"], found_window["shazam"]),
-            "aha": _summarize_identify_source(aha_raw, found["aha"], found_window["aha"], disabled=not aha_enabled),
-            "acrcloud": _summarize_identify_source(acr_raw, found["acrcloud"], found_window["acrcloud"]),
+            "aha": _summarize_identify_source(aha_raw, found["aha"], found_window["aha"], disabled=not aha_enabled, blocked="rate_limited" if aha_rate_limited else None),
+            "acrcloud": _summarize_identify_source(acr_raw, found["acrcloud"], found_window["acrcloud"], blocked="quota_exceeded" if acr_quota_exhausted else None),
         }
         logger.info(
             f"[IDENTIFY_ALL] {ts} done: shazam={found['shazam']!r} aha={found['aha']!r} acrcloud={found['acrcloud']!r}"
+            + (f" (aha rate-limited)" if aha_rate_limited else "")
+            + (f" (acr quota-exceeded)" if acr_quota_exhausted else "")
         )
         return await _json_response({"status": "ok", "ts": ts, "results": results})
     except Exception as e:

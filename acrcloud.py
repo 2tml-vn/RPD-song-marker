@@ -1,6 +1,10 @@
 """
 ACRCloud integration for JRPD marker system.
 Provides audio fingerprinting and song identification via ACRCloud API.
+
+``recognize()`` returns a result dict, ``None`` when the audio has no
+match, or raises :class:`AcrQuotaExceededError` when the account hit a
+limit (code 3003) — that exception is never converted to a silent None.
 """
 import asyncio
 import aiohttp
@@ -17,6 +21,32 @@ from typing import Optional, Dict, Any
 from config import ACR_CONFIG
 
 logger = logging.getLogger("JRPD")
+
+
+class AcrQuotaExceededError(Exception):
+    """ACRCloud answered an account-level limit (code 3003 = requests exceeded).
+
+    Raised (not swallowed into "no match") so sweeps can stop sending
+    windows to a dead account and the UI can show a real status instead
+    of a misleading silent result.
+    """
+
+    def __init__(self, code: int, msg: str = "") -> None:
+        self.code = code
+        self.msg = msg
+        super().__init__(f"ACRCloud quota/limit exceeded (code {code}): {msg}")
+
+
+# In-process stop-flag: once the endpoint confirms an account-level
+# limit, further requests this run are pure waste (it is a plan-period
+# limit — clicking again in a few minutes cannot change the answer).
+# Plain RAM, resets when the process restarts, nothing saved anywhere.
+_quota_exhausted = False
+
+
+def quota_exhausted() -> bool:
+    """True once code 3003 was confirmed this process (no new requests)."""
+    return _quota_exhausted
 
 # ACRCloud API endpoint
 ENDPOINT = '/v1/identify'
@@ -213,6 +243,7 @@ async def recognize(file_path, access_key=None, access_secret=None, host=None) -
     'candidates' (summary of all music candidates) and 'status'.
     Returns None if not found.
     """
+    global _quota_exhausted
     key = access_key or ACR_CONFIG.get('access_key')
     secret = access_secret or ACR_CONFIG.get('access_secret')
     acr_host = host or ACR_CONFIG.get('host')
@@ -226,6 +257,11 @@ async def recognize(file_path, access_key=None, access_secret=None, host=None) -
     if key == 'your-access-key-here' or key == 'YOUR_ACCESS_KEY':
         logger.warning("[ACR] Placeholder access key detected, skipping identification")
         return None
+
+    # Fast-exit: once exhaustion is confirmed for this process, never
+    # quietly re-ask (and never fake a "no match") until restart.
+    if _quota_exhausted:
+        raise AcrQuotaExceededError(3003, "quota already exhausted earlier in this process")
 
     http_method = "POST"
     http_uri = ENDPOINT
@@ -270,7 +306,20 @@ async def recognize(file_path, access_key=None, access_secret=None, host=None) -
             status = result.get('status', {})
             status_code = status.get('code', -1)
             logger.debug(f"[ACR] Status code: {status_code}, msg: {status.get('msg', 'unknown')}")
-            
+
+            if status_code == 3003:
+                # Account-level limit ("requests limit exceeded, please
+                # upgrade your account"): a plan-period limit. Surface it
+                # + stop feeding the account in-process; retrying now
+                # only burns windows.
+                if not _quota_exhausted:
+                    _quota_exhausted = True
+                    logger.warning(
+                        "[ACR] quota exceeded (code 3003): %s — ACR disabled until process restart",
+                        status.get('msg', 'requests limit exceeded'),
+                    )
+                raise AcrQuotaExceededError(status_code, status.get('msg', ''))
+
             if status_code == 0:
                 metadata = result.get('metadata', {})
                 music_list = metadata.get('music', [])
@@ -312,6 +361,9 @@ async def recognize(file_path, access_key=None, access_secret=None, host=None) -
                     "candidates": [summarize_candidate(m) for m in music_list],
                     "status": {"code": status_code, "msg": status.get('msg', '')},
                 }
+    except AcrQuotaExceededError:
+        # Propagate — never disguise quota exhaustion as "no match".
+        raise
     except aiohttp.ClientError as e:
         logger.debug(f"[ACR] Network error: {e}")
     except json.JSONDecodeError as e:

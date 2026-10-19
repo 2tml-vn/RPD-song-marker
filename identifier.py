@@ -224,6 +224,11 @@ async def _recognize_aha_snippet(
         else:
             logger.debug(" [AHA] No result from recognition")
             return None
+    except aha_api.AhaRateLimitedError:
+        # Endpoint answers 429 to everything now. Re-raise so the calling
+        # sweep can stop re-firing AHA windows and surface a real
+        # "rate-limited" status — NOT a misleading silent "no match".
+        raise
     except KeyError as e:
         logger.debug(" [AHA] Missing key in response: %s", e)
     except Exception as e:
@@ -297,6 +302,11 @@ async def _recognize_acrcloud_snippet(
         else:
             logger.debug(" [ACRCloud] No result from recognition")
             return None
+    except acrcloud.AcrQuotaExceededError:
+        # Account hit its request limit. Re-raise so the calling sweep
+        # can stop re-firing ACR windows and surface a real
+        # "quota exceeded" status — NOT a misleading silent "no match".
+        raise
     except KeyError as e:
         logger.debug(" [ACRCloud] Missing key in response: %s", e)
     except Exception as e:
@@ -484,9 +494,20 @@ async def identify_song(
 
             temp_name = snippets_dir / f"seg_{int(time.time())}_aha.wav"
             try:
-                result = await _identify_with_aha(
-                    shazam_en, temp_name, current_sec, offset, audio_path, sliding_windows, i
-                )
+                try:
+                    result = await _identify_with_aha(
+                        shazam_en, temp_name, current_sec, offset, audio_path, sliding_windows, i
+                    )
+                except aha_api.AhaRateLimitedError as e:
+                    # Endpoint is 429-ing everything. Report and stop
+                    # re-firing AHA for the remaining windows of THIS
+                    # pass; the next pass (next mark / next re-identify)
+                    # retries normally. No global cooldown.
+                    logger.warning(
+                        "[IDENTIFY] AHA rate-limited (HTTP 429 x%d) — skipping remaining %d AHA window(s) this pass, falling to ACRCloud",
+                        e.attempts, len(sliding_windows) - i - 1,
+                    )
+                    break
                 if result:
                     logger.info(" [AHA] SUCCESS on window %d: %s", i+1, result)
                     return result
@@ -505,14 +526,32 @@ async def identify_song(
     # Phase 3: ACRCloud Fallback
     logger.info("[IDENTIFY] Phase 3: ACRCloud Fallback")
 
+    if acrcloud.quota_exhausted():
+        # A previous ACR call this process already confirmed the account
+        # limit (code 3003). Skip the whole phase without new requests.
+        logger.warning("[IDENTIFY] ACRCloud quota already exhausted (3003) this run — skipping ACR fallback phase")
+        logger.info(" [FINAL RESULT] Unidentified")
+        return "Unidentified"
+
     for i, (offset, d) in enumerate(sliding_windows):
         logger.info(" [ACRCloud] Window %d/%d: extract @ %.1fs (offset +%.1fs, dur %.1fs)", i+1, len(sliding_windows), current_sec + offset, offset, d)
 
         temp_name = snippets_dir / f"seg_{int(time.time())}_acr.wav"
         try:
-            result = await _identify_with_acrcloud(
-                shazam_en, temp_name, current_sec, offset, audio_path, sliding_windows, i
-            )
+            try:
+                result = await _identify_with_acrcloud(
+                    shazam_en, temp_name, current_sec, offset, audio_path, sliding_windows, i
+                )
+            except acrcloud.AcrQuotaExceededError as e:
+                # Account limit confirmed live: stop re-firing ACR for
+                # the remaining windows of THIS pass; the module-level
+                # flag now also blocks every later call this process.
+                acrcloud._quota_exhausted = True
+                logger.warning(
+                    "[IDENTIFY] ACRCloud quota exceeded (code %s) — skipping remaining %d ACR window(s) this pass",
+                    e.code, len(sliding_windows) - i - 1,
+                )
+                break
             if result:
                 logger.info(" [ACRCloud] SUCCESS on window %d: %s", i+1, result)
                 return result

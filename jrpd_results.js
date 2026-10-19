@@ -616,13 +616,14 @@ function updateIdentifyProgress(prog, js) {
 /**
  * One engine line of the progress modal.
  * @param {Object} slot - {row, name} handles
- * @param {string} status - waiting|running|matched|no-match|error|disabled
+ * @param {string} status - waiting|running|matched|no-match|error|disabled|rate_limited|quota_exceeded
  * @param {Object} [info] - extra payload ({window})
  */
 function renderEngineStatus(slot, status, info) {
     const mark = {
         "waiting": "⏳", "running": "⏳", "matched": "✅",
         "no-match": "—", "error": "⚠️", "disabled": "🚫",
+        "rate_limited": "⏸", "quota_exceeded": "⛔",
     }[status] || "⏳";
     let text;
     switch (status) {
@@ -636,11 +637,15 @@ function renderEngineStatus(slot, status, info) {
         case "no-match": text = `— ${slot.name}: no match`; break;
         case "error": text = `⚠️ ${slot.name}: failed (retrying next window)`; break;
         case "disabled": text = `🚫 ${slot.name}: disabled in config`; break;
+        case "rate_limited": text = `⏸ ${slot.name}: rate-limited (HTTP 429) — paused this check`; break;
+        case "quota_exceeded": text = `⛔ ${slot.name}: quota exceeded (3003) — stopped until restart`; break;
         default: text = `⏳ ${slot.name}: …`;
     }
     slot.row.textContent = text;
     slot.row.style.color = status === "matched" ? "#9ccc65"
         : status === "error" ? "#ff8a80"
+        : status === "rate_limited" ? "#ffb74d"
+        : status === "quota_exceeded" ? "#e57373"
         : status === "no-match" || status === "disabled" ? "#888" : "#ccc";
     // Small pulse on running rows so something is visibly moving.
     slot.row.style.animation = (status === "running") ? "jrpdIdentPulse 1.2s ease-in-out infinite" : "";
@@ -738,6 +743,12 @@ function showIdentifyAllModal(ts, results) {
             } else if (r.song) {
                 badge.textContent = `match (w${r.window || "?"})`;
                 badge.style.cssText = "font-size: 10px; color: #fff; background: #2e7d32; border-radius: 3px; padding: 1px 6px;";
+            } else if (r.blocked === "rate_limited") {
+                badge.textContent = "⏸ rate-limited (429)";
+                badge.style.cssText = "font-size: 10px; color: #000; background: #ffb74d; border-radius: 3px; padding: 1px 6px;";
+            } else if (r.blocked === "quota_exceeded") {
+                badge.textContent = "⛔ quota exceeded (3003)";
+                badge.style.cssText = "font-size: 10px; color: #fff; background: #e57373; border-radius: 3px; padding: 1px 6px;";
             } else if (r.raw_title || (r.detail && (r.detail.title || r.detail.artist))) {
                 badge.textContent = "raw only (no DB match)";
                 badge.style.cssText = "font-size: 10px; color: #000; background: #ffb74d; border-radius: 3px; padding: 1px 6px;";
@@ -750,7 +761,10 @@ function showIdentifyAllModal(ts, results) {
 
             const songLine = document.createElement("div");
             songLine.style.cssText = "font-weight: bold; color: #fff; margin-bottom: 2px; user-select: text;";
-            songLine.textContent = r.song || "(no database match)";
+            songLine.textContent = r.song
+                || (r.blocked === "rate_limited" ? "(rate-limited — endpoint returned 429, not queried)"
+                    : r.blocked === "quota_exceeded" ? "(quota exceeded — ACRCloud: requests limit exceeded)"
+                    : "(no database match)");
             if (!r.song) songLine.style.color = "#888";
             card.appendChild(songLine);
 
