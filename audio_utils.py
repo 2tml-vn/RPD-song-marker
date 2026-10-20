@@ -4,12 +4,20 @@ Handles audio processing, text cleaning, and display formatting.
 """
 import re
 import queue
+import json
 import shutil
+import socket
+import ssl
 import subprocess
 import sys
 import threading
 import time
 import logging
+import urllib.error
+import urllib.parse
+import urllib.request
+from http.client import IncompleteRead
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from config import DISPLAY_FORMAT
 from shared_utils import format_timestamp_for_youtube  # Re-export for backward compatibility
@@ -610,6 +618,828 @@ def _validate_audio_file(path: Path, true_duration: int) -> bool:
         return False
 
 
+# ---------------------------------------------------------------------------
+# Bilibili native segmented CDN downloader
+#
+# Ported from j4rviscmd/bilibili-downloader-gui's Rust engine
+# (src-tauri/src/utils/downloads.rs + cdn_selector.rs). Bilibili's playurl
+# API hands out base_url + backup_url pools per DASH stream, so instead of
+# letting yt-dlp / aria2c fight a hostile CDN we:
+#   1. resolve bvid/page -> cid -> playurl (no-cookie, fnval=16 DASH;
+#      the legacy endpoint works without a wbi signature, 2026-10-20),
+#   2. probe every candidate (base + backups) with a small Range GET and
+#      keep full-range deliverers ordered first - catches Akamai-style
+#      hosts that trim long ranges,
+#   3. run an in-process segmented downloader (total/8 clamped 4-32 MB,
+#      8 workers) writing each chunk at its offset into a preallocated
+#      file, checking 206 + Content-Range start, and verifying the
+#      on-disk resume tail before trusting it after a CDN kill,
+#   4. rotate candidates on failure: near-zero progress rotates
+#      immediately without burning the resume budget; real progress
+#      resumes the same host within a small budget (after a tail verify),
+#      then rotates. Only *.bilivideo.com hosts get their hostname
+#      substituted for a healthy mirror (path + signed query preserved);
+#      akamaized.net is never rewritten, P2P mcdn hosts are dropped,
+#   5. checkpoint completed segments into an audio.m4s.progress.json
+#      sidecar so an interrupted run skips finished segments (a 98%
+#      complete file is never thrown away),
+#   6. remux the finished stream to audio.m4a (ffmpeg stream-copy) and
+#      duration-validate.
+#
+# The yt-dlp / aria2c ladder in ensure_audio below stays untouched as the
+# fallback; this path simply produces audio.m4a when the CDN cooperates.
+# ---------------------------------------------------------------------------
+
+_BILI_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0"
+)
+_BILI_REFERER = "https://www.bilibili.com/"
+_BILI_API = "https://api.bilibili.com"
+
+# Range-probe: 4 MiB through each candidate before committing to a plan.
+_BILI_PROBE_BYTES = 4 * 1024 * 1024
+_BILI_PROBE_TIMEOUT = 6.0
+
+# Segmentation: total/8 clamped to 4-32 MB, 8 workers. The timeout is a
+# per-socket-op stall timer (urllib applies it to connect + every read),
+# so a host that stops sending raises instead of hanging forever.
+_BILI_SEG_MIN = 4 * 1024 * 1024
+_BILI_SEG_MAX = 32 * 1024 * 1024
+_BILI_INFLIGHT = 8
+_BILI_STALL_TIMEOUT = 30.0
+_BILI_CHUNK = 256 * 1024
+
+# Kill/hang recovery per segment. Backoff 200 ms doubling, capped 1.5 s.
+# A short read with real progress resumes the same host only after the
+# last TAIL_VERIFY on-disk bytes match the edge's bytes at those offsets
+# (guards against an edge serving different bytes); at most
+# MAX_SLOW_RESUMES such resumes, then the segment rotates CDN. A read
+# that produced almost nothing rotates immediately without burning the
+# budget or re-verifying anything.
+_BILI_BACKOFF_BASE = 0.2
+_BILI_BACKOFF_CAP = 1.5
+_BILI_TAIL_VERIFY = 64 * 1024
+_BILI_MIN_PROGRESS = 64 * 1024
+_BILI_MAX_SLOW_RESUMES = 3
+_BILI_MAX_CDN_LOOPS = 3  # whole candidate-pool passes per rotation budget
+
+# TLS downgrade mirrors the aria2c ladder's --check-certificate=false:
+# only enabled after a real certificate verification failure.
+_BILI_SSL_UNVERIFIED = False
+_BILI_SSL_CTX: ssl.SSLContext | None = None
+
+_LAST_ROTATE_LOG = [0.0, threading.Lock()]  # [monotonic ts, lock]
+
+
+def _bili_ssl_context() -> ssl.SSLContext:
+    """SSL context for https requests (rebuilt unverified after downgrade)."""
+    global _BILI_SSL_CTX
+    if _BILI_SSL_CTX is None:
+        ctx = ssl.create_default_context()
+        if _BILI_SSL_UNVERIFIED:
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+        _BILI_SSL_CTX = ctx
+    return _BILI_SSL_CTX
+
+
+def _bili_open(url: str, extra_headers: dict | None = None, timeout: float = 10.0):
+    """Open a URL with Bilibili UA/Referer headers; returns an HTTPResponse.
+
+    On a certificate-verification failure, downgrades once to unverified
+    TLS for the rest of the process (matches --check-certificate=false on
+    the aria2c ladder for this machine).
+    """
+    headers = {"User-Agent": _BILI_UA, "Referer": _BILI_REFERER}
+    if extra_headers:
+        headers.update(extra_headers)
+    req = urllib.request.Request(url, headers=headers)
+    global _BILI_SSL_CTX
+    try:
+        if url.lower().startswith("https:"):
+            return urllib.request.urlopen(
+                req, timeout=timeout, context=_bili_ssl_context())
+        return urllib.request.urlopen(req, timeout=timeout)
+    except (ssl.SSLError, urllib.error.URLError) as e:
+        reason = getattr(e, "reason", e)
+        msg = f"{reason}"
+        only_once = _BILI_SSL_UNVERIFIED or "certificate" not in msg.lower()
+        if only_once:
+            raise
+        logger.warning("[DL] Bilibili TLS verification failed; "
+                       "retrying without verification")
+        _BILI_SSL_UNVERIFIED = True
+        _BILI_SSL_CTX = None
+        return urllib.request.urlopen(
+            req, timeout=timeout, context=_bili_ssl_context())
+
+
+def _bili_backoff(rotation: int) -> float:
+    """Backoff seconds for a rotation count: 0.2 * 2^(n-1), capped 1.5 s."""
+    n = max(1, rotation)
+    return min(_BILI_BACKOFF_BASE * (2 ** (n - 1)), _BILI_BACKOFF_CAP)
+
+
+def _bili_rotation_log(msg: str) -> None:
+    """Log CDN-drop/rotation one-liners, throttled so many concurrent
+    workers produce a readable cmd log instead of a CUID-style dump."""
+    now = time.monotonic()
+    with _LAST_ROTATE_LOG[1]:
+        if now - _LAST_ROTATE_LOG[0] < 2.0:
+            logger.debug(f"[DL] {msg}")
+            return
+        _LAST_ROTATE_LOG[0] = now
+    logger.info(f"[DL] {msg}")
+
+
+def _bili_content_range_total(headers) -> int:
+    """Total object size from Content-Range (falls back to Content-Length)."""
+    cr = headers.get("Content-Range")
+    if cr:
+        try:
+            return int(cr.rsplit("/", 1)[-1].strip())
+        except ValueError:
+            pass
+    try:
+        return int(headers.get("Content-Length"))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _bili_content_range_start(headers) -> int | None:
+    """Start offset of a Content-Range header, or None."""
+    cr = headers.get("Content-Range")
+    if not cr:
+        return None
+    spec = cr.split("/", 1)[0].strip()
+    if spec.lower().startswith("bytes"):
+        spec = spec[len("bytes"):].strip()
+    start = spec.split("-", 1)[0].strip()
+    try:
+        return int(start)
+    except ValueError:
+        return None
+
+
+def _bili_is_media_content_type(headers) -> bool:
+    """The edge must not answer a media range with JSON/HTML."""
+    ct = (headers.get("Content-Type") or "").lower()
+    if "application/json" in ct or ct.startswith("text/"):
+        return False
+    return True
+
+
+def _bili_host_of(url: str) -> str:
+    try:
+        return (urllib.parse.urlsplit(url).hostname or "").lower()
+    except ValueError:
+        return ""
+
+
+def _bili_is_p2p_cdn_host(host: str) -> bool:
+    """P2P CDN hosts (mcdn: e.g. xy1x2.mcdn.bilivideo.cn) are avoided."""
+    return "mcdn" in host
+
+
+def _bili_filter_p2p_hosts(urls: list) -> list:
+    """Drop mcdn candidates; if that leaves nothing, keep the originals."""
+    kept = [u for u in urls if u and not _bili_is_p2p_cdn_host(_bili_host_of(u))]
+    return kept if kept else list(urls)
+
+
+def _bili_is_bilivideo_com_host(host: str) -> bool:
+    return host.endswith(".bilivideo.com")
+
+
+def _bili_is_mirror_host(host: str) -> bool:
+    return (
+        _bili_is_bilivideo_com_host(host)
+        and host.startswith("upos-sz-mirror")
+        and not _bili_is_p2p_cdn_host(host)
+    )
+
+
+def _bili_harvest_mirror_hosts(urls: list) -> list:
+    out, seen = [], set()
+    for u in urls:
+        h = _bili_host_of(u or "")
+        if _bili_is_mirror_host(h) and h not in seen:
+            seen.add(h)
+            out.append(h)
+    return out
+
+
+def _bili_substitute_host(url: str, new_host: str) -> str:
+    """Rewrite only the hostname (dropping any port). Path plus the signed
+    query are preserved - the CDN signature survives the host swap."""
+    try:
+        parts = urllib.parse.urlsplit(url)
+    except ValueError:
+        return url
+    return urllib.parse.urlunsplit(
+        (parts.scheme, new_host, parts.path, parts.query, parts.fragment))
+
+
+class _BiliHostHealth:
+    """Healthy *.bilivideo.com mirror-host map (cdn_selector.rs equivalent).
+
+    Mirror hosts harvested from the candidate pool stay eligible while
+    healthy; a host that drops connections is marked unhealthy and, when a
+    bilivideo.com candidate referring to it is picked again, its hostname
+    is substituted (same path + signed query) for a healthy mirror.
+    """
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._mirrors: list = []
+        self._unhealthy: set = set()
+
+    def seed_mirrors_from_urls(self, urls: list) -> None:
+        with self._lock:
+            for host in _bili_harvest_mirror_hosts(urls):
+                if host not in self._mirrors:
+                    self._mirrors.append(host)
+
+    def mark_url_unhealthy(self, url: str) -> None:
+        host = _bili_host_of(url)
+        if not host:
+            return
+        with self._lock:
+            self._unhealthy.add(host)
+            if host in self._mirrors:
+                self._mirrors = [m for m in self._mirrors if m != host]
+
+    def record_url_healthy(self, url: str) -> None:
+        host = _bili_host_of(url)
+        if not host:
+            return
+        with self._lock:
+            self._unhealthy.discard(host)
+            if _bili_is_mirror_host(host) and host not in self._mirrors:
+                self._mirrors.append(host)
+
+    def resolve_effective_url(self, url: str, rotation: int) -> str:
+        """Swap unhealthy bilivideo.com hosts for a healthy mirror, spread
+        across the rotation count; every other URL passes through as-is."""
+        host = _bili_host_of(url)
+        if not host or not _bili_is_bilivideo_com_host(host):
+            return url
+        with self._lock:
+            if host not in self._unhealthy or not self._mirrors:
+                return url
+            eligible = [m for m in self._mirrors if m not in self._unhealthy]
+            if not eligible:
+                return url
+            target = eligible[rotation % len(eligible)]
+        logger.debug("[DL] Host swap: %s -> %s", host, target)
+        return _bili_substitute_host(url, target)
+
+
+def _bili_calculate_segments(total: int, segment_size: int) -> list:
+    """Inclusive (start, end) byte ranges covering 0..total-1."""
+    segments = []
+    start = 0
+    while start < total:
+        end = min(start + segment_size - 1, total - 1)
+        segments.append((start, end))
+        start = end + 1
+    return segments
+
+
+def _bili_effective_segment_size(total: int, concurrency: int) -> int:
+    """total/concurrency clamped to the 4-32 MB segment window."""
+    if total <= 0:
+        return 0
+    target = max(1, total // max(1, concurrency))
+    return max(_BILI_SEG_MIN, min(target, _BILI_SEG_MAX))
+
+
+def _bili_progress_sidecar_path(path: Path) -> Path:
+    return path.with_name(path.name + ".progress.json")
+
+
+def _bili_load_checkpoint(sidecar: Path):
+    try:
+        data = json.loads(sidecar.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    for key in ("url_path", "total", "segment_size", "completed"):
+        if key not in data:
+            return None
+    if not isinstance(data["completed"], list) or not isinstance(data["total"], int) \
+            or not isinstance(data["segment_size"], int) or not isinstance(data["url_path"], str):
+        return None
+    return data
+
+
+def _bili_save_checkpoint(sidecar: Path, url_path: str, total: int,
+                          segment_size: int, completed: set) -> None:
+    data = {
+        "url_path": url_path,
+        "total": total,
+        "segment_size": segment_size,
+        "completed": sorted(i for i in completed if isinstance(i, int)),
+    }
+    tmp = sidecar.with_name(sidecar.name + ".tmp")
+    try:
+        tmp.write_text(json.dumps(data), encoding="utf-8")
+        tmp.replace(sidecar)
+    except OSError:
+        try:
+            if tmp.exists():
+                tmp.unlink()
+        except OSError:
+            pass
+
+
+def _bili_get_dash_audio_urls(video_id: str):
+    """Resolve Bilibili DASH audio CDN candidates for a video id/URL.
+
+    Returns (candidate_urls, url_path) or None. url_path - the signed
+    base_url's path - is the checkpoint identity: hosts and the date-signed
+    query change between API calls, the path is stable for the stream.
+    No auth needed for public videos.
+    """
+    key = video_session_key(video_id)  # URLs -> 'BVxxx_pN' key form
+    base_id, part = split_bilibili_part(key)
+    if not base_id:
+        return None
+    if base_id.startswith("av"):
+        params_read = {"aid": base_id[2:]}
+        params_bvid = None
+    elif base_id.startswith("BV"):
+        params_read = {"bvid": base_id}
+        params_bvid = base_id
+    elif base_id.isdigit():
+        params_read = {"aid": base_id}
+        params_bvid = None
+    else:
+        return None
+
+    try:
+        q = urllib.parse.urlencode({**params_read, "jsonp": "jsonp"})
+        with _bili_open(f"{_BILI_API}/x/player/pagelist?{q}", timeout=10) as resp:
+            pl = json.loads(resp.read())
+        pages = pl.get("data") or []
+        pid = part or 1
+        if pid > len(pages):
+            logger.warning(
+                "[DL] Bilibili page %s exceeds %s pages; native path skipped",
+                pid, len(pages))
+            return None
+        cid = pages[pid - 1]["cid"]
+        play_params = {"cid": cid, "fnval": 16, "fourk": 1, "qn": 0,
+                       "otype": "json"}
+        if params_bvid:
+            play_params["bvid"] = params_bvid
+        else:
+            play_params.update(params_read)
+        q = urllib.parse.urlencode(play_params)
+        with _bili_open(f"{_BILI_API}/x/player/playurl?{q}", timeout=10) as resp:
+            j = json.loads(resp.read())
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        logger.debug("[DL] Native path: Bilibili API call failed: %s", e)
+        return None
+    if j.get("code") != 0:
+        logger.debug("[DL] Native path: playurl rejected (code %s %s)",
+                     j.get("code"), j.get("message"))
+        return None
+    dash = (j.get("data") or {}).get("dash") or {}
+    audio = dash.get("audio") or []
+    if not audio:
+        logger.debug("[DL] Native path: playurl returned no DASH audio")
+        return None
+    # Best audio track: highest bandwidth (segment id 30280 = 128 kbps m4s).
+    best = max(audio, key=lambda a: int(a.get("bandwidth") or 0))
+    base = best.get("base_url") or best.get("baseUrl") or ""
+    if not base:
+        return None
+    back = best.get("backup_url") or best.get("backupUrl") or []
+    try:
+        url_path = urllib.parse.urlsplit(base).path
+    except ValueError:
+        return None
+    if not url_path:
+        return None
+    candidates = _bili_filter_p2p_hosts([base, *back])
+    return candidates, url_path
+
+
+def _bili_probe_candidates(urls: list, health: _BiliHostHealth):
+    """Range-probe candidate URLs concurrently; return (ordered_urls, total).
+
+    Full-range deliverers (the edge serves every requested byte) come
+    first, ordered by measured throughput; hosts that trim the range or
+    fail probe last, in original order. total is the object size from
+    Content-Range (the playurl API itself omits it), taken from the first
+    successful probe.
+    """
+    probe = _BILI_PROBE_BYTES
+    results: list = []
+    lock = threading.Lock()
+
+    def _probe(idx: int, url: str):
+        t0 = time.monotonic()
+        try:
+            with _bili_open(url, {"Range": f"bytes=0-{probe - 1}"},
+                            _BILI_PROBE_TIMEOUT) as resp:
+                total = _bili_content_range_total(resp.headers)
+                if resp.status != 206 or not _bili_is_media_content_type(resp.headers):
+                    with lock:
+                        results.append((idx, url, False, 0.0, 0))
+                    return
+                received = 0
+                if total > 0:
+                    wanted = min(probe, total)
+                    while received < wanted:
+                        chunk = resp.read(min(_BILI_CHUNK, wanted - received))
+                        if not chunk:
+                            break
+                        received += len(chunk)
+                else:
+                    # No length known: stream to the probe cap.
+                    while received < probe:
+                        chunk = resp.read(_BILI_CHUNK)
+                        if not chunk:
+                            break
+                        received += len(chunk)
+            elapsed = time.monotonic() - t0
+            full_ok = received > 0 and (
+                total <= 0 or received >= min(probe, total))
+            with lock:
+                results.append((idx, url, full_ok, received / max(elapsed, 1e-6),
+                                total))
+            if full_ok:
+                health.record_url_healthy(url)
+        except Exception:
+            with lock:
+                results.append((idx, url, False, 0.0, 0))
+
+    workers = max(1, min(len(urls), 6))
+    futures = []
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        for idx, url in enumerate(urls):
+            futures.append(ex.submit(_probe, idx, url))
+    total = 0
+    for _, url, full_ok, _thr, t in sorted(results):
+        if full_ok and t > 0:
+            total = t
+            break
+
+    def _sort_key(r):
+        idx, _url, ok, thr, _t = r
+        if ok:
+            return (0, -thr, idx)
+        return (1, 0, idx)
+
+    ordered = [r[1] for r in sorted(results, key=_sort_key)]
+    if not ordered:
+        ordered = list(urls)
+    return ordered, total
+
+
+def _bili_verify_resume_tail(out_path: Path, url: str, seg_start: int, seg_end: int,
+                             on_disk_end: int, tail_verify: int) -> bool:
+    """On-disk tail versus the edge's bytes at those offsets.
+
+    Before resuming a segment after a CDN kill, the last (up to)
+    tail_verify bytes written for this segment are re-fetched and
+    compared - guards against an edge having served different bytes for
+    the same offset. Nothing on disk yet is trivially safe to resume.
+    """
+    verify_len = min(max(on_disk_end - seg_start, 0), tail_verify)
+    if verify_len <= 0:
+        return True
+    verify_start = on_disk_end - verify_len
+    try:
+        with open(out_path, "rb") as fh:
+            fh.seek(verify_start)
+            disk = fh.read(verify_len)
+        if len(disk) != verify_len:
+            return False
+        with _bili_open(url, {"Range": f"bytes={verify_start}-{verify_start + verify_len - 1}"},
+                        _BILI_STALL_TIMEOUT) as resp:
+            if resp.status != 206:
+                return False
+            if _bili_content_range_start(resp.headers) != verify_start:
+                return False
+            data = b""
+            while len(data) < verify_len:
+                chunk = resp.read(verify_len - len(data))
+                if not chunk:
+                    break
+                data += chunk
+        return data == disk
+    except Exception:
+        return False
+
+
+class _BiliSegmentAbort(Exception):
+    """Segment failure after exhausting its rotation budget, or a probe
+    serving an unusable response (HTML/JSON where media was expected)."""
+
+
+def _bili_download_segment(out_path: Path, seg_start: int, seg_end: int,
+                           candidate_urls: list, health: _BiliHostHealth,
+                           total: int, *, tail_verify: int = _BILI_TAIL_VERIFY,
+                           slow_limit: int = _BILI_MAX_SLOW_RESUMES,
+                           min_progress: int = _BILI_MIN_PROGRESS) -> None:
+    """Download one segment with kill/hang recovery (downloads.rs port).
+
+    Rotation policy:
+    - 206 + Content-Range start must match the request and the response
+      must be media (JSON/HTML answers abort the native path - the
+      yt-dlp ladder takes over);
+    - mid-stream EOF: near-zero progress rotates immediately; otherwise
+      the same host resumes after tail-verify, within slow_limit, then
+      rotates;
+    - on rotation the failing host is marked unhealthy so bilivideo.com
+      candidates referring to it get healthy mirrors substituted (path +
+      signed query preserved).
+    """
+    seg_len = seg_end - seg_start + 1
+    if out_path.stat().st_size < total:
+        raise _BiliSegmentAbort(f"preallocated file shorter than {total}")
+    n_urls = len(candidate_urls)
+    url_idx = 0
+    rotations = 0
+    slow_resumes = 0
+    max_rotations = max(1, n_urls * _BILI_MAX_CDN_LOOPS)
+    progress = 0  # bytes of this segment already written + verified
+
+    fh = open(out_path, "r+b")
+    try:
+        while True:
+            url = health.resolve_effective_url(candidate_urls[url_idx], rotations)
+            pos = seg_start + progress
+            remaining = seg_end - pos + 1
+            received = 0
+            err: Exception | None = None
+            try:
+                with _bili_open(url, {"Range": f"bytes={pos}-{seg_end}"},
+                                _BILI_STALL_TIMEOUT) as resp:
+                    status = resp.status
+                    cr_start = _bili_content_range_start(resp.headers)
+                    if not _bili_is_media_content_type(resp.headers):
+                        raise _BiliSegmentAbort(
+                            f"CDN probe serving html/json (HTTP {status})")
+                    # 206 with the right start is the healthy path; HTTP 200
+                    # is acceptable when the whole file was asked for.
+                    whole_file = pos == 0 and seg_end == total - 1
+                    if status == 206 and cr_start == pos:
+                        pass
+                    elif status == 200 and whole_file:
+                        pass
+                    else:
+                        err = ValueError(
+                            f"HTTP {status}, content-range start {cr_start} != {pos}")
+                    if err is None:
+                        while remaining > 0:
+                            chunk = resp.read(min(_BILI_CHUNK, remaining))
+                            if not chunk:
+                                break
+                            fh.seek(pos + received)
+                            fh.write(chunk)
+                            received += len(chunk)
+                            remaining -= len(chunk)
+            except _BiliSegmentAbort:
+                raise
+            except Exception as e:
+                # URLError / socket.timeout / ConnectionReset / IncompleteRead
+                err = e
+            fh.flush()
+            if err is None and remaining <= 0:
+                return  # segment complete
+            # Short read or request error: decide the recovery action.
+            if received > min_progress and slow_resumes < slow_limit:
+                # Real progress: verify the tail, resume the same host.
+                if _bili_verify_resume_tail(out_path, url, seg_start, seg_end,
+                                            pos + received, tail_verify):
+                    progress = pos + received - seg_start
+                    slow_resumes += 1
+                    time.sleep(_bili_backoff(1))
+                    continue
+                # Tail mismatch: this edge serves foreign bytes - discard
+                # the segment's progress and restart from zero.
+                progress = 0
+                slow_resumes += 1
+                time.sleep(_bili_backoff(1))
+                continue
+            # Near-zero progress or budget exhausted: rotate candidates and,
+            # past the first few, mark this host unhealthy (mirror swap).
+            if received > 0:
+                logger.debug("[DL] Segment %d-%d: slow resume budget spent after %d KiB; rotating",
+                             seg_start, seg_end, received // 1024)
+            health.mark_url_unhealthy(url)
+            url_idx = (url_idx + 1) % n_urls
+            rotations += 1
+            progress = 0
+            _bili_rotation_log(
+                f"CDN dropped a connection at ~{100 * pos // max(total, 1)}%; "
+                f"rotating CDN")
+            if rotations >= max_rotations:
+                raise _BiliSegmentAbort(
+                    f"segment {seg_start}-{seg_end} exhausted {max_rotations} "
+                    f"CDN rotations ({seg_len // 1024} KiB segment)")
+            time.sleep(_bili_backoff(rotations))
+    finally:
+        try:
+            fh.close()
+        except Exception:
+            pass
+
+
+def _bili_segmented_download(candidate_urls: list, out_path: Path, total: int,
+                             url_path: str, *, segment_size: int | None = None,
+                             tail_verify: int | None = None,
+                             slow_limit: int | None = None,
+                             min_progress: int | None = None,
+                             health: _BiliHostHealth | None = None) -> bool:
+    """Segmented in-process download of one Bilibili URL into out_path.
+
+    Chunks are written at their offsets into a preallocated file; every
+    completed segment is checkpointed to a sidecar so an interrupted run
+    skips them instead of starting over. Returns True only when the file
+    ends exactly total bytes long.
+    """
+    if not candidate_urls or total <= 0:
+        return False
+    seg_size = segment_size or _bili_effective_segment_size(total, _BILI_INFLIGHT)
+    tail_verify = _BILI_TAIL_VERIFY if tail_verify is None else tail_verify
+    slow_limit = _BILI_MAX_SLOW_RESUMES if slow_limit is None else slow_limit
+    min_progress = _BILI_MIN_PROGRESS if min_progress is None else min_progress
+    if health is None:
+        health = _BiliHostHealth()
+
+    segments = _bili_calculate_segments(total, seg_size)
+    sidecar = _bili_progress_sidecar_path(out_path)
+
+    existing = out_path.stat().st_size if out_path.exists() else None
+    checkpoint = _bili_load_checkpoint(sidecar)
+    completed: set = set()
+    applicable = (
+        checkpoint is not None
+        and checkpoint["url_path"] == url_path
+        and checkpoint["total"] == total
+        and checkpoint["segment_size"] == seg_size
+        and existing == total
+        and all(isinstance(i, int) and 0 <= i < len(segments)
+                for i in checkpoint["completed"])
+    )
+    if applicable:
+        completed = {i for i in checkpoint["completed"] if isinstance(i, int)}
+        skipped = sum(segments[i][1] - segments[i][0] + 1
+                      for i in completed if 0 <= i < len(segments))
+        logger.info("[DL] Checkpoint: %d/%d segments (%.2f MB) already on "
+                    "disk - skipping them",
+                    len(completed), len(segments), skipped / 1048576)
+    else:
+        # Fresh plan: preallocate exactly total bytes. Sparse zeros under
+        # the holes are fine - the per-offset writes (and, on resume, the
+        # tail verifies) replace them.
+        with open(out_path, "wb") as fh:
+            fh.truncate(total)
+        if sidecar.exists():
+            try:
+                sidecar.unlink()
+            except OSError:
+                pass
+        logger.info(
+            "[DL] Segmented CDN download: %.2f MB via %s (+%d backups), "
+            "%d x %.2f MB, %d workers",
+            total / 1048576, _bili_host_of(candidate_urls[0]),
+            max(0, len(candidate_urls) - 1), len(segments),
+            seg_size / 1048576, _BILI_INFLIGHT)
+
+    todo = [(i, seg) for i, seg in enumerate(segments) if i not in completed]
+    if not todo:
+        logger.info("[DL] Checkpoint: all %d segments already complete",
+                    len(segments))
+    failures: list = []
+
+    def _worker(seg):
+        i, (s, e) = seg
+        _bili_download_segment(
+            out_path, s, e, candidate_urls, health, total,
+            tail_verify=tail_verify, slow_limit=slow_limit,
+            min_progress=min_progress)
+        return i
+
+    with ThreadPoolExecutor(max_workers=_BILI_INFLIGHT) as ex:
+        futures = {ex.submit(_worker, t) for t in todo}
+        # as_completed consumes every worker; each one is bounded by its own
+        # rotation budget and per-op stall timeout, so a partial failure
+        # does not hang the whole download.
+        for f in as_completed(futures):
+            try:
+                completed.add(f.result())
+            except _BiliSegmentAbort as e:
+                failures.append(str(e))
+            except Exception as e:
+                failures.append(f"{type(e).__name__}: {e}")
+    if failures:
+        logger.warning(
+            "[DL] Segmented download failed (%d/%d segments complete); "
+            "checkpoint kept for resume", len(completed), len(segments))
+        _bili_save_checkpoint(sidecar, url_path, total, seg_size, completed)
+        return False
+    try:
+        actual = out_path.stat().st_size
+    except OSError:
+        return False
+    if actual != total:
+        logger.warning(
+            "[DL] audio.m4s size mismatch (%s != %s); native path failed",
+            actual, total)
+        return False
+    try:
+        sidecar.unlink()
+    except OSError:
+        pass
+    return True
+
+
+def _bili_remux_m4s(src: Path, dst: Path) -> bool:
+    """Stream-copy the fetched audio track into a clean .m4a.
+
+    Bilibili's DASH audio URL is one self-contained MP4 audio track, so
+    ffmpeg remuxes with stream copy. If ffmpeg is unavailable the m4s is
+    simply renamed; the duration check in _validate_audio_file gates
+    usability either way.
+    """
+    if shutil.which("ffmpeg"):
+        try:
+            result = subprocess.run(
+                ["ffmpeg", "-y", "-v", "error", "-i", str(src), "-c", "copy",
+                 "-movflags", "+faststart", str(dst)],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=120,
+            )
+            if result.returncode == 0 and dst.exists() and dst.stat().st_size > 0:
+                return True
+            logger.warning("[DL] ffmpeg remux of %s failed (rc=%s)",
+                           src.name, result.returncode)
+            if dst.exists():
+                try:
+                    dst.unlink()
+                except OSError:
+                    pass
+        except (subprocess.TimeoutExpired, OSError) as e:
+            logger.warning("[DL] ffmpeg remux error: %s", e)
+    try:
+        if dst.exists():
+            dst.unlink()
+        src.replace(dst)
+        return True
+    except OSError as e:
+        logger.warning("[DL] Could not promote %s to %s: %s",
+                       src.name, dst.name, e)
+        return False
+
+
+def _bili_native_download_audio(video_id: str, video_dir: Path,
+                                true_duration: int) -> Path | None:
+    """Native Bilibili audio path: API -> probe -> segmented download.
+
+    Returns the validated audio.m4a path or None so ensure_audio falls
+    back to the untouched yt-dlp/aria2c ladder. Nothing on disk is
+    deleted here when the CDN misbehaves: an interrupted segmented run
+    keeps audio.m4s + its checkpoint for the next invocation.
+    """
+    info = _bili_get_dash_audio_urls(video_id)
+    if not info:
+        logger.debug("[DL] Native path: no DASH audio candidates for %s", video_id)
+        return None
+    candidate_urls, url_path = info
+    health = _BiliHostHealth()
+    health.seed_mirrors_from_urls(candidate_urls)
+    ordered, total = _bili_probe_candidates(candidate_urls, health)
+    if not ordered or total <= 0:
+        logger.warning("[DL] Native path: CDN probe returned no usable candidates")
+        return None
+    hosts = ", ".join(_bili_host_of(u) for u in ordered[:3])
+    logger.debug("[DL] Probed %d CDN candidates; total %.2f MB; fastest: %s",
+                 len(ordered), total / 1048576, hosts)
+    out = video_dir / "audio.m4s"
+    if not _bili_segmented_download(ordered, out, total, url_path, health=health):
+        return None
+    m4a = video_dir / "audio.m4a"
+    if not _bili_remux_m4s(out, m4a):
+        return None
+    if not _validate_audio_file(m4a, true_duration):
+        return None
+    try:
+        if out.exists():
+            out.unlink()
+    except OSError:
+        pass
+    logger.info("[DL] Native segmented download OK: %s", m4a.name)
+    return m4a
+
+
 def ensure_audio(video_id, video_dir):
     """
     Download or find audio file for a YouTube / Bilibili video.
@@ -651,6 +1481,21 @@ def ensure_audio(video_id, video_dir):
     is_youtube = "youtube.com" in url or "youtu.be" in url
     platform = "YouTube" if is_youtube else "Bilibili"
     is_bilibili = not is_youtube
+
+    # Bilibili native path first: playurl API -> CDN pool probe ->
+    # segmented downloader (ported from bilibili-downloader-gui). It is
+    # non-destructive: when the CDN cooperates it returns audio.m4a, and
+    # when it fails the checkpoint sidecar keeps whatever finished so a
+    # rerun resumes. The yt-dlp/aria2c ladder below is the fallback.
+    if is_bilibili:
+        try:
+            native = _bili_native_download_audio(video_id, video_dir, true_duration)
+            if native is not None:
+                return native
+        except Exception as e:
+            logger.warning(f"[DL] Native CDN path errored ({e}); using yt-dlp ladder")
+        logger.info("[DL] Native CDN path unavailable/failed - falling back to yt-dlp ladder")
+
     ext_dl_args = _aria2c_extra_args(is_bilibili=is_bilibili)
     base_cmd = [
         "yt-dlp", "-f", "bestaudio/best", "-x", "--audio-format", "best",
@@ -665,14 +1510,18 @@ def ensure_audio(video_id, video_dir):
     # Track if we should force yt-dlp refresh due to repeated failures
     force_yt_dlp_refresh = False
 
-    # Bilibili: attempts 1-2 run the kill-resistant aria2c profile
-    # (resume via its .aria2 control file between them), attempts 3-4
-    # fall back to the native single-connection downloader; attempt 4
-    # starts fresh (partials wiped — recovers HTTP 416 from a stale
-    # resume offset that can never succeed).
-    # YouTube: attempts 1-2 are the aria2c parallel fast path, 3-4 native
-    # fallback.
+    # Partial-wipe policy (fixed after the 98%-complete .part was wiped by
+    # a retry): partials are KEPT across every attempt and only wiped when
+    # the downloader switches fashion - an aria2c multi-connection partial
+    # is sparse (holes where killed segments never landed), so resuming it
+    # by byte offset with the native downloader would corrupt the file.
+    # Plain retries same-downloader resume cleanly (aria2c via its .aria2
+    # control file, yt-dlp native via the dense .part offset). Stale
+    # resume offsets (HTTP 416) still wipe via the 416 recovery branch.
+    # Bilibili: attempts 1-2 aria2c kill-resistant profile, 3-4 native;
+    # YouTube: attempts 1-2 aria2c parallel fast path, 3-4 native.
     max_attempts = 4
+    prev_attempt_aria2c = False
 
     # Retry with different formats
     for attempt in range(max_attempts):
@@ -696,14 +1545,17 @@ def ensure_audio(video_id, video_dir):
                     # a failed run resumes instead of restarting.
                     cmd = _bili_aria2c_cmd(video_dir, url)
                     attempt_timeout = _native_attempt_timeout(true_duration)
+                    prev_attempt_aria2c = True
                     logger.info(f"[DL] Attempt {attempt + 1}: aria2c kill-resistant for {platform}")
                 else:
                     # Bilibili fallback: native single-connection downloader
                     # survives CDN EOF/keep-alive kills without aria2c.
-                    # MUST wipe partials first: an aria2c multi-connection
-                    # partial is sparse, native resume by offset would
-                    # corrupt it.
-                    _remove_partial_downloads(video_dir)
+                    # Sparse aria2c partials MUST be wiped only on the
+                    # downloader switch; a dense native .part resumes by
+                    # offset, so consecutive native attempts keep it.
+                    if prev_attempt_aria2c:
+                        _remove_partial_downloads(video_dir)
+                        prev_attempt_aria2c = False
                     cmd = _native_yt_dlp_cmd(video_dir, url, is_youtube=False, retries=_BILI_NATIVE_RETRIES)
                     attempt_timeout = _native_attempt_timeout(true_duration)
                     logger.info(f"[DL] Attempt {attempt + 1}: Native downloader for {platform} (single connection, resumable)")
@@ -711,16 +1563,18 @@ def ensure_audio(video_id, video_dir):
                 # YouTube fast path: aria2c parallel download; attempt 2 is a plain retry.
                 cmd = base_cmd.copy()
                 attempt_timeout = 300
+                prev_attempt_aria2c = True
                 if attempt == 0:
                     logger.info(f"[DL] Attempt {attempt + 1}: Using base_cmd with web_default client")
                 else:
                     logger.info(f"[DL] Attempt {attempt + 1}: Plain retry for {platform}")
             else:  # YouTube attempts 3-4: native downloader fallback (no aria2c).
-                # MUST wipe partials first: an aria2c multi-connection
-                # partial is sparse (holes), native resume by byte offset
-                # would corrupt it. Final attempt wipe also recovers a
-                # stale-resume-offset HTTP 416 that can never succeed.
-                _remove_partial_downloads(video_dir)
+                # Sparse aria2c partials are wiped only on the downloader
+                # switch; consecutive native attempts (attempt 2 → 3 of this
+                # branch) resume their dense .part by offset.
+                if prev_attempt_aria2c:
+                    _remove_partial_downloads(video_dir)
+                    prev_attempt_aria2c = False
                 cmd = _native_yt_dlp_cmd(video_dir, url, is_youtube=True)
                 attempt_timeout = 600
                 logger.info(f"[DL] Attempt {attempt + 1}: Native fallback (web client, no aria2c)")
