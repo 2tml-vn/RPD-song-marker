@@ -18,6 +18,7 @@ immediately in a byte-for-byte comparison.
 import json
 import tempfile
 import threading
+import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -31,6 +32,8 @@ KILL_FIRST_BYTES = 8192  # first chunk served before a "CDN kill" closes in
 DIE_BYTES = 1024         # /die: always near-zero progress before dying
 TRIM_BYTES = 131072      # /trim: Akamai-style host that shortens ranges
 BOUNDARY_LIST = [0, SEG_SIZE, 2 * SEG_SIZE]
+SLOW_CHUNK = 16384       # /slow: streams the range in small chunks
+SLOW_SLEEP = 0.03        # ...with a delay, so the download lasts ~0.35 s/seg
 
 
 def content_byte(i: int) -> int:
@@ -65,6 +68,19 @@ class _Handler(BaseHTTPRequestHandler):
             cfg["requests"].append((self.path, start, end))
 
         mode = cfg["mode"]
+        if mode == "slow":
+            # Streams the full range slowly in small chunks: gives the
+            # live progress monitor several ticks mid-download instead of
+            # finishing in milliseconds.
+            self.send_response(206)
+            self.send_header("Content-Type", "video/mp4")
+            self.send_header("Content-Range", f"bytes {start}-{end}/{cfg['total']}")
+            self.send_header("Content-Length", str(end - start + 1))
+            self.end_headers()
+            for off in range(0, len(data), SLOW_CHUNK):
+                self.wfile.write(data[off:off + SLOW_CHUNK])
+                time.sleep(SLOW_SLEEP)
+            return
         served = None
         if mode == "ok":
             served = data
@@ -132,10 +148,11 @@ class TestBiliSegmentedDownload(unittest.TestCase):
         cls.kill = _MockCdn("kill", kill_starts=BOUNDARY_LIST)
         cls.die = _MockCdn("die")
         cls.trim = _MockCdn("trim")
+        cls.slow = _MockCdn("slow")
 
     @classmethod
     def tearDownClass(cls):
-        for srv in (cls.ok, cls.kill, cls.die, cls.trim):
+        for srv in (cls.ok, cls.kill, cls.die, cls.trim, cls.slow):
             srv.stops()
 
     def _download(self, tmp, candidates, url_path="jrpdlite/test", **kwargs):
@@ -195,7 +212,7 @@ class TestBiliSegmentedDownload(unittest.TestCase):
 
     def test_probe_orders_full_range_host_first(self):
         """The probe must rank the Akamai-trim host (serves only 128 KiB of
-        the 4 MiB request) below the healthy mirror and report the real
+        the range request) below the healthy mirror and report the real
         total from Content-Range."""
         urls = [self.trim.url, self.ok.url]
         health = audio_utils._BiliHostHealth()
@@ -204,6 +221,68 @@ class TestBiliSegmentedDownload(unittest.TestCase):
                          "full-range host must probe ahead of the trimming host")
         self.assertEqual(total, TOTAL)
         self.assertEqual(ordered[1], self.trim.url)
+
+    def test_progress_meter_counts_session_bytes(self):
+        """The meter adds session bytes on a lock and reports them separate
+        from the checkpoint base the fraction display is built on."""
+        meter = audio_utils._BiliProgressMeter(base=65536)
+        self.assertEqual(meter.snapshot(), (65536, 0))
+        meter.add(131072)
+        meter.add(1)
+        self.assertEqual(meter.snapshot(), (65536, 131073))
+
+    def test_effective_segment_size_scales_with_16_inflight(self):
+        """A ~89 MB file must plan total/16 (~5.6 MB) segments with the new
+        16 workers; a small file clamps up to the 4 MiB floor."""
+        total = 89_000_000
+        seg = audio_utils._bili_effective_segment_size(
+            total, audio_utils._BILI_INFLIGHT)
+        self.assertEqual(seg, total // audio_utils._BILI_INFLIGHT)
+        self.assertGreaterEqual(seg, audio_utils._BILI_SEG_MIN)
+        self.assertLessEqual(seg, audio_utils._BILI_SEG_MAX)
+        small = audio_utils._bili_effective_segment_size(
+            20_971_520, audio_utils._BILI_INFLIGHT)
+        self.assertEqual(small, audio_utils._BILI_SEG_MIN)
+
+    def test_live_progress_lines_and_summary_logged(self):
+        """The segmented downloader must log live speed/ETA lines while a
+        download is in flight plus a final downloaded/MB-s summary line -
+        the 'looks hung' bug this guards against."""
+        old_interval = audio_utils._BILI_PROGRESS_INTERVAL
+        audio_utils._BILI_PROGRESS_INTERVAL = 0.05
+        self.addCleanup(setattr, audio_utils,
+                        "_BILI_PROGRESS_INTERVAL", old_interval)
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertLogs(audio_utils.logger, level="INFO") as cm:
+                ok, out = self._download(tmp, [self.slow.url, self.ok.url])
+            self.assertTrue(ok)
+            self.assertEqual(out.read_bytes(), content_slice(0, TOTAL))
+        messages = [r.getMessage() for r in cm.records]
+        progress = [m for m in messages
+                    if "audio.m4s:" in m and "MB/s" in m]
+        self.assertTrue(progress, f"no live progress line logged: {messages}")
+        summary = [m for m in messages
+                   if "downloaded" in m and "avg" in m]
+        self.assertTrue(summary, f"no downloaded summary logged: {messages}")
+
+    def test_failure_logs_incomplete_and_keeps_checkpoint(self):
+        """A hopeless host (never completes a segment) must end with the
+        'incomplete: X MB' line and the checkpoint sidecar on disk."""
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "audio.m4s"
+            with self.assertLogs(audio_utils.logger, level="INFO") as cm:
+                ok = audio_utils._bili_segmented_download(
+                    [self.die.url], out, TOTAL, "jrpdlite/test",
+                    segment_size=SEG_SIZE, tail_verify=4096,
+                    slow_limit=3, min_progress=1024)
+            self.assertFalse(ok)
+            messages = [r.getMessage() for r in cm.records]
+            self.assertTrue(
+                any("incomplete" in m for m in messages),
+                f"no incomplete line logged: {messages}")
+            sidecar = audio_utils._bili_progress_sidecar_path(out)
+            self.assertTrue(sidecar.exists(),
+                            "checkpoint missing after a failed run")
 
 
 if __name__ == "__main__":

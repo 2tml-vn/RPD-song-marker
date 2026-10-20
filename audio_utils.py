@@ -566,13 +566,24 @@ def _update_yt_dlp(cache_file: Path) -> bool:
 
 def _get_duration(video_id: str) -> int:
     """Get video duration in seconds. Returns 0 on failure."""
+    url = normalize_video_url(video_id)
+    if "youtube.com" not in url and "youtu.be" not in url:
+        # Bilibili: the pagelist API answers in one ~200 ms call. The old
+        # yt-dlp route spun up the EJS challenge machinery for ~5-30 s and
+        # the "00\n52" multi-line output then crashed duration parsing.
+        return _bili_get_video_duration(video_id)
     try:
-        url = normalize_video_url(video_id)
         duration_cmd = [
             "yt-dlp", "--get-duration", "--remote-components", "ejs:github",
             url
         ]
         dur_str = subprocess.check_output(duration_cmd, timeout=30).decode('utf-8').strip()
+        # yt-dlp sometimes prints extra lines (solver noise) before the
+        # duration; it is the last non-empty line.
+        lines = [ln for ln in dur_str.splitlines() if ln.strip()]
+        if not lines:
+            return 0
+        dur_str = lines[-1]
         parts = list(map(int, dur_str.split(':')))
         if len(parts) == 3:
             return parts[0] * 3600 + parts[1] * 60 + parts[2]
@@ -657,18 +668,24 @@ _BILI_UA = (
 _BILI_REFERER = "https://www.bilibili.com/"
 _BILI_API = "https://api.bilibili.com"
 
-# Range-probe: 4 MiB through each candidate before committing to a plan.
-_BILI_PROBE_BYTES = 4 * 1024 * 1024
+# Range-probe: 512 KiB through each candidate before committing to a
+# plan. That is still enough for the Content-Range total (size probe)
+# and a throughput sample for ranking, while old 4 MiB probes made the
+# whole phase take ~45 s on a slow backup host (its bytes all discarded).
+_BILI_PROBE_BYTES = 512 * 1024
 _BILI_PROBE_TIMEOUT = 6.0
 
-# Segmentation: total/8 clamped to 4-32 MB, 8 workers. The timeout is a
-# per-socket-op stall timer (urllib applies it to connect + every read),
-# so a host that stops sending raises instead of hanging forever.
+# Segmentation: total/16 clamped to 4-32 MB, 16 workers. Bilibili caps
+# per-connection throughput, so more streams = more aggregate speed; 16
+# keeps 89 MB on 16 x ~5.6 MB instead of the old 8 x 11 MB ladder. The
+# timeout is a per-socket-op stall timer (urllib applies it to connect +
+# every read), so a host that stops sending raises instead of hanging.
 _BILI_SEG_MIN = 4 * 1024 * 1024
 _BILI_SEG_MAX = 32 * 1024 * 1024
-_BILI_INFLIGHT = 8
+_BILI_INFLIGHT = 16
 _BILI_STALL_TIMEOUT = 30.0
 _BILI_CHUNK = 256 * 1024
+_BILI_PROGRESS_INTERVAL = 2.0  # seconds between live progress lines
 
 # Kill/hang recovery per segment. Backoff 200 ms doubling, capped 1.5 s.
 # A short read with real progress resumes the same host only after the
@@ -1028,6 +1045,38 @@ def _bili_get_dash_audio_urls(video_id: str):
     return candidates, url_path
 
 
+def _bili_get_video_duration(video_id: str) -> int:
+    """Duration (seconds) of the target page from the pagelist API.
+
+    Mirrors _bili_get_dash_audio_urls' id parsing; returns 0 on any
+    failure so the caller keeps its old "validation skipped" behavior.
+    """
+    key = video_session_key(video_id)
+    base_id, part = split_bilibili_part(key)
+    if not base_id:
+        return 0
+    if base_id.startswith("av"):
+        params = {"aid": base_id[2:]}
+    elif base_id.startswith("BV"):
+        params = {"bvid": base_id}
+    elif base_id.isdigit():
+        params = {"aid": base_id}
+    else:
+        return 0
+    try:
+        q = urllib.parse.urlencode({**params, "jsonp": "jsonp"})
+        with _bili_open(f"{_BILI_API}/x/player/pagelist?{q}", timeout=10) as resp:
+            pl = json.loads(resp.read())
+        pages = pl.get("data") or []
+        pid = part or 1
+        if pid > len(pages):
+            return 0
+        return int(pages[pid - 1].get("duration") or 0)
+    except (OSError, ValueError, KeyError, TypeError) as e:
+        logger.debug("[DL] Bilibili duration API call failed: %s", e)
+        return 0
+
+
 def _bili_probe_candidates(urls: list, health: _BiliHostHealth):
     """Range-probe candidate URLs concurrently; return (ordered_urls, total).
 
@@ -1146,7 +1195,8 @@ def _bili_download_segment(out_path: Path, seg_start: int, seg_end: int,
                            candidate_urls: list, health: _BiliHostHealth,
                            total: int, *, tail_verify: int = _BILI_TAIL_VERIFY,
                            slow_limit: int = _BILI_MAX_SLOW_RESUMES,
-                           min_progress: int = _BILI_MIN_PROGRESS) -> None:
+                           min_progress: int = _BILI_MIN_PROGRESS,
+                           on_bytes=None) -> None:
     """Download one segment with kill/hang recovery (downloads.rs port).
 
     Rotation policy:
@@ -1205,6 +1255,8 @@ def _bili_download_segment(out_path: Path, seg_start: int, seg_end: int,
                             fh.write(chunk)
                             received += len(chunk)
                             remaining -= len(chunk)
+                            if on_bytes is not None:
+                                on_bytes(len(chunk))
             except _BiliSegmentAbort:
                 raise
             except Exception as e:
@@ -1252,6 +1304,30 @@ def _bili_download_segment(out_path: Path, seg_start: int, seg_end: int,
             pass
 
 
+class _BiliProgressMeter:
+    """Thread-safe, session-scoped byte counter for the live progress line.
+
+    Workers call add() with every chunk they write; base carries the bytes
+    the checkpoint had already put on disk so the reported fraction matches
+    the file, while speed is computed from this session's bytes only.
+    Rotations reset a segment's on-disk progress, so session bytes can
+    over-count; the display clamps to the file size.
+    """
+
+    def __init__(self, base: int = 0):
+        self._lock = threading.Lock()
+        self._base = base
+        self._done = 0
+
+    def add(self, n: int) -> None:
+        with self._lock:
+            self._done += n
+
+    def snapshot(self) -> tuple:
+        with self._lock:
+            return self._base, self._done
+
+
 def _bili_segmented_download(candidate_urls: list, out_path: Path, total: int,
                              url_path: str, *, segment_size: int | None = None,
                              tail_verify: int | None = None,
@@ -1262,8 +1338,9 @@ def _bili_segmented_download(candidate_urls: list, out_path: Path, total: int,
 
     Chunks are written at their offsets into a preallocated file; every
     completed segment is checkpointed to a sidecar so an interrupted run
-    skips them instead of starting over. Returns True only when the file
-    ends exactly total bytes long.
+    skips them instead of starting over. A monitor thread prints a live
+    speed/ETA progress line every _BILI_PROGRESS_INTERVAL seconds.
+    Returns True only when the file ends exactly total bytes long.
     """
     if not candidate_urls or total <= 0:
         return False
@@ -1320,32 +1397,71 @@ def _bili_segmented_download(candidate_urls: list, out_path: Path, total: int,
                     len(segments))
     failures: list = []
 
+    # Live progress: segments feed one shared byte counter and a daemon
+    # thread prints a speed/ETA line every _BILI_PROGRESS_INTERVALs, so a
+    # multi-MB download never sits silent long enough to look hung.
+    meter = _BiliProgressMeter(
+        base=sum(segments[i][1] - segments[i][0] + 1 for i in completed))
+    stop_evt = threading.Event()
+    t_start = time.monotonic()
+
+    def _monitor():
+        while not stop_evt.wait(_BILI_PROGRESS_INTERVAL):
+            base, done = meter.snapshot()
+            cur = min(base + done, total)
+            speed = done / max(time.monotonic() - t_start, 1e-6)
+            eta = (f" ETA {int((total - cur) / speed)}s"
+                   if speed > 0 and cur < total else "")
+            logger.info("[DL] %s: %.1f/%.1f MB (%d%%) %.2f MB/s%s",
+                        out_path.name, cur / 1048576, total / 1048576,
+                        100 * cur // max(total, 1), speed / 1048576, eta)
+
     def _worker(seg):
         i, (s, e) = seg
         _bili_download_segment(
             out_path, s, e, candidate_urls, health, total,
             tail_verify=tail_verify, slow_limit=slow_limit,
-            min_progress=min_progress)
+            min_progress=min_progress, on_bytes=meter.add)
         return i
 
-    with ThreadPoolExecutor(max_workers=_BILI_INFLIGHT) as ex:
-        futures = {ex.submit(_worker, t) for t in todo}
-        # as_completed consumes every worker; each one is bounded by its own
-        # rotation budget and per-op stall timeout, so a partial failure
-        # does not hang the whole download.
-        for f in as_completed(futures):
-            try:
-                completed.add(f.result())
-            except _BiliSegmentAbort as e:
-                failures.append(str(e))
-            except Exception as e:
-                failures.append(f"{type(e).__name__}: {e}")
+    monitor = None
+    try:
+        if todo:
+            monitor = threading.Thread(target=_monitor, daemon=True,
+                                       name="bili-dl-progress")
+            monitor.start()
+        with ThreadPoolExecutor(max_workers=_BILI_INFLIGHT) as ex:
+            futures = {ex.submit(_worker, t) for t in todo}
+            # as_completed consumes every worker; each one is bounded by its own
+            # rotation budget and per-op stall timeout, so a partial failure
+            # does not hang the whole download.
+            for f in as_completed(futures):
+                try:
+                    completed.add(f.result())
+                except _BiliSegmentAbort as e:
+                    failures.append(str(e))
+                except Exception as e:
+                    failures.append(f"{type(e).__name__}: {e}")
+    finally:
+        stop_evt.set()
+        if monitor is not None:
+            monitor.join(timeout=_BILI_PROGRESS_INTERVAL * 2)
+
+    elapsed = time.monotonic() - t_start
+    base, done = meter.snapshot()
+    cur = min(base + done, total)
     if failures:
+        logger.info("[DL] %s incomplete: %.1f/%.1f MB in %.1fs",
+                    out_path.name, cur / 1048576, total / 1048576, elapsed)
         logger.warning(
             "[DL] Segmented download failed (%d/%d segments complete); "
             "checkpoint kept for resume", len(completed), len(segments))
         _bili_save_checkpoint(sidecar, url_path, total, seg_size, completed)
         return False
+    if todo:
+        logger.info("[DL] %s downloaded: %.1f MB in %.1fs (avg %.2f MB/s)",
+                    out_path.name, total / 1048576, elapsed,
+                    done / max(elapsed, 1e-6) / 1048576)
     try:
         actual = out_path.stat().st_size
     except OSError:
@@ -1446,7 +1562,8 @@ def ensure_audio(video_id, video_dir):
     Returns path to audio file or None if failed.
 
     Optimizations:
-    - Caches yt-dlp updates (only updates once per 24 hours)
+    - Native Bilibili CDN download first; yt-dlp update is deferred to
+      ladder time (once per 24h) so the fast path never waits on pip
     - Validates existing files before reusing
     - Proper error handling for all operations
     """
@@ -1456,11 +1573,7 @@ def ensure_audio(video_id, video_dir):
     # Ensure cache directory exists
     video_dir.mkdir(parents=True, exist_ok=True)
 
-    # Update yt-dlp if needed (cached)
-    if _should_update_yt_dlp(cache_file):
-        _update_yt_dlp(cache_file)
-
-    # Get true duration for validation
+    # Get true duration for validation (Bilibili: one API call, not yt-dlp)
     true_duration = _get_duration(video_id)
     if true_duration == 0:
         logger.warning("[DL] Could not determine video duration, skipping validation")
@@ -1495,6 +1608,12 @@ def ensure_audio(video_id, video_dir):
         except Exception as e:
             logger.warning(f"[DL] Native CDN path errored ({e}); using yt-dlp ladder")
         logger.info("[DL] Native CDN path unavailable/failed - falling back to yt-dlp ladder")
+
+    # yt-dlp is needed only by the ladder below (the native CDN path and
+    # the existing-file validation don't touch it), so the once-per-24h
+    # update check runs lazily here instead of costing ~6 s on every start.
+    if _should_update_yt_dlp(cache_file):
+        _update_yt_dlp(cache_file)
 
     ext_dl_args = _aria2c_extra_args(is_bilibili=is_bilibili)
     base_cmd = [
