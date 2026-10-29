@@ -291,7 +291,7 @@ def _post_sync(mime: str, filename: str, file_path_str: str, url: str, timeout: 
                     break
                 wait = _retry_wait(attempt)
                 total_backoff += wait
-                logger.debug(
+                logger.info(
                     f"[AHA] Transport error (attempt {attempt}/{attempts}): {e} — retrying in {wait:.1f}s"
                 )
                 time.sleep(wait)
@@ -383,7 +383,7 @@ async def recognize(file_path, timeout=None) -> Optional[Dict[str, Any]]:
         # the UI reports "rate-limited" instead of a fake "no match".
         raise
     except Exception as e:
-        logger.debug(f"[AHA] Network error: {e}")
+        logger.warning(f"[AHA] Network error after retries: {e}")
         return None
 
     try:

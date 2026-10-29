@@ -97,8 +97,13 @@ def setup_logging():
         LOG_FILE.unlink()
 
     # Create root logger
+    # Keep the logger at DEBUG: the file handler wants every record
+    # (including [AHA] stall/retry diagnostics), and the console handler
+    # below still filters at JRPD_LOG_LEVEL (default INFO). Previously the
+    # logger's own INFO level killed DEBUG records before any handler was
+    # consulted, so even logs/jrpd.log was blind to them.
     logger = logging.getLogger("JRPD")
-    logger.setLevel(getattr(logging, LOG_LEVEL.upper(), logging.INFO))
+    logger.setLevel(logging.DEBUG)
 
     # Prevent duplicate handlers
     if not logger.handlers:
@@ -111,9 +116,9 @@ def setup_logging():
         )
         file_handler.setLevel(logging.DEBUG)
 
-        # Console handler
+        # Console handler — follows JRPD_LOG_LEVEL (default INFO)
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
+        console_handler.setLevel(getattr(logging, LOG_LEVEL.upper(), logging.INFO))
 
         # Formatter
         formatter = logging.Formatter(
