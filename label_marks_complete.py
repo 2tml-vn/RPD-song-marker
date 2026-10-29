@@ -191,6 +191,11 @@ async def main():
         logger.warning(f"Unexpected error getting duration: {e}")
 
     while True:
+        if server.state.quit_requested:
+            logger.info("[QUIT] Session quit via review panel. Audio deleted; txt/json kept. Exiting.")
+            save_state()
+            worker_task.cancel()
+            break
         sorted_keys = sorted(server.state.results.keys(), key=shared_utils.parse_ts)
         target = None
         for i, m in enumerate(sorted_keys):
@@ -311,13 +316,17 @@ async def main():
                 except Exception as e:
                     logger.warning(f"Error closing ACR session: {e}")
             kind = server.state.review_done_kind
-            if kind == "close":
+            if kind == "quit":
+                logger.info("[QUIT] Session quit via review panel. Audio deleted; txt/json kept. Exiting.")
+            elif kind == "close":
                 logger.info("[REVIEW] Review closed via Copy button. Exiting.")
             else:
                 logger.info("[REVIEW] Review done. Exiting.")
             # Both Done (/review_done, kind="done") and Copy in review mode
             # (/close_review, kind="close") finish the session, so the audio
             # file must be deleted for either — not just "done".
+            # kind="quit" skips this: /quit_session already deleted the audio
+            # (plus partials and snippets) before the event was set.
             if server.state.is_finished and kind in ("done", "close"):
                 if audio_path and audio_path.exists():
                     try:
@@ -330,6 +339,12 @@ async def main():
             break
         else:
             await asyncio.sleep(1)
+
+    # Panel Quit: end the process immediately instead of waiting for
+    # asyncio/daemon teardown, so the console quits right away.
+    if server.state.quit_requested:
+        logger.info("[QUIT] Process terminated by panel Quit button.")
+        os._exit(0)
 
 
 if __name__ == "__main__":

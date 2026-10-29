@@ -137,6 +137,7 @@ class ServerState:
         self.results_keys: Dict[str, str] = {}  # row ts -> registered song key (exact row ownership)
         self.is_finished = False
         self.is_session_done = False
+        self.quit_requested = False
         self.results_file_path: Optional[str] = None
         self.review_done_event = None
         self.review_done_kind: Optional[str] = None
@@ -152,6 +153,7 @@ class ServerState:
         self.results_keys = {}
         self.is_finished = False
         self.is_session_done = False
+        self.quit_requested = False
         self.flagged_ts = set()
         self.review_done_kind = None
 
@@ -293,6 +295,50 @@ async def handle_close_review(request: web.Request) -> web.Response:
     state.review_done_kind = "close"
     if state.main_loop and state.review_done_event:
         state.main_loop.call_soon_threadsafe(state.review_done_event.set)
+    return await _status_response()
+
+
+def _arm_quit_watchdog(delay: float = 4.0) -> None:
+    """Arm a one-shot force-quit timer in the server's own event loop.
+
+    The main loop in label_marks_complete normally observes quit_requested /
+    review_done_event and exits by itself (the console prints the [QUIT]
+    lines and the process ends, like pressing Ctrl+C). If the main thread is
+    stuck in a blocking phase (e.g. a long synchronous audio download before
+    the loop starts), it cannot react yet — the watchdog force-terminates the
+    whole process after the grace period so the console always quits.
+    """
+    def _force_exit():
+        logger.warning("[QUIT] Graceful quit timed out; force-terminating process.")
+        os._exit(0)
+
+    try:
+        asyncio.get_running_loop().call_later(delay, _force_exit)
+    except RuntimeError as e:
+        logger.warning(f"[QUIT] Could not arm force-quit watchdog: {e}")
+
+
+async def handle_quit_session(request: web.Request) -> web.Response:
+    """Handle /quit_session endpoint — abort the session, delete local audio.
+
+    Removes the session's audio file, partial download leftovers and snippet
+    temp files. Text/JSON outputs (results.txt, progress.json,
+    unidentified.json) are untouched.
+
+    Wakes the main loop so label_marks_complete.py exits: mid-identification
+    via the quit_requested flag, review mode via review_done_event (kind
+    "quit"), and the cleanup gap loop via a "q" selection.
+    """
+    _delete_session_audio()
+    state.quit_requested = True
+    if state.selection_queue and state.main_loop:
+        state.main_loop.call_soon_threadsafe(state.selection_queue.put_nowait, "q")
+    if state.main_loop and state.review_done_event:
+        state.review_done_kind = "quit"
+        state.main_loop.call_soon_threadsafe(state.review_done_event.set)
+    # Belt-and-braces: if the graceful path above can't finish because the
+    # main thread is blocked (e.g. mid-download), force-quit the process.
+    _arm_quit_watchdog()
     return await _status_response()
 
 
@@ -842,6 +888,15 @@ def rebuild_flags_from_file() -> int:
 
 _AUDIO_EXTS = ('m4a', 'opus', 'webm', 'mp3', 'mp4', 'ogg', 'wav', 'mka')
 
+# Audio artifacts removable by /quit_session: the audio file itself (matched
+# by "audio.*", which also covers audio.m4s and audio.*.progress.json download
+# checkpoints) plus partial download leftovers. None of these patterns can
+# match the user outputs results.txt / progress.json / unidentified.json; the
+# protected-names check below is belt-and-braces. .yt_dlp_cache is skipped,
+# same as _remove_partial_downloads() in audio_utils.
+_AUDIO_ARTIFACT_PATTERNS = ("audio.*", "*.aria2", "*.part", "*.ytdl", "*.temp")
+_QUIT_PROTECTED_FILES = {"results.txt", "progress.json", "unidentified.json"}
+
 
 def _find_audio_file() -> Optional[Path]:
     """Locate the downloaded audio file for the current session."""
@@ -868,6 +923,69 @@ def _find_audio_file() -> Optional[Path]:
     except OSError as e:
         logger.warning(f"[ACR_IDENTIFY] Error locating audio file: {e}")
     return None
+
+
+def _delete_session_audio() -> int:
+    """Delete the current session's local audio artifacts (files only).
+
+    Fired by /quit_session when the review panel Quit button is clicked.
+    Removes the downloaded audio, partial download leftovers and temp
+    identification snippets. User outputs (results.txt, progress.json,
+    unidentified.json), the song DB json files and .yt_dlp_cache are never
+    touched. Returns the number of files deleted.
+    """
+    deleted = 0
+
+    # The audio file the identification pipeline recorded, when known.
+    if state.audio_path:
+        p = Path(state.audio_path)
+        try:
+            if p.exists():
+                p.unlink()
+                deleted += 1
+        except OSError as e:
+            logger.warning(f"[QUIT] Could not delete {p.name}: {e}")
+
+    session_dir = None
+    if state.results_file_path:
+        session_dir = Path(state.results_file_path).parent
+    elif state.snippets_dir:
+        session_dir = Path(state.snippets_dir).parent
+
+    if not session_dir or not session_dir.exists():
+        logger.info(f"[QUIT] No session directory for audio cleanup (deleted={deleted}).")
+        return deleted
+
+    try:
+        for pat in _AUDIO_ARTIFACT_PATTERNS:
+            for stale in session_dir.glob(pat):
+                if not stale.is_file() or stale.name == ".yt_dlp_cache":
+                    continue
+                if stale.name.lower() in _QUIT_PROTECTED_FILES:
+                    continue
+                try:
+                    stale.unlink()
+                    deleted += 1
+                except OSError as e:
+                    logger.warning(f"[QUIT] Could not delete {stale.name}: {e}")
+
+        # Temporary identification snippets (seg_*.wav etc.); files only.
+        snippets_dir = Path(state.snippets_dir) if state.snippets_dir else session_dir / "snippets"
+        if snippets_dir.exists():
+            for seg in snippets_dir.iterdir():
+                if not seg.is_file():
+                    continue
+                try:
+                    seg.unlink()
+                    deleted += 1
+                except OSError as e:
+                    logger.warning(f"[QUIT] Could not delete {seg.name}: {e}")
+    except Exception as e:
+        logger.warning(f"[QUIT] Audio artifact cleanup failed: {e}")
+
+    if deleted:
+        logger.info(f"[QUIT] Deleted {deleted} local audio artifact file(s).")
+    return deleted
 
 
 async def handle_acr_identify(request: web.Request) -> web.Response:
@@ -1696,6 +1814,7 @@ def create_app() -> web.Application:
     app.router.add_get('/results_file', handle_results_file)
     app.router.add_get('/review_done', handle_review_done)
     app.router.add_get('/close_review', handle_close_review)
+    app.router.add_get('/quit_session', handle_quit_session)
     app.router.add_get('/song_lists', handle_song_lists)
     app.router.add_get('/get_song_data', handle_get_song_data)
     app.router.add_get('/update_result', handle_update_result)

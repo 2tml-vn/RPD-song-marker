@@ -1249,6 +1249,31 @@ function createResultsPanel() {
     };
     controlsGroup.appendChild(doneBtn);
 
+    const quitBtn = document.createElement("button");
+    quitBtn.textContent = "Quit";
+    quitBtn.title = "Quit: stops the Python process, deletes local audio (results.txt / progress.json kept)";
+    quitBtn.style.cssText = "padding: 2px 8px; background: #c62828; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold;";
+    quitBtn.onclick = () => {
+        if (!confirm("Quit session and delete the local audio file?\n(results.txt, progress.json and unidentified.json are kept)")) return;
+        // Save panel position, then the same teardown as Done: disarm gap loops.
+        savePanelPrefs({
+            width: panel.offsetWidth,
+            height: panel.offsetHeight,
+            left: panel.offsetLeft,
+            top: panel.offsetTop
+        });
+        reviewLoopActive = false;
+        reviewActiveGapTs = null;
+        currentGapStart = -1;
+        currentGapEnd = -1;
+        isReviewMode = false;
+        closeResultsPanel();
+        reviewFetch(getReviewServerUrl() + "/quit_session")
+            .then(() => showToast("Session quit — local audio deleted", "#c62828"))
+            .catch(() => showToast("Quit failed (server not reachable?)", "#f44336"));
+    };
+    controlsGroup.appendChild(quitBtn);
+
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "✕";
     closeBtn.title = "Hide panel (reopen anytime with 📋)";
