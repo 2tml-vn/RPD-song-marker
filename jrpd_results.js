@@ -1333,6 +1333,15 @@ function createResultsPanel() {
         if (typeof jrpdFlushPendingRerender === "function") jrpdFlushPendingRerender(true);
     });
 
+    // Track a press physically in flight anywhere in the list (mousedown..
+    // mouseup). Capture phase so a child's stopPropagation can't hide it;
+    // window-level release handles the pointer leaving mid-press.
+    const jrpdMarkListPointerDown = (e) => { jrpdListPointerDown = true; };
+    const jrpdMarkListPointerUp = () => { jrpdListPointerDown = false; };
+    list.addEventListener("pointerdown", jrpdMarkListPointerDown, true);
+    window.addEventListener("pointerup", jrpdMarkListPointerUp, true);
+    window.addEventListener("pointercancel", jrpdMarkListPointerUp, true);
+
     // Make panel available during marking by default (unless explicitly closed)
     const isVisibleByDefault = prefs.panelVisible !== false;
     panel.style.display = isVisibleByDefault ? "flex" : "none";
@@ -2012,7 +2021,11 @@ function createResultRow(entry) {
 // between mousedown and mouseup, the click is silently lost.
 let jrpdPendingFullRerender = null;
 let jrpdPendingRerenderTimer = null;
-let jrpdFirstDeferAt = 0;
+// True only while a press is physically in flight (mousedown..mouseup).
+// A button that merely holds focus (e.g. the last clicked 🧹) is NOT an
+// interaction — treating focus as "pointer present" used to keep the rebuild
+// deferred forever, leaving server-side edits invisible in the panel.
+let jrpdListPointerDown = false;
 const JRPD_RERENDER_DEFER_MS = 700;
 const JRPD_RERENDER_MAX_DEFER_MS = 2500;
 
@@ -2021,24 +2034,29 @@ function jrpdResultsListHasPointer() {
         const list = document.getElementById("jrpd-results-list");
         if (!list) return false;
         if (list.matches(":hover")) return true;
-        const ae = document.activeElement;
-        if (ae && list.contains(ae)) return true;
+        // Press in flight: covers the "drag off the list mid-click" window,
+        // where the click target still exists and must not be detached.
+        if (jrpdListPointerDown) return true;
     } catch (e) {}
     return false;
 }
 
 function jrpdFlushPendingRerender(fromLeave) {
     if (jrpdPendingRerenderTimer) { clearTimeout(jrpdPendingRerenderTimer); jrpdPendingRerenderTimer = null; }
-    if (!jrpdPendingFullRerender) return;
-    if (jrpdResultsListHasPointer() && Date.now() - jrpdFirstDeferAt < JRPD_RERENDER_MAX_DEFER_MS) {
-        // Still hovering: re-arm the timer instead of rebuilding mid-click.
+    const pending = jrpdPendingFullRerender;
+    if (!pending) return;
+    // Over the list and inside the deferral budget: re-arm instead of
+    // rebuilding under a possibly in-flight click.
+    if (jrpdResultsListHasPointer() && Date.now() - pending.firstDeferAt < JRPD_RERENDER_MAX_DEFER_MS) {
         jrpdPendingRerenderTimer = setTimeout(() => jrpdFlushPendingRerender(false), JRPD_RERENDER_DEFER_MS);
         return;
     }
-    const p = jrpdPendingFullRerender;
+    // Either the pointer left the list (safe to rebuild now) or the budget
+    // expired (rebuild anyway). The pending object carries its own start time,
+    // so this cap can never be reset by a later re-deferral: at worst the
+    // panel rebuilds ~3s after the change even if the mouse never leaves.
     jrpdPendingFullRerender = null;
-    jrpdFirstDeferAt = 0;
-    renderResultsPanel(p.lines, { forceFullRender: p.forceFullRender, preserveScroll: p.preserveScroll });
+    renderResultsPanel(pending.lines, { forceFullRender: pending.forceFullRender, preserveScroll: pending.preserveScroll, noDefer: true });
 }
 
 function renderResultsPanel(lines, options = {}) {
@@ -2053,7 +2071,6 @@ function renderResultsPanel(lines, options = {}) {
     // fold it into this render (this call carries the latest lines).
     if (!jrpdResultsListHasPointer() && jrpdPendingFullRerender) {
         jrpdPendingFullRerender = null;
-        jrpdFirstDeferAt = 0;
         if (jrpdPendingRerenderTimer) { clearTimeout(jrpdPendingRerenderTimer); jrpdPendingRerenderTimer = null; }
     }
     
@@ -2104,10 +2121,12 @@ function renderResultsPanel(lines, options = {}) {
                     // If gap status changed, rebuild just this row. A whole-list
                     // rebuild for a single row transition costs O(n) DOM churn on
                     // every resolution; swapping one row is room-temperature.
-                    // Fall back to the (deferred) full rebuild while the pointer
-                    // is over the list so an in-flight click is never eaten.
+                    // Only defer when a press is actually in flight — detaching
+                    // the row between mousedown and mouseup would eat the click.
+                    // Merely hovering (even right after our own button click)
+                    // is safe: that interaction already ended.
                     if (wasGap !== isNowGap) {
-                        if (!jrpdResultsListHasPointer()) {
+                        if (!jrpdListPointerDown) {
                             try {
                                 row.replaceWith(createResultRow(entry));
                                 return;
@@ -2159,22 +2178,33 @@ function renderResultsPanel(lines, options = {}) {
     // Full rebuild needed. This destroys every row button, so if it lands
     // between mousedown and mouseup on a button, no click event ever fires
     // and the user has to click a second time. Defer while the pointer is
-    // over the list (a click requires hovering it); in-place song-text
-    // updates above have already been applied, so nothing goes visibly stale.
-    if (jrpdResultsListHasPointer()) {
+    // over the list (or a press is in flight); in-place song-text updates
+    // above have already been applied, so nothing goes visibly stale.
+    // The pending object carries its own start time: the deferral cap is
+    // NEVER reset, so a parked pointer still gets a rebuild after at most
+    // ~JRPD_RERENDER_MAX_DEFER_MS + JRPD_RERENDER_DEFER_MS.
+    if (jrpdResultsListHasPointer() && !options.noDefer) {
         const now = Date.now();
-        if (!jrpdPendingFullRerender) jrpdFirstDeferAt = now;
-        jrpdPendingFullRerender = { lines, forceFullRender, preserveScroll };
-        // Don't defer forever while parked over the panel: flush after a cap.
-        if (now - jrpdFirstDeferAt < JRPD_RERENDER_MAX_DEFER_MS) {
+        if (!jrpdPendingFullRerender) {
+            jrpdPendingFullRerender = { lines, forceFullRender, preserveScroll, firstDeferAt: now };
+        } else {
+            // A newer set of lines arrived while the rebuild is pending:
+            // refresh the carried data, keep the original cap start time.
+            jrpdPendingFullRerender.lines = lines;
+            jrpdPendingFullRerender.forceFullRender = forceFullRender;
+            jrpdPendingFullRerender.preserveScroll = preserveScroll;
+        }
+        if (now - jrpdPendingFullRerender.firstDeferAt < JRPD_RERENDER_MAX_DEFER_MS) {
             if (!jrpdPendingRerenderTimer) {
                 jrpdPendingRerenderTimer = setTimeout(() => jrpdFlushPendingRerender(false), JRPD_RERENDER_DEFER_MS);
             }
             return;
         }
-        jrpdPendingFullRerender = null;
-        jrpdFirstDeferAt = 0;
+        // Cap expired while the pointer is still parked: fall through and
+        // rebuild now (the flush timer cannot defer again, so this is how
+        // every deferral loop terminates).
     }
+    jrpdPendingFullRerender = null;
     list.textContent = "";
 
     parsed.forEach((entry) => {
