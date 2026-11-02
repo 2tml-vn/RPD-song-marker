@@ -41,6 +41,7 @@ import re
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 from curl_cffi import requests as cf_requests, CurlMime
 from curl_cffi.requests.exceptions import HTTPError
@@ -73,6 +74,7 @@ except Exception:
     AHA_CONFIG = {
         "url": os.getenv("AHA_URL", "https://aha-music.com/identify"),
         "timeout": int(os.getenv("AHA_TIMEOUT", "30") or 30),
+        "connect_timeout": int(os.getenv("AHA_CONNECT_TIMEOUT", "8") or 8),
         "enabled": os.getenv("AHA_ENABLED", "1").strip().lower()
         not in ("0", "false", "no", "off", ""),
         "retry_attempts": int(os.getenv("AHA_RETRY_ATTEMPTS", "5") or 5),
@@ -234,6 +236,85 @@ def _retry_wait(attempt: int) -> float:
     return wait + random.uniform(0.0, max(wait * 0.25, 0.05))
 
 
+def _connect_timeout() -> int:
+    """Connect-stage budget in seconds (AHA_CONNECT_TIMEOUT, default 8).
+
+    Used purely for diagnostics: a connect-stage blackhole then surfaces as
+    a fast, distinctly-labeled curl error instead of burning the whole total
+    timeout.
+    """
+    ct = AHA_CONFIG.get("connect_timeout", 8)
+    try:
+        ct = int(ct)
+    except (TypeError, ValueError):
+        ct = 8
+    return max(1, ct)
+
+
+def _timeouts(tout: int) -> tuple:
+    """curl_cffi timeout tuple ``(connect, read)`` preserving the old total.
+
+    curl_cffi 0.14 maps ``(connect, read)`` to CONNECTTIMEOUT and
+    ``TIMEOUT = connect + read``, so to keep the same 30s total budget the
+    read leg must be ``tout - connect``. Always leaves >=2s of read budget.
+    """
+    ct = min(_connect_timeout(), max(1, int(tout) - 2))
+    return (float(ct), max(2, int(tout) - ct))
+
+
+def _probe_root(url: str) -> str:
+    """Origin root of the identify URL (``https://aha-music.com/``)."""
+    try:
+        p = urlparse(url)
+        root = f"{p.scheme}://{p.netloc}/"
+        return root if root != "//" else "https://aha-music.com/"
+    except Exception:
+        return "https://aha-music.com/"
+
+
+def _wedge_probe(s, probe_url: str) -> None:
+    """One cheap GET probe fired once after the POST ladder has failed.
+
+    The ladder only proves 'curl (28), 0 bytes' — no phase information. This
+    probe classifies where the wedge lives:
+
+    - 2xx answer      -> host edge is alive; the identify/POST path
+                         (ACRCloud-backed backend) is what stalled.
+    - HTTP 4xx/5xx    -> edge alive but tarpitting/erroring on the service.
+    - same curl (28)  -> path/edge-level wedge: the whole host is mute.
+    - fast curl (7/6) -> connect/DNS-stage failure (distinct label).
+
+    Diagnostics only — never raises, so the original exception always
+    propagates unchanged.
+    """
+    probe_timeouts = (max(2.0, _connect_timeout() / 2.0),
+                      max(2.0, _connect_timeout() / 2.0))
+    t0 = time.monotonic()
+    try:
+        r = s.get(probe_url, timeout=probe_timeouts)
+        took = time.monotonic() - t0
+        if 200 <= r.status_code < 300:
+            verdict = "identify-backend stall (edge answers, POST path wedged)"
+        else:
+            verdict = "edge alive but service answering " \
+                      f"HTTP {r.status_code} while POSTs wedge"
+        logger.info(
+            "[AHA] Wedge probe after POST ladder failure: GET %s -> HTTP %s "
+            "in %.2fs — %s",
+            probe_url, r.status_code, took, verdict,
+        )
+    except Exception as e:
+        took = time.monotonic() - t0
+        detail = str(e)
+        if len(detail) > 160:
+            detail = detail[:160] + "…"
+        logger.info(
+            "[AHA] Wedge probe after POST ladder failure: GET %s -> %s "
+            "after %.2fs — host/path unreachable",
+            probe_url, detail, took,
+        )
+
+
 def _post_sync(mime: str, filename: str, file_path_str: str, url: str, timeout: int) -> Dict[str, Any]:
     """Blocking AHA identify call (runs inside ``asyncio.to_thread``).
 
@@ -267,13 +348,22 @@ def _post_sync(mime: str, filename: str, file_path_str: str, url: str, timeout: 
     total_backoff = 0.0
     raised: Optional[BaseException] = None
     last_status: Optional[int] = None
+    probe_url = _probe_root(url)
+    req_timeouts = _timeouts(timeout)
     try:
         try:
             # Warm-up: fetch session cookies like the browser client does.
             # Best-effort only — a warm-up failure must not fail the call.
-            s.get("https://aha-music.com/", headers=HEADERS, timeout=timeout)
+            wu_t0 = time.monotonic()
+            s.get(probe_url, headers=HEADERS, timeout=req_timeouts)
+            logger.debug(
+                "[AHA] Warm-up GET %s OK in %.2fs", probe_url,
+                time.monotonic() - wu_t0,
+            )
         except Exception as e:
-            logger.debug(f"[AHA] Warm-up failed (continuing): {e}")
+            # INFO (not DEBUG): a wedge that starts between calls is only
+            # visible here, and it is exactly what flags the episode start.
+            logger.info(f"[AHA] Warm-up GET {probe_url} failed (continuing): {e}")
 
         for attempt in range(1, attempts + 1):
             # Fresh mime per attempt: curl consumes the multipart body.
@@ -282,7 +372,8 @@ def _post_sync(mime: str, filename: str, file_path_str: str, url: str, timeout: 
                        filename=filename, data=content)
             mp.addpart(name="marker", data="        ")
             try:
-                r = s.post(url, headers=HEADERS, multipart=mp, timeout=timeout)
+                r = s.post(url, headers=HEADERS, multipart=mp,
+                           timeout=req_timeouts)
             except Exception as e:
                 # Transport failure (e.g. H2 stream cut mid-upload).
                 raised = e
@@ -327,6 +418,9 @@ def _post_sync(mime: str, filename: str, file_path_str: str, url: str, timeout: 
             )
             raise AhaRateLimitedError(attempts, total_backoff)
         if raised is not None:
+            # Transport-level failure: classify the wedge with one cheap GET
+            # before propagating (diagnostics only; never masks the error).
+            _wedge_probe(s, probe_url)
             raise raised
         if last_status is not None:
             raise HTTPError(f"HTTP Error {last_status}", 0, None)

@@ -42,6 +42,11 @@ def _env_float(name, default):
 AHA_CONFIG = {
     'url': os.getenv('AHA_URL', 'https://aha-music.com/identify'),
     'timeout': _env_int('AHA_TIMEOUT', 30),
+    # Separate connect-stage budget (seconds) for diagnostics: with a single
+    # total timeout, a connect-stage blackhole (curl 7) is indistinguishable
+    # from a response-stage stall (curl 28, 0 bytes). Tuple timeouts let us
+    # classify where the endpoint wedged.
+    'connect_timeout': _env_int('AHA_CONNECT_TIMEOUT', 8),
     'enabled': os.getenv('AHA_ENABLED', '1').strip().lower()
     not in ('0', 'false', 'no', 'off', ''),
     'retry_attempts': _env_int('AHA_RETRY_ATTEMPTS', 5),
