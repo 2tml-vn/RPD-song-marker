@@ -70,6 +70,55 @@ async def main():
     if not snippets_dir.exists():
         snippets_dir.mkdir()
 
+    # Restore previous progress BEFORE starting the HTTP server, so no request
+    # can touch state.results while it is being loaded.
+    insertion_order = []
+    if progress_file.exists():
+        with progress_file.open("r", encoding="utf-8") as f:
+            raw_data = json.load(f)
+        # New format: {"results": {ts: display}, "keys": {ts: song_key}}
+        # Legacy format: flat {ts: display}
+        if isinstance(raw_data, dict) and "results" in raw_data and isinstance(raw_data["results"], dict):
+            raw_results = raw_data.get("results") or {}
+            raw_keys = raw_data.get("keys") or {}
+        else:
+            raw_results = raw_data
+            raw_keys = {}
+        server.state.results = {format_timestamp_for_youtube(shared_utils.parse_ts(k)): v for k, v in raw_results.items()}
+        server.state.results_keys = {format_timestamp_for_youtube(shared_utils.parse_ts(k)): v for k, v in raw_keys.items()}
+
+        # Adopt results.txt rows newer than progress.json: review-panel edits
+        # commit to results.txt immediately, progress.json only on the next
+        # save_state(); a quit before that left the txt ahead, and resuming
+        # from progress.json alone reverted those fixes on the next save
+        # (the "added song reverts to old song" bug). In-sync files merge
+        # as a no-op.
+        try:
+            merged_count = server.merge_results_txt(progress_file, youtube_out)
+            if merged_count:
+                logger.info(f"[RESUME] {merged_count} row(s) restored from newer {youtube_out.name}")
+        except Exception as e:
+            logger.warning(f"[RESUME] results.txt merge failed: {e}")
+
+    # Rebuild manual-review flags from any 🚩 markers already in results.txt
+    # (e.g. left over from a previous session)
+    try:
+        flagged_count = server.rebuild_flags_from_file()
+        if flagged_count:
+            logger.info(f"[FLAGS] Restored {flagged_count} flagged row(s) from results.txt")
+    except Exception as e:
+        logger.warning(f"[FLAGS] Could not restore flags: {e}")
+
+    insertion_order = sorted(server.state.results.keys(), key=shared_utils.parse_ts)
+
+    # Blank rows are a committed state (🧹 cleared, or auto-"Unidentified")
+    # and keep their meaning after resume. Only a stray None (never produced
+    # by any endpoint) re-queues here; the old blanket "" → "Processing..."
+    # conversion re-identified rows the user had deliberately cleared.
+    for m in server.state.results:
+        if server.state.results[m] is None:
+            server.state.results[m] = "Processing..."
+
     # Start HTTP server in thread
     server.state.main_loop = asyncio.get_running_loop()
     server.state.review_done_event = asyncio.Event()
@@ -84,35 +133,6 @@ async def main():
     logger.info(f"Files stored in: {video_dir}")
     logger.info(f"Server listening on port {PORT}. YOU CAN START MARKING NOW.")
 
-    insertion_order = []
-
-    if progress_file.exists():
-        with progress_file.open("r", encoding="utf-8") as f:
-            raw_data = json.load(f)
-        # New format: {"results": {ts: display}, "keys": {ts: song_key}}
-        # Legacy format: flat {ts: display}
-        if isinstance(raw_data, dict) and "results" in raw_data and isinstance(raw_data["results"], dict):
-            raw_results = raw_data.get("results") or {}
-            raw_keys = raw_data.get("keys") or {}
-        else:
-            raw_results = raw_data
-            raw_keys = {}
-        server.state.results = {format_timestamp_for_youtube(shared_utils.parse_ts(k)): v for k, v in raw_results.items()}
-        server.state.results_keys = {format_timestamp_for_youtube(shared_utils.parse_ts(k)): v for k, v in raw_keys.items()}
-        insertion_order = sorted(server.state.results.keys(), key=shared_utils.parse_ts)
-        for m in server.state.results:
-            if server.state.results[m] == "" or server.state.results[m] is None:
-                server.state.results[m] = "Processing..."
-
-    # Rebuild manual-review flags from any 🚩 markers already in results.txt
-    # (e.g. left over from a previous session)
-    try:
-        flagged_count = server.rebuild_flags_from_file()
-        if flagged_count:
-            logger.info(f"[FLAGS] Restored {flagged_count} flagged row(s) from results.txt")
-    except Exception as e:
-        logger.warning(f"[FLAGS] Could not restore flags: {e}")
-
     shazam = Shazam(language='ja-JP', endpoint_country='JP')
     shazam_en = Shazam(language='en-US', endpoint_country='US')
     audio_path = ensure_audio(runtime.VIDEO_ID, video_dir)
@@ -125,22 +145,22 @@ async def main():
     def save_state():
         """Save current progress to disk."""
         try:
-            # New format carries the per-row key bindings so edits can identify
-            # the owning song key exactly (legacy flat format still loads).
-            with progress_file.open("w", encoding="utf-8") as f:
-                json.dump(
-                    {"results": server.state.results, "keys": server.state.results_keys},
-                    f, ensure_ascii=False, indent=2
-                )
-            with youtube_out.open("w", encoding="utf-8", newline='') as f:
-                for m in sorted(server.state.results.keys(), key=shared_utils.parse_ts):
-                    val = shared_utils.format_song_entry(server.state.results[m])
-                    if val == "Unidentified":
-                        val = ""
-                    # Preserve manual-review flags as a trailing marker
-                    if m in server.state.flagged_ts:
-                        val = f"{val} 🚩" if val else "🚩"
-                    f.write(f"{m} {val}\n")
+            # progress.json goes through server.save_progress_file() — the same
+            # atomic, locked path the review-panel endpoints use — so every
+            # exit point (Ctrl+C, panel Quit, Done) leaves the pair in sync.
+            server.save_progress_file()
+            out_lines = []
+            for m in sorted(server.state.results.keys(), key=shared_utils.parse_ts):
+                val = shared_utils.format_song_entry(server.state.results[m])
+                if val == "Unidentified":
+                    val = ""
+                # Preserve manual-review flags as a trailing marker
+                if m in server.state.flagged_ts:
+                    val = f"{val} 🚩" if val else "🚩"
+                out_lines.append(f"{m} {val}\n")
+            with server._STATE_FILES_LOCK:
+                with youtube_out.open("w", encoding="utf-8", newline='') as f:
+                    f.writelines(out_lines)
         except OSError as e:
             logger.error(f"Error saving state: {e}")
         except Exception as e:
@@ -315,6 +335,10 @@ async def main():
                     await close_acr_session()
                 except Exception as e:
                     logger.warning(f"Error closing ACR session: {e}")
+            # Flush on every review-mode exit (Done / Copy / Quit): panel edits
+            # commit to progress.json immediately now, but this guarantees the
+            # final on-disk pair always matches the last panel state.
+            save_state()
             kind = server.state.review_done_kind
             if kind == "quit":
                 logger.info("[QUIT] Session quit via review panel. Audio deleted; txt/json kept. Exiting.")
@@ -351,6 +375,13 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
+        # Best-effort final commit: panel edits persist via save_progress_file()
+        # on every state change, but write the very last in-memory state so
+        # Ctrl+C timing can't drop an edit. Atomic write, never blocks long.
+        try:
+            server.save_progress_file()
+        except Exception:
+            pass
         logger.info("Interrupted by user. Exiting.")
     except Exception as e:
         logger.critical(f"Fatal error: {e}")

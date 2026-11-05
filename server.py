@@ -10,6 +10,7 @@ import os
 import logging
 import subprocess
 import re
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -18,8 +19,8 @@ from typing import Optional, Dict, Any, List
 from aiohttp import web
 
 from config import PORT, MISIDENTIFIED_SONGS_FILE, MISSED_SONGS_FILE, SONG_OVERRIDES_FILE, EDITOR_PATH, RUNS_DIR
-from audio_utils import format_display_name, strip_extra_info
-from song_db import SONG_OVERRIDES, MISSED_SONGS, MISIDENTIFIED_SONGS, save_song_overrides, load_song_overrides
+from audio_utils import format_display_name, strip_extra_info, format_timestamp_for_youtube
+from song_db import SONG_OVERRIDES, MISSED_SONGS, MISIDENTIFIED_SONGS, save_song_overrides, load_song_overrides, _atomic_write_json
 
 # Note: load_song_overrides() is called by the main script, not here
 
@@ -69,8 +70,9 @@ def update_results_line(filepath: Path, ts: str, new_content: str) -> bool:
                 return shared_utils.parse_ts(m.group(1)) if m else 0.0
             new_lines.sort(key=_get_ts)
 
-        with open(filepath, "w", encoding="utf-8", newline='') as f:
-            f.writelines(new_lines)
+        with _STATE_FILES_LOCK:
+            with open(filepath, "w", encoding="utf-8", newline='') as f:
+                f.writelines(new_lines)
         return True
     except OSError as e:
         logger.warning(f"Error updating results line in {filepath}: {e}")
@@ -160,6 +162,43 @@ class ServerState:
 
 # Global state instance
 state = ServerState()
+
+# Serializes progress.json / results.txt writes that can originate from both
+# the aiohttp server thread (review-panel edits) and the main asyncio loop
+# (marks, auto-identification saves). Python file writes are not transactional
+# and interleaved writes corrupt or lose progress/resume data.
+_STATE_FILES_LOCK = threading.Lock()
+
+
+def save_progress_file():
+    """
+    Persist progress.json from the current in-memory state (results + keys).
+
+    Commit points: every review-panel edit endpoint calls this right after
+    updating state.results / state.results_keys, so quitting at any moment
+    (Ctrl+C or the panel Quit button) leaves results.txt and progress.json
+    consistent. Previously panel edits only landed in results.txt and
+    progress.json stayed behind until the next main-loop save_state() — in
+    review mode there is none, so a quit there resumed the pre-edit state and
+    results.txt reverted on the next save ("added song reverts to old song").
+
+    Atomic (temp file + os.replace via song_db._atomic_write_json) and
+    guarded by _STATE_FILES_LOCK: safe to call from the server thread while
+    the main loop's save_state() is running. Returns True on success.
+    """
+    if not state.results_file_path:
+        return False
+    progress_path = Path(state.results_file_path).parent / "progress.json"
+    try:
+        progress_path.parent.mkdir(parents=True, exist_ok=True)
+        # Snapshot: the dicts mutate concurrently during identification.
+        payload = {"results": dict(state.results), "keys": dict(state.results_keys)}
+        with _STATE_FILES_LOCK:
+            _atomic_write_json(progress_path, payload)
+        return True
+    except Exception as e:
+        logger.warning(f"[PROGRESS] Could not save {progress_path.name}: {e}")
+        return False
 
 
 def _cors_headers():
@@ -403,8 +442,9 @@ async def handle_update_result(request: web.Request) -> web.Response:
         result["replaced"] = replaced
         if replaced:
             result["actions"].append("updated_results")
-        # Keep in-memory results in sync so the next save_state() (triggered by
-        # the next mark or identification) does not revert this edit.
+        # In-memory is the source for the next results.txt rewrite; the edit is
+        # committed to progress.json immediately below, so a quit right after
+        # this request resumes this exact state (no "old song" revert).
         state.results[ts] = canonical
         if canonical:
             _note_row_key(ts, display=canonical)
@@ -413,6 +453,7 @@ async def handle_update_result(request: web.Request) -> web.Response:
             state.results_keys.pop(ts, None)
         # Assigning (or blanking) a song is an explicit fix: clear any manual-review flag
         state.flagged_ts.discard(ts)
+        save_progress_file()
         logger.info(f"[UPDATE_RESULT] {ts} -> {canonical}")
 
     except OSError as e:
@@ -462,12 +503,17 @@ async def handle_add_song_and_update(request: web.Request) -> web.Response:
             
             if replaced:
                 result["actions"].append("updated_results")
-            # Keep in-memory results in sync so save_state() preserves the edit
+            # In-memory is the source for the next results.txt rewrite; the
+            # edit is committed to progress.json right after this block.
             state.results[ts] = new_song_display
             _note_row_key(ts, key=new_song_key)
             # Assigning a new song is an explicit fix: clear any manual-review flag
             state.flagged_ts.discard(ts)
             logger.info(f"[ADD_SONG] Updated results.txt: {ts} -> {new_song_display}")
+
+        # Commit results + row-key bindings to progress.json immediately: a
+        # quit before the next main-loop save_state() must keep this edit.
+        save_progress_file()
 
     except OSError as e:
         logger.warning(f"[ADD_SONG] File error: {e}")
@@ -816,10 +862,16 @@ async def handle_update_song_vars(request: web.Request) -> web.Response:
                     new_lines.append(line if line.endswith('\n') else line + '\n')
 
             if updated_count > 0:
-                with open(state.results_file_path, "w", encoding="utf-8", newline='') as f:
-                    f.writelines(new_lines)
+                with _STATE_FILES_LOCK:
+                    with open(state.results_file_path, "w", encoding="utf-8", newline='') as f:
+                        f.writelines(new_lines)
                 result["actions"].append(f"updated_results:{updated_count}")
                 logger.info(f"[UPDATE_SONG_VARS] Updated {updated_count} lines in results.txt")
+
+            # Persist the rewritten results and the (re-labeled) row-key
+            # bindings right away — renames relabel them in memory only, and a
+            # quit here must not resume the pre-edit bindings/text.
+            save_progress_file()
 
         # DEBUG: Log after update
         logger.info(f"[UPDATE_SONG_VARS] DEBUG: After update - SONG_OVERRIDES['{song_key}'] = {SONG_OVERRIDES.get(song_key, 'NOT FOUND')}")
@@ -884,6 +936,89 @@ def rebuild_flags_from_file() -> int:
     except OSError as e:
         logger.warning(f"[FLAGS] Error scanning results file: {e}")
     return len(state.flagged_ts)
+
+
+def to_results_file_text(value):
+    """
+    Render a progress.json results value exactly the way save_state() writes
+    it to a results.txt line ("Unidentified"/None -> blank line text,
+    everything else through shared_utils.format_song_entry). Used to compare
+    persisted rows between the two files on resume.
+    """
+    if value is None or value == "Unidentified":
+        return ""
+    import shared_utils
+    return shared_utils.format_song_entry(value)
+
+
+def merge_results_txt(progress_file: Path, youtube_out: Path) -> int:
+    """
+    Adopt results.txt rows that are newer than progress.json (resume heal).
+
+    Review-panel edits (add song / edit / clear / flag / re-identify) write
+    results.txt immediately while progress.json only advanced on the next
+    save_state(). A quit in between left results.txt ahead, and resuming
+    from progress.json alone reverted those fixes on the next save — the
+    "added song comes back as the old song" bug. save_state() writes both
+    files together, so an in-sync pair merges as a no-op.
+
+    Rules (results.txt mtime strictly newer than progress.json):
+      - a blank file line never overwrites the "Unidentified" row label
+        (gap cleanup / unidentified.json export key off that label);
+      - rows whose file text equals the progress value rendered into file
+        text are already in sync and untouched;
+      - everything else is adopted as-is (song text, "Processing...",
+        or blank = cleared), and rows carrying real song text get their
+        row->key binding rebuilt from the display (exact match).
+
+    Returns the number of rows changed.
+    """
+    if not youtube_out.exists():
+        return 0
+    try:
+        results_mtime = youtube_out.stat().st_mtime
+        progress_mtime = progress_file.stat().st_mtime if progress_file.exists() else 0.0
+        if results_mtime <= progress_mtime:
+            return 0
+    except OSError as e:
+        logger.warning(f"[RESUME] Could not stat results/progress files: {e}")
+        return 0
+
+    import shared_utils
+    merged = []
+    try:
+        with youtube_out.open("r", encoding="utf-8") as f:
+            for raw in f.read().splitlines():
+                lm = _TIMESTAMP_PATTERN.match(raw.strip())
+                if not lm:
+                    continue
+                ts = format_timestamp_for_youtube(shared_utils.parse_ts(lm.group(1)))
+                content, _flagged = _split_flag_marker(lm.group(2) or "")
+                if content == "" and state.results.get(ts) == "Unidentified":
+                    # Blank line is just how an auto-"Unidentified" row renders
+                    # in results.txt; keep the label instead of adopting "".
+                    continue
+                if to_results_file_text(state.results.get(ts)) == content:
+                    # In sync (unknown ts + blank line included: nothing to adopt)
+                    continue
+                state.results[ts] = content
+                if content == "":
+                    # Blanked row: drop the ownership binding the user's clear
+                    # implied (same semantics as /update_result blanking)
+                    state.results_keys.pop(ts, None)
+                elif content != "Processing...":
+                    _note_row_key(ts, display=content)
+                merged.append(ts)
+    except OSError as e:
+        logger.warning(f"[RESUME] Error reading {youtube_out.name}: {e}")
+        return 0
+
+    if merged:
+        logger.info(
+            f"[RESUME] Adopted {len(merged)} results.txt row(s) newer than progress.json: "
+            f"{', '.join(merged)}"
+        )
+    return len(merged)
 
 
 _AUDIO_EXTS = ('m4a', 'opus', 'webm', 'mp3', 'mp4', 'ogg', 'wav', 'mka')
@@ -1152,6 +1287,8 @@ async def handle_acr_identify(request: web.Request) -> web.Response:
             _note_row_key(ts, display=display)
             # Explicit user fix: clear any manual-review flag
             state.flagged_ts.discard(ts)
+            # Commit to progress.json immediately (quit must keep this result)
+            save_progress_file()
             logger.info(f"[ACR_IDENTIFY] {ts} -> {display} (via {found_source})")
             return await _json_response({
                 "status": "ok", "identified": True, "song": display,
@@ -1782,9 +1919,13 @@ async def handle_toggle_flag(request: web.Request) -> web.Response:
             else:
                 state.flagged_ts.discard(ts)
 
-        with open(filepath, "w", encoding="utf-8", newline='') as f:
-            f.writelines(new_lines)
+        with _STATE_FILES_LOCK:
+            with open(filepath, "w", encoding="utf-8", newline='') as f:
+                f.writelines(new_lines)
 
+        # Commit the flag + result state to progress.json so a quit directly
+        # after toggling keeps the flag.
+        save_progress_file()
         logger.info(f"[FLAG] {ts} flagged={want_flag}")
         return await _json_response({"status": "ok", "flagged": want_flag})
     except OSError as e:
