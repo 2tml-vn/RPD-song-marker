@@ -84,8 +84,8 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None, 
         remap_target = override_data.get('remap')
         if remap_target:
             logger.info("[RESOLVE] [3-OVERRIDE] Found remap in %s: '%s' → '%s'", source, orig_key, remap_target)
-            # Follow the remap
-            target_key, target_data = lookup_song_override(remap_target)
+            # Follow the remap (pass artist so see_artist gates on the target can match)
+            target_key, target_data = lookup_song_override(remap_target, artist)
             if target_data:
                 # Check if remap target has discard flag
                 if target_data.get('discard'):

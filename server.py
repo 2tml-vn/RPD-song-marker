@@ -718,14 +718,46 @@ async def handle_update_song_vars(request: web.Request) -> web.Response:
 
             target_entry = SONG_OVERRIDES.setdefault(new_song_key, {})
             moved_any = False
+            # Diff the posted form values against the OLD entry to detect what
+            # the user actually did in the form (both modals always POST every
+            # field, prefilled from the old entry):
+            #   unchanged (or absent) -> fill-empty move (never clobbers a
+            #                            pre-existing value on the target)
+            #   cleared               -> deliberate delete: nothing carries over
+            #                            (the target's own value stays untouched)
+            #   edited to a new value -> apply the edit on the target
             for field in text_fields:
                 # 'remap' is never moved: it becomes the marker of the old shell
-                if field != 'remap' and field in old_entry and not target_entry.get(field):
-                    target_entry[field] = old_entry[field]
+                if field == 'remap':
+                    continue
+                old_val = old_entry.get(field, '')
+                form_val = vals.get(field)  # None when absent from the POST
+                if form_val is None or form_val == old_val:
+                    # untouched -> fill-empty move
+                    if old_val and not target_entry.get(field):
+                        target_entry[field] = old_val
+                        moved_any = True
+                elif not form_val:
+                    # explicitly cleared: the old value must not carry over
+                    pass
+                else:
+                    # explicitly edited: the new value wins
+                    target_entry[field] = form_val
                     moved_any = True
             for field in bool_fields:
-                if old_entry.get(field) and not target_entry.get(field):
-                    target_entry[field] = old_entry[field]
+                old_on = bool(old_entry.get(field))
+                form_on = bool_vals.get(field)  # None when absent from the POST
+                if form_on is None or form_on == old_on:
+                    # untouched -> fill-empty move
+                    if old_on and not target_entry.get(field):
+                        target_entry[field] = True
+                        moved_any = True
+                elif not form_on:
+                    # explicitly unchecked: the flag must not carry over
+                    pass
+                else:
+                    # explicitly checked: apply on the target
+                    target_entry[field] = True
                     moved_any = True
 
             # A target that was a pure redirect shell but just received real
@@ -734,12 +766,12 @@ async def handle_update_song_vars(request: web.Request) -> web.Response:
                 target_entry.pop('remap')
                 result["actions"].append(f"cleared_target_remap: {new_song_key}")
 
-            # A rename must mean only that: fields move to the new key under
-            # fill-empty semantics, old key keeps only the redirect. The form's
-            # field values (prefilled from the OLD entry) are NOT replayed here —
-            # replaying them would clobber the target's existing values. Field
-            # edits are only honored in plain (non-rename) edits.
-            logger.info("[UPDATE_SONG_VARS] Rename: form field edits ignored (fill-empty semantics only)")
+            # A rename moves fields to the new key while honoring explicit
+            # form edits: cleared fields are deleted (not carried over),
+            # edited values are applied, and untouched fields move
+            # fill-empty-only so a pre-existing target value is never
+            # clobbered. The old key keeps only the redirect.
+            logger.info("[UPDATE_SONG_VARS] Rename: form edits honored via diff (clear=delete, edit=apply, untouched=fill-empty move)")
 
             # Old key keeps only the redirect rule.
             old_entry.clear()
