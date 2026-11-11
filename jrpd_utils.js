@@ -490,7 +490,7 @@ function jrpdReparentOverlaysForFullscreen() {
         const fsEl = jrpdGetFullscreenElement();
         if (fsEl) {
             jrpdLastFsContainer = fsEl;
-            document.querySelectorAll('body > [id^="jrpd-"], body > .jrpd-modal-overlay, body > .jrpd-toast').forEach(el => {
+            document.querySelectorAll('body > [id^="jrpd-"], body > .jrpd-modal-overlay, body > .jrpd-identprog-modal-overlay, body > .jrpd-identall-modal-overlay, body > .jrpd-acr-modal-overlay, body > .jrpd-toast').forEach(el => {
                 if (el.parentElement === fsEl) return;
                 el.dataset.jrpdFsMoved = "1";
                 fsEl.appendChild(el);
@@ -510,7 +510,7 @@ function jrpdReparentOverlaysForFullscreen() {
                         var isBodyOverlay = false;
                         if (el.id === "jrpd-results-panel" || el.id === "jrpd-unified-panel" || el.id === "jrpd-cleanup-panel") {
                             isBodyOverlay = true;
-                        } else if (el.classList && (el.classList.contains("jrpd-modal-overlay") || el.classList.contains("jrpd-toast"))) {
+                        } else if (el.classList && (el.classList.contains("jrpd-modal-overlay") || el.classList.contains("jrpd-identprog-modal-overlay") || el.classList.contains("jrpd-identall-modal-overlay") || el.classList.contains("jrpd-acr-modal-overlay") || el.classList.contains("jrpd-toast"))) {
                             isBodyOverlay = true;
                         } else if (el.hasAttribute && el.hasAttribute("data-jrpd-fs-moved")) {
                             isBodyOverlay = true;

@@ -423,21 +423,44 @@ function identifyRowWithAll(ts, btn) {
  * @param {HTMLElement} [btn] - Row button (busy until the job ends)
  */
 function pollIdentifyAllJob(ts, jobId, total, btn) {
+    let userCancelled = false;
     const prog = showIdentifyProgressModal(ts, total, () => {
+        userCancelled = true;
         reviewFetch(getReviewServerUrl() + `/identify_all_cancel?job=${encodeURIComponent(jobId)}`).catch(() => {});
     });
     updateIdentifyProgress(prog, { window: 0, total: total, found: {}, done: false });
     let finished = false;
-    const timer = setInterval(() => {
-        // Progress modal closed (cancelled): stop polling, free the button.
-        if (!document.body.contains(prog.overlay)) {
-            if (!finished) {
-                finished = true;
-                clearInterval(timer);
-                restoreIdentifyBtn(btn);
-            }
-            return;
+    let failures = 0; // consecutive failed polls before giving up (6 x 500ms)
+
+    const finish = (js, err) => {
+        if (finished) return;
+        finished = true;
+        clearInterval(timer);
+        try { prog.overlay.remove(); } catch (e) {}
+        restoreIdentifyBtn(btn);
+        if (err) {
+            console.error("JRPD: identify_all_job poll failed", err);
+            showToast(`Identify failed for ${ts}`, "#c62828");
+        } else if (js.job_error) {
+            showToast("Identify failed: " + js.job_error, "#c62828");
+        } else if (js.cancelled) {
+            // Cancelled by the user — nothing left to show.
+        } else if (js.results) {
+            showIdentifyAllModal(ts, js.results);
+        } else {
+            showToast("Identify failed: no results", "#c62828");
         }
+    };
+
+    const timer = setInterval(() => {
+        if (finished) return;
+        // Overlay detached (cancel click or a later modal/page rebuild):
+        // isConnected works for every attach point — fullscreen element,
+        // documentElement, shadow roots. document.body.contains() used to
+        // falsely report "gone" for overlays living outside <body>, which
+        // killed this loop ~500ms after opening and froze the modal on
+        // "querying…" while the server job ran to completion.
+        const detached = !prog.overlay.isConnected;
         reviewFetch(getReviewServerUrl() + `/identify_all_job?job=${encodeURIComponent(jobId)}`)
         .then(r => {
             if (!r.ok) throw new Error("HTTP " + r.status);
@@ -446,35 +469,15 @@ function pollIdentifyAllJob(ts, jobId, total, btn) {
         .then(js => {
             if (finished) return;
             if (js.status !== "ok") throw new Error(js.msg || "unknown job");
-            if (js.job_error) {
-                finished = true;
-                clearInterval(timer);
-                prog.overlay.remove();
-                restoreIdentifyBtn(btn);
-                showToast("Identify failed: " + js.job_error, "#c62828");
-                return;
-            }
-            updateIdentifyProgress(prog, js);
-            if (js.done) {
-                finished = true;
-                clearInterval(timer);
-                prog.overlay.remove();
-                restoreIdentifyBtn(btn);
-                if (js.results) {
-                    showIdentifyAllModal(ts, js.results);
-                } else if (!js.cancelled) {
-                    showToast("Identify failed: no results", "#c62828");
-                }
-            }
+            failures = 0;
+            if (js.job_error) { finish(js); return; }
+            if (!detached) updateIdentifyProgress(prog, js);
+            if (js.done) finish(js);
         })
         .catch(e => {
-            if (finished) return;
-            finished = true;
-            clearInterval(timer);
-            console.error("JRPD: identify_all_job poll failed", e);
-            try { prog.overlay.remove(); } catch (err) {}
-            restoreIdentifyBtn(btn);
-            showToast(`Identify failed for ${ts}`, "#c62828");
+            failures++;
+            // Tolerate transient blips; give up after ~3s of them.
+            if (failures >= 6) finish(null, e);
         });
     }, 500);
 }
