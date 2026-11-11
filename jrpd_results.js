@@ -1284,6 +1284,27 @@ function createResultsPanel() {
     header.appendChild(controlsGroup);
     panel.appendChild(header);
 
+    // Action toolbar (UNDO / MARK / FINISH) — mirrors the player control-bar
+    // buttons so marking works even when the control bar is hidden.
+    const actionBar = document.createElement("div");
+    actionBar.style.cssText = "display: flex; gap: 6px; padding: 6px 10px; border-bottom: 1px solid #333; background: #16213e; flex-shrink: 0;";
+
+    const mkActionBtn = (text, bgColor, onClick) => {
+        const btn = document.createElement("button");
+        btn.textContent = text;
+        btn.style.cssText = `flex: 1; padding: 4px 10px; background: ${bgColor}; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;`;
+        btn.onclick = () => { if (typeof onClick === "function") onClick(); };
+        return btn;
+    };
+
+    actionBar.appendChild(mkActionBtn("UNDO",
+        "#c62828", () => { if (typeof doUndo === "function") doUndo(); }));
+    actionBar.appendChild(mkActionBtn("MARK",
+        "#2e7d32", () => { if (typeof doMark === "function") doMark(); }));
+    actionBar.appendChild(mkActionBtn("FINISH",
+        "#6200ea", () => { if (typeof doFinish === "function") doFinish(); }));
+    panel.appendChild(actionBar);
+
     // Drag logic
     let isDragging = false, dragOffX = 0, dragOffY = 0;
     header.addEventListener("mousedown", (e) => {
