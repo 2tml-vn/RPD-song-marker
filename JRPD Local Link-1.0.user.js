@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JRPD Local Link
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @match        *://*.youtube.com/*
 // @match        *://*.bilibili.com/video/*
 // @require      file:///D:/rpd/jrpd_state.js

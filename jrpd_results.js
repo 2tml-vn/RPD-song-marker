@@ -18,6 +18,83 @@ function reviewFetch(url, options) {
     return fetchFn(url, options);
 }
 
+// ---- Start button: launches the pipeline via the jrpd:// protocol handler ----
+// Windows maps jrpd:// to D:\rpd\jrpd_protocol.py (see setup_protocol.bat),
+// which runs label_marks_complete.py in a console window. The page itself is
+// never navigated away - the browser shows a one-time "Open jrpd?" allow popup.
+let jrpdStartClickedAt = 0;
+const JRPD_START_GRACE_MS = 180000; // keep "⏳ Starting…" for 3 min before reverting
+
+function jrpdCurrentVideoId() {
+    // The marker loop keeps `vid` (jrpd_state.js) fresh every second; fall back
+    // to parsing the URL ourselves (the button can be clicked before that tick).
+    try {
+        if (typeof vid !== "undefined" && vid) return vid;
+    } catch (e) {}
+    const hostname = window.location.hostname;
+    if (hostname.includes("youtube.com")) {
+        return new URLSearchParams(window.location.search).get("v");
+    }
+    if (hostname.includes("bilibili.com")) {
+        const m = window.location.pathname.match(/\/video\/(BV[0-9A-Za-z]+|av\d+|\d+)/);
+        if (!m) return null;
+        const p = parseInt(new URLSearchParams(window.location.search).get("p"), 10);
+        return (!isNaN(p) && p > 1) ? `${m[1]}_p${p}` : m[1];
+    }
+    return null;
+}
+
+function jrpdStartPending() {
+    return jrpdStartClickedAt !== 0 && (Date.now() - jrpdStartClickedAt) < JRPD_START_GRACE_MS;
+}
+
+/**
+ * Reflect the server connection state on the Start button.
+ * Online: the button hides (the panel itself shows live status).
+ * Offline: visible; reads "⏳ Starting…" while a launch request is pending.
+ * @param {boolean} serverOnline - True when port 5000 answered a poll
+ */
+function updateStartBtn(serverOnline) {
+    const btn = document.getElementById("jrpd-start-btn");
+    if (!btn) return;
+    if (serverOnline) {
+        btn.style.display = "none";
+        return;
+    }
+    const pending = jrpdStartPending();
+    btn.style.display = "";
+    btn.textContent = pending ? "⏳ Starting…" : "▶ Start";
+    btn.style.background = pending ? "#ef6c00" : "#2e7d32";
+}
+
+function jrpdStartClicked() {
+    const btn = document.getElementById("jrpd-start-btn");
+    if (jrpdStartPending()) {
+        showToast("Still starting… waiting for the JRPD server (port 5000)", "#ef6c00");
+        return;
+    }
+    const vidId = jrpdCurrentVideoId();
+    if (!vidId) {
+        showToast("Cannot start: no video ID on this page", "#f44336");
+        return;
+    }
+    jrpdStartClickedAt = Date.now();
+    if (btn) updateStartBtn(false);
+    // Anchor click → external protocol launch; the page does not navigate.
+    try {
+        const a = document.createElement("a");
+        a.href = "jrpd://" + encodeURIComponent(vidId);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast(`Launch requested: python label_marks_complete.py ${vidId}`, "#2e7d32");
+    } catch (e) {
+        jrpdStartClickedAt = 0;
+        if (btn) updateStartBtn(false);
+        showToast("Could not open the jrpd:// handler", "#f44336");
+    }
+}
+
 // ---- Panel visibility (available during marking and review) ----
 function isResultsPanelVisible() {
     const panel = document.getElementById("jrpd-results-panel");
@@ -1130,6 +1207,15 @@ function createResultsPanel() {
     const controlsGroup = document.createElement("div");
     controlsGroup.style.cssText = "display: flex; gap: 5px; align-items: center;";
 
+    // Start button (visible only while the JRPD server is offline)
+    const startBtn = document.createElement("button");
+    startBtn.id = "jrpd-start-btn";
+    startBtn.title = "Start the pipeline for this video (jrpd:// → opens a console window)";
+    startBtn.style.cssText = "padding: 2px 8px; background: #2e7d32; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold; display: none;";
+    startBtn.textContent = "▶ Start";
+    startBtn.onclick = jrpdStartClicked;
+    controlsGroup.appendChild(startBtn);
+
     // Font size dropdown
     const fontSelect = document.createElement("select");
     fontSelect.title = "Font size";
@@ -1675,11 +1761,13 @@ function fetchResultsFile(options = {}) {
         reviewLastMtime = data.mtime || 0;
         lastRenderedLinesJson = linesJson;
         console.log("JRPD: results updated:", lines.length, "lines");
+        if (typeof updateStartBtn === "function") updateStartBtn(true);
         jrpdDetectIdentifications(lines);
         renderResultsPanel(lines, { forceFullRender, preserveScroll });
     })
     .catch(e => {
         // Server may be starting up or not yet running
+        if (typeof updateStartBtn === "function") updateStartBtn(false);
         const list = document.getElementById("jrpd-results-list");
         if (list && list.querySelectorAll("[data-result-row]").length === 0) {
             if (!list.querySelector(".jrpd-offline-msg")) {
@@ -1687,7 +1775,7 @@ function fetchResultsFile(options = {}) {
                 const msg = document.createElement("div");
                 msg.className = "jrpd-offline-msg";
                 msg.style.cssText = "color: #ffb74d; font-style: italic; text-align: center; padding: 24px 10px; font-size: 11px; line-height: 1.5;";
-                msg.textContent = "⏳ Waiting for server connection (port 5000)... Start python label_marks_complete.py to begin.";
+                msg.textContent = "⏳ Server offline — click ▶ Start in the panel header to launch the pipeline (or run python label_marks_complete.py manually).";
                 list.appendChild(msg);
             }
         }

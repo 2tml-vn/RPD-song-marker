@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         JRPD Live Marker Pro
-// @version      8.10
+// @version      8.11
 // @description  Modular userscript for marking songs in YouTube and Bilibili videos
 // @author       Gemini CLI
 // @match        *://*.youtube.com/*
@@ -308,6 +308,9 @@
             jrpdFetch(getServerBaseUrl() + "/status")
                 .then(r => r.json())
                 .then(data => {
+                    // Start button follows the live connection state
+                    if (typeof updateStartBtn === "function") updateStartBtn(true);
+
                     // Review Mode Detection
                     if (data.is_review_mode && !isReviewMode) {
                         isReviewMode = true;
@@ -381,6 +384,7 @@
                     }
                 })
                 .catch(e => {
+                    if (typeof updateStartBtn === "function") updateStartBtn(false);
                     if (currentCandidates.length > 0) {
                         console.error("JRPD: Server disconnected during cleanup.");
                         currentCandidates = [];
