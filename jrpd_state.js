@@ -33,6 +33,8 @@ let reviewSelectedTs = null;
 let panelAutoOpened = false; // auto-opened the results panel for current video (once per video)
 let songListsCache = null;
 let songListsLoading = false;
+let songListsFetchedAt = 0; // ms timestamp of last successful /song_lists fetch
+let songListsRenderedJson = null; // JSON of the data currently rendered in the panel
 
 // Previous results snapshot for identification detection (ts -> song text; null = not initialized yet)
 let jrpdPrevResultsMap = null;

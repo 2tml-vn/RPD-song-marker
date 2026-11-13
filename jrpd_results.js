@@ -1936,25 +1936,15 @@ function createResultRow(entry) {
     } else if (isProcessing) {
         rowBg = "background: #232015; border-left: 3px solid #ffb74d;";
     }
-    row.style.cssText = `padding: 4px 8px; margin-bottom: 2px; border-radius: 5px; font-size: ${reviewFontSize}px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: outline 0.15s; min-height: 24px; ${rowBg}`;
+    row.style.cssText = `padding: 4px 8px; margin-bottom: 2px; border-radius: 5px; font-size: ${reviewFontSize}px; display: flex; align-items: center; gap: 6px; transition: outline 0.15s; min-height: 24px; ${rowBg}`;
 
     if (reviewSelectedTs === entry.ts) {
         row.style.outline = "2px solid #ffeb3b";
         row.style.outlineOffset = "-1px";
     }
 
-    row.addEventListener("click", (e) => {
-        if (e.target.tagName === "BUTTON") return;
-        const list = document.getElementById("jrpd-results-list");
-        if (reviewSelectedTs === entry.ts) {
-            hideSongPanels();
-            return;
-        }
-        list.querySelectorAll("[data-result-row]").forEach(r => { r.style.outline = "none"; });
-        row.style.outline = "2px solid #ffeb3b";
-        row.style.outlineOffset = "-1px";
-        showSongPanels(entry.ts);
-    });
+    // Row clicks are inert; the panel opens only via the ➕ button or the
+    // ✏️ button on "Processing..." rows.
 
     // Play button (seek only — does NOT open the song panel)
     const seekBtn = document.createElement("button");

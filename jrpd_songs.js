@@ -22,6 +22,9 @@ function songFetch(url, options) {
     return fetch(url, options);
 }
 
+/** How long a cached /song_lists response is reused before refetching. */
+const SONGLISTS_FETCH_TTL_MS = 30000;
+
 /** Panel collapse state (persisted in localStorage) */
 const PANEL_PREFS_KEY = "jrpd-panel-prefs";
 let panelCollapsedState = { unified: false };
@@ -430,12 +433,19 @@ function showSongPanels(ts) {
     positionSongPanels();
 
     if (songListsCache) populateSongPanels(songListsCache);
-    if (!songListsLoading) {
+
+    // Refetch only when the cache is missing or stale — the fetch otherwise
+    // fires on every open and re-renders the whole list when it lands
+    // (double render per open). Mutating flows (add/edit song) invalidate
+    // the cache to force a fresh fetch.
+    const isStale = Date.now() - songListsFetchedAt > SONGLISTS_FETCH_TTL_MS;
+    if (!songListsCache || (!songListsLoading && isStale)) {
         songListsLoading = true;
         songFetch(`${getSongServerUrl()}/song_lists`)
             .then(r => r.json())
             .then(data => {
                 songListsCache = data;
+                songListsFetchedAt = Date.now();
                 songListsLoading = false;
                 populateSongPanels(data);
             })
@@ -454,10 +464,12 @@ function hideSongPanels() {
     reviewSelectedTs = null;
     const unifiedPanel = document.getElementById("jrpd-unified-panel");
     if (unifiedPanel) unifiedPanel.style.display = "none";
-    
-    const unifiedSearch = document.getElementById("jrpd-unified-search");
-    if (unifiedSearch) unifiedSearch.value = "";
-    
+
+    // Deliberately keep the search text and rendered list: reopening the
+    // panel skips the re-render, so the input must stay in sync with the
+    // (possibly filtered) list that is still in the DOM. Clearing the input
+    // via typing fires filterSongPanel and restores the full list.
+
     const list = document.getElementById("jrpd-results-list");
     if (list) {
         list.querySelectorAll("[data-result-row]").forEach(row => {
@@ -492,11 +504,12 @@ function filterSongPanel(searchText) {
         return searchableText.includes(search);
     });
     
-    list.textContent = "";
+    const fragment = document.createDocumentFragment();
     filtered.forEach(song => {
-        const item = createSongItem(song);
-        list.appendChild(item);
+        fragment.appendChild(createSongItem(song));
     });
+    list.textContent = "";
+    list.appendChild(fragment);
 }
 
 /**
@@ -512,8 +525,6 @@ function populateSongPanels(data) {
     const unifiedSearch = document.getElementById("jrpd-unified-search");
     if (!unifiedList) return;
 
-    if (unifiedSearch) unifiedSearch.value = "";
-
     // Combine all songs with category tags
     const allSongs = [
         ...(data.misidentified || []).map(s => ({...s, category: 'misident'})),
@@ -521,10 +532,20 @@ function populateSongPanels(data) {
         ...(data.songs || []).map(s => ({...s, category: 'songs'}))
     ];
 
-    unifiedList.textContent = "";
+    // Skip the rebuild when the panel already shows this exact data —
+    // rebuilding hundreds of song items on every open causes visible lag.
+    const dataJson = JSON.stringify(allSongs);
+    if (songListsRenderedJson === dataJson && unifiedList.childElementCount > 0) return;
+    songListsRenderedJson = dataJson;
+
+    if (unifiedSearch) unifiedSearch.value = "";
+
+    const fragment = document.createDocumentFragment();
     allSongs.forEach(song => {
-        unifiedList.appendChild(createSongItem(song));
+        fragment.appendChild(createSongItem(song));
     });
+    unifiedList.textContent = "";
+    unifiedList.appendChild(fragment);
 }
 
 /**
@@ -693,6 +714,10 @@ function addSongInputSection() {
     	.then(res => {
     		if (res.status === "ok") {
     			showToast(`Added to songs.json: ${key}`, "#2e7d32");
+                // Invalidate the cache so the next panel open refetches and
+                // shows the new song (per-open fetches no longer happen).
+                songListsCache = null;
+                songListsFetchedAt = 0;
                 fieldDefs.forEach(def => {
                     const el = document.getElementById(def.id);
                     if (el) el.value = "";
@@ -912,10 +937,12 @@ async function showEditSongForm(songKey, songDisplay, songIntl, songArtistOrig, 
                     
                     // Clear cache to force refresh
                     songListsCache = null;
+                    songListsFetchedAt = 0;
                     songFetch(`${getSongServerUrl()}/song_lists`)
                     .then(r => r.json())
                     .then(data => {
                         songListsCache = data;
+                        songListsFetchedAt = Date.now();
                         // Re-apply search filter instead of clearing
                         if (currentSearch) {
                             filterSongPanel(currentSearch);
