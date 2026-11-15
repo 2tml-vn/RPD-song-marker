@@ -1,44 +1,68 @@
 # Restoring this project on a new machine
 
-The repo is the complete backup: code, `songs.json`, and the API keys
-(`.env` stored encrypted as `.env.enc`). GitHub never holds plaintext secrets.
+STEP 0 — exists only outside the repo (your head/notes):
+- GitHub login with access to the private repo
+- Repo URL: https://github.com/2tml-vn/RPD-song-marker.git
+- The key.age passphrase (chosen when the backup was first set up).
+  Lost? -> see FALLBACK at the end.
 
-## 1. Install tools
-- git, Python
-- sops + age: `winget install SecretsOPerationS.SOPS FiloSottile.age`
+## 1. Sign in and clone
+Sign into GitHub (GitHub Desktop, or browser sign-in for command-line git), then:
+    git clone https://github.com/2tml-vn/RPD-song-marker.git
+RESTORE.md is inside the clone — every step below comes with it.
 
-## 2. Clone
-```
-git clone https://github.com/2tml-vn/RPD-song-marker.git
-cd RPD-song-marker
-```
+## 2. Install tools
+    winget install Python.Python.3.12 SecretsOPerationS.SOPS FiloSottile.age aria2
+(aria2 is optional — faster downloads; the app falls back to plain yt-dlp
+without it. Skip Python via winget if you prefer python.org.)
 
-## 3. Restore the decryption key
-The repo contains `key.age` — the age private key, scrambled with a passphrase
-(the one chosen at initial setup). Rebuild the key file sops reads by default:
-```
-mkdir "%APPDATA%\sops\age"          (PowerShell: New-Item -ItemType Directory -Force "$env:APPDATA\sops\age")
-age -d key.age > "%APPDATA%\sops\age\keys.txt"
-```
-Enter the passphrase when prompted.
+## 3. Python packages
+    pip install -r requirements.txt
+(python-dotenv, curl_cffi, aiohttp, shazamio, yt-dlp, pytest)
 
-## 4. Restore the API keys
-```
-sops -d --input-type binary .env.enc > .env
-```
-(`--input-type binary` matters — sops otherwise guesses the format from the
-`.enc` extension and fails.)
+## 4. Restore the decryption key
+The repo's key.age is the age private key, scrambled with the passphrase.
+This puts it where sops looks for it:
+    mkdir "%APPDATA%\sops\age"
+    age -d key.age > "%APPDATA%\sops\age\keys.txt"      <- type the passphrase
+(PowerShell: New-Item -ItemType Directory -Force "$env:APPDATA\sops\age")
 
-## 5. Verify
-```
-python -c "import config"
-```
-Then start the app as usual.
+## 5. Restore the API keys
+    sops -d --input-type binary .env.enc > .env
+(--input-type binary matters — sops otherwise guesses the format wrong
+from the ".enc" extension.)
 
-## If the passphrase is lost
-The key can't be recovered — that's the point of the passphrase. Fallback:
-re-issue ACRCloud credentials at https://console.acrcloud.com and write a
-fresh `.env`, then re-encrypt:
-```
-sops -e --input-type binary --output-type binary .env > .env.enc
-```
+## 6. One-time Windows setup
+Registers the jrpd:// protocol handler the browser panel's Start button uses:
+    double-click setup_protocol.bat
+(HKCU only, no admin needed, safe to re-run. It embeds the absolute python
+path and script path — re-run it if the project folder ever moves.)
+
+## 7. Browser side
+Install both userscripts into Tampermonkey (or your userscript manager)
+from the repo files:
+    - JRPD Local Link-1.0.user.js
+    - jrpd_marker.user.js
+
+## 8. Use it
+Open YouTube/Bilibili, click the panel's Start button.
+First jrpd:// click: the browser asks for permission — choose "Always allow".
+Command-line equivalent:
+    python label_marks_complete.py <video_id>
+One session at a time — the pipeline serves port 5000.
+
+## Notes
+- Verify the keys restored correctly:  python -c "import config"
+  (clean exit = good). Full app boot: import server.py's modules or just run
+  a real session.
+- runs/ audio is NOT in the repo — the app re-downloads it from YouTube by
+  video ID as needed; the folder starts empty.
+- Editor: Notepad++ at the default path, or set JRPD_EDITOR in .env.
+- To reconfirm you still remember the passphrase anytime:
+      age -d key.age | findstr "AGE-SECRET-KEY" >nul && echo PASSPHRASE CORRECT
+
+## FALLBACK (passphrase lost)
+The encrypted key cannot be recovered — that is the point of the passphrase.
+Re-issue ACRCloud credentials at https://console.acrcloud.com, write a fresh
+.env, then re-encrypt:
+    sops -e --input-type binary --output-type binary .env > .env.enc

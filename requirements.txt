@@ -1,0 +1,6 @@
+python-dotenv
+curl_cffi
+aiohttp
+shazamio
+yt-dlp
+pytest
