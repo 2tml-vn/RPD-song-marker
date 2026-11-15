@@ -1,0 +1,6821 @@
+{
+  "#NAME?": {
+    "artist_orig": "Double Face/三毛縞 斑、桜河 こはく"
+  },
+  "#あくあ色ぱれっと": {
+    "intl": "Aqua Iro Paretto",
+    "artist_orig": "湊あくあ"
+  },
+  "#ラブコード": {
+    "intl": "LoveCode",
+    "artist_orig": "iLiFE!"
+  },
+  "+♂": {
+    "artist_orig": "Giga"
+  },
+  "+♂(プラス男子) feat.鏡音レン [feat. 鏡音レン]": {
+    "remap": "+♂"
+  },
+  "1.Five": {
+    "artist_orig": "Gene Tolyshev"
+  },
+  "1000年生きてる": {
+    "intl": "living millennium",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "1000年生きてる (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 巡音ルカ)": {
+    "remap": "1000年生きてる"
+  },
+  "1001": {
+    "artist_orig": "Mattheis",
+    "discard": true
+  },
+  "1135": {
+    "artist_orig": "さくらみこ"
+  },
+  "1st Love Story": {
+    "artist_orig": "Luce Twinkle Wink☆"
+  },
+  "2022": {
+    "remap": "刀ピークリスマスのテーマソング2022",
+    "artist_orig": "Mafeepuolyz"
+  },
+  "4 Walls": {
+    "artist_orig": "f(x)"
+  },
+  "45秒": {
+    "intl": "45 Seconds",
+    "artist_orig": "れすぽん"
+  },
+  "45秒 (feat. 初音ミク)": {
+    "remap": "45秒"
+  },
+  "7 Girls War": {
+    "artist_orig": "Wake Up, Girls!"
+  },
+  "88888888": {
+    "artist_orig": "PiKi"
+  },
+  "8bit Electric Angel": {
+    "artist_orig": "Yui"
+  },
+  "=EYE=": {
+    "artist_orig": "Double Face/三毛縞 斑、桜河 こはく"
+  },
+  "[A]ddiction": {
+    "artist_orig": "EVO+"
+  },
+  "A Brief History Of Goa-Trance Man With No Name": {
+    "artist_orig": "Talamasca"
+  },
+  "A Horny Money World 〜伝説の夜〜": {
+    "intl": "A Horny Money World 〜legendary night〜",
+    "artist_orig": "宝鐘マリン"
+  },
+  "A song for You! You? You!!": {
+    "artist_orig": "μ's"
+  },
+  "A Sort of Homecoming": {
+    "artist_orig": "Paul Keeley"
+  },
+  "About me": {
+    "artist_orig": "蝶々P"
+  },
+  "Absolute Perfection": {
+    "artist_orig": "Eden"
+  },
+  "Absolute Perfection (Game Edit)": {
+    "remap": "Absolute Perfection"
+  },
+  "Agitations tropicales": {
+    "artist_orig": "L'Impératrice"
+  },
+  "Agitato": {
+    "artist_orig": "Hatsuboshi Gakuen"
+  },
+  "Agitato [Instrumental]": {
+    "remap": "Agitato"
+  },
+  "Ahoy!! 我ら宝鐘海賊団☆": {
+    "intl": "Ahoy!! We are Houshou Pirates",
+    "artist_orig": "宝鐘マリン"
+  },
+  "AI SEE CHAT": {
+    "artist_orig": "最終未来少女"
+  },
+  "Ai đưa em về": {
+    "artist_orig": "TIA & Lê Thiện Hiếu"
+  },
+  "AIAIAI": {
+    "artist_orig": "Kizuna AI"
+  },
+  "Air Mata Perasaan yang Tak Tersampaikan": {
+    "artist_orig": "JKT48"
+  },
+  "Allergy Season": {
+    "artist_orig": "dreeSyance"
+  },
+  "Alter Ego": {
+    "artist_orig": "Vivid BAD SQUAD",
+    "see_artist": true
+  },
+  "Angelic Angel": {
+    "artist_orig": "μ's"
+  },
+  "Another World": {
+    "artist_orig": "A応P"
+  },
+  "ANTI": {
+    "artist_orig": "Yung Willz"
+  },
+  "Apollo Road (feat. ATB)": {
+    "artist_orig": "Dash Berlin"
+  },
+  "Aqours Pirates Desire": {
+    "artist_orig": "Aqours"
+  },
+  "Aqours Pirates Desire (Off Vocal)": {
+    "remap": "Aqours Pirates Desire"
+  },
+  "Armageddon": {
+    "artist_orig": "aespa"
+  },
+  "Article of Faith": {
+    "artist_orig": "Knights"
+  },
+  "Artistic Partisan": {
+    "artist_orig": "ALKALOID×Valkyrie"
+  },
+  "As Marcas Desse Amor": {
+    "artist_orig": "Banda Universos"
+  },
+  "Astral Rainbows": {
+    "artist_orig": "Anthony Alleeson"
+  },
+  "Astral Sequence": {
+    "artist_orig": "Some1"
+  },
+  "Astronomy": {
+    "artist_orig": "Empty old City"
+  },
+  "Astronomy (English Ver.)": {
+    "remap": "Astronomy"
+  },
+  "At Night": {
+    "artist_orig": "Ridney"
+  },
+  "ATTITUDE": {
+    "artist_orig": "IVE"
+  },
+  "Awaken the power": {
+    "artist_orig": "Saint Aqours Snow"
+  },
+  "B.B.": {
+    "artist_orig": "Suzu☆Rena"
+  },
+  "Baby Come On Now": {
+    "artist_orig": "Jose Vilches"
+  },
+  "Back to Baby Anthem": {
+    "artist_orig": "ChibaNyan, IOSYS"
+  },
+  "Bad Apple!!": {
+    "artist_orig": "Alstroemeria Records"
+  },
+  "Bad Apple!! (feat. nomico)": {
+    "remap": "Bad Apple!!"
+  },
+  "Bad ∞ End ∞ Night": {
+    "intl": "Bad End Night",
+    "artist_orig": "ひとしずく"
+  },
+  "Bake No Hana": {
+    "artist_orig": "EN Sekai"
+  },
+  "BANG BANG": {
+    "artist_orig": "IVE",
+    "see_artist": true
+  },
+  "BANG BANG BANG": {
+    "artist_orig": "BIGBANG"
+  },
+  "BANZAI": {
+    "artist_orig": "轟はじめ"
+  },
+  "BANZAI! digital trippers": {
+    "artist_orig": "Aqours"
+  },
+  "BA乱CE": {
+    "artist_orig": "梅とら"
+  },
+  "BBiJilGe": {
+    "artist_orig": "Ayatsuno Yuni"
+  },
+  "Be My Guest": {
+    "artist_orig": "Azari"
+  },
+  "Be My Princess♡": {
+    "artist_orig": "Special for Princess!"
+  },
+  "Be My Star": {
+    "artist_orig": "LEVEL NINE & T.T. STAR"
+  },
+  "Be The One": {
+    "artist_orig": "PANDORA"
+  },
+  "Be Your Light!!": {
+    "artist_orig": "鈴代紗弓, 蟹沢萌子, 夏吉ゆうこ, 長谷川里桃 & 中川梨花"
+  },
+  "Beat Eater": {
+    "artist_orig": "ポリスピカデリー"
+  },
+  "Beat Eater (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 鏡音レン)": {
+    "remap": "Beat Eater"
+  },
+  "Beat in Angel": {
+    "artist_orig": "星空凛, 西木野真姫 & μ's"
+  },
+  "BEAUTIFUL=SENTENCE": {
+    "artist_orig": "浅見リリス & 神無月アリン"
+  },
+  "BEEP BEEP": {
+    "artist_orig": "Hoshimatic Project"
+  },
+  "Befikra": {
+    "artist_orig": "Meet Bros & Aditi Singh Sharma"
+  },
+  "Before The Storm": {
+    "artist_orig": "Sultan & Shepard & Rinzen"
+  },
+  "Believe": {
+    "artist_orig": "Folder 5",
+    "intl": "Cree"
+  },
+  "Believe again": {
+    "artist_orig": "Saint Snow"
+  },
+  "Believe 劇場サイズ": {
+    "artist_orig": "Folder 5"
+  },
+  "Berry Verry Strawberry": {
+    "artist_orig": "TENKO SHIBUKI"
+  },
+  "Beyond the way": {
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "Beyond the way (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & Hatsune Miku)": {
+    "remap": "Beyond the way"
+  },
+  "Billyeoon Goyangi": {
+    "artist_orig": "ILLIT"
+  },
+  "Billyeoon Goyangi (Do the Dance)": {
+    "artist_orig": "ILLIT",
+    "intl": "Billyeoon Goyangi"
+  },
+  "BINGO!": {
+    "artist_orig": "JKT48"
+  },
+  "BIRDBRAIN": {
+    "artist_orig": "Jamie Paige"
+  },
+  "Bite Me": {
+    "artist_orig": "ENHYPEN"
+  },
+  "Bitter Sweet Darling": {
+    "artist_orig": "Smewthie"
+  },
+  "BIZNESS": {
+    "artist_orig": "XLOV"
+  },
+  "blender": {
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "blender (feat. Azusawa Kohane&Shiraishi An&Shinonome Akito&Aoyagi Toya&MEIKO)": {
+    "remap": "blender"
+  },
+  "blender (feat. 小豆沢こはね&白石杏&東雲彰人&青柳冬弥&MEIKO)": {
+    "intl": "blender",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "blender (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & MEIKO)": {
+    "remap": "blender"
+  },
+  "Blessing": {
+    "artist_orig": "halyosy",
+    "see_artist": true
+  },
+  "Blessing (feat. 初音ミク, 鏡音リン, 鏡音レン, 巡音ルカ, KAITO & MEIKO)": {
+    "remap": "Blessing"
+  },
+  "Blessing (Singers Version B)": {
+    "remap": "Blessing"
+  },
+  "Bling-Bang-Bang-Born": {
+    "artist_orig": "Creepy Nuts"
+  },
+  "BlingBang-Born": {
+    "artist_orig": "Creepy Nuts",
+    "remap": "Bling-Bang-Bang-Born"
+  },
+  "Blissful Erect": {
+    "artist_orig": "QT: REWIRED & CheeseWithCake"
+  },
+  "Bloody Paradise": {
+    "artist_orig": "ENHYPEN"
+  },
+  "Blowin' in the Mind": {
+    "artist_orig": "Unknown"
+  },
+  "BLUE CLAPPER": {
+    "artist_orig": "hololive IDOL PROJECT"
+  },
+  "Boom": {
+    "artist_orig": "Team ahamo(天宮こころ/橘ひなの/アルス・アルマル/夏色まつり/尾丸ポルカ)"
+  },
+  "Booo!": {
+    "artist_orig": "TOKOTOKO(西沢さんP)"
+  },
+  "Boooooom Boooooom Bee!!": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
+  "Born to be \"BAU\"DOL☆★": {
+    "artist_orig": "FUWAMOCO"
+  },
+  "botばっか": {
+    "intl": "bot bakka",
+    "artist_orig": "Phantom Siita",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "BOUNCY": {
+    "artist_orig": "ATEEZ"
+  },
+  "BRAIN": {
+    "artist_orig": "Kanaria"
+  },
+  "BRAND NEW STARS!!": {
+    "artist_orig": "ESオールスターズ"
+  },
+  "BRAVE GROOVE": {
+    "artist_orig": "iLiFE!"
+  },
+  "BRIGHTEST HEART": {
+    "artist_orig": "オグリキャップ"
+  },
+  "Brilliant Smile": {
+    "artist_orig": "Switch／逆先 夏目、青葉 つむぎ、春川 宙"
+  },
+  "Bring it on": {
+    "artist_orig": "ROF-MAO"
+  },
+  "Bubble": {
+    "artist_orig": "STAYC"
+  },
+  "Bunny Girl": {
+    "artist_orig": "AKASAKI"
+  },
+  "Burning Desires": {
+    "artist_orig": "Sān-Z & HOYO-MiX"
+  },
+  "BYOB": {
+    "artist_orig": "Billlie"
+  },
+  "Bのリベンジ": {
+    "intl": "Revenge of B",
+    "artist_orig": "B小町"
+  },
+  "Calc.": {
+    "artist_orig": "ジミーサムP",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "California Gurls": {
+    "artist_orig": "ケイティ・ペリー"
+  },
+  "CANDY": {
+    "artist_orig": "新しい学校のリーダーズ"
+  },
+  "Candy": {
+    "artist_orig": "NCT DREAM",
+    "see_artist": true
+  },
+  "Candy Pop": {
+    "artist_orig": "TWICE"
+  },
+  "canzoni preferite": {
+    "artist_orig": "菅野祐悟"
+  },
+  "Canzoni preferite": {
+    "artist_orig": "Yugo Kanno"
+  },
+  "Caramel Pain": {
+    "artist_orig": "星街すいせい"
+  },
+  "Caramelldansen": {
+    "artist_orig": "Caramella Girls"
+  },
+  "Casino": {
+    "artist_orig": "Azari"
+  },
+  "Catch Catch": {
+    "artist_orig": "YENA"
+  },
+  "Catch Me If You Can": {
+    "artist_orig": "鳴潮 & Eileen Marine",
+    "see_artist": true
+  },
+  "Catch the Wave": {
+    "artist_orig": "livetune"
+  },
+  "Catch the Wave (feat. 初音ミク)": {
+    "remap": "Catch the Wave"
+  },
+  "CELEBRATE!!": {
+    "artist_orig": "Trickstar, あんさんぶるスターズ!!"
+  },
+  "CH4NGE": {
+    "artist_orig": "Giga"
+  },
+  "CH4NGE (feat. Kafu)": {
+    "remap": "CH4NGE"
+  },
+  "Chance Day, Chance Way!": {
+    "artist_orig": "Liella!"
+  },
+  "CHANEL": {
+    "artist_orig": "Tyla"
+  },
+  "Change Me": {
+    "artist_orig": "shu-t"
+  },
+  "CHANGE! MY WORLD": {
+    "artist_orig": "Dressing Pafe"
+  },
+  "CHASE!": {
+    "artist_orig": "優木せつ菜"
+  },
+  "Chasing Shadows": {
+    "artist_orig": "Antoine Pete"
+  },
+  "Chatter Chatter": {
+    "artist_orig": "宝鐘マリン & 星街すいせい"
+  },
+  "CHEER UP": {
+    "artist_orig": "TWICE"
+  },
+  "Chemical": {
+    "artist_orig": "ポスト・マローン"
+  },
+  "Cherish (My Love)": {
+    "artist_orig": "ILLIT",
+    "intl": "Cherish"
+  },
+  "Cheshire": {
+    "artist_orig": "ITZY"
+  },
+  "Chika Dance": {
+    "artist_orig": "Gudrap",
+    "remap": "チカっとチカ千花っ♡"
+  },
+  "CHIKARA HIME": {
+    "artist_orig": "Gochikara"
+  },
+  "Chikatto Chika Chika": {
+    "artist_orig": "Fujiwara Chika (CV: Kohara Konomi)"
+  },
+  "Chk Chk Boom": {
+    "artist_orig": "Stray Kids"
+  },
+  "chocolate box": {
+    "artist_orig": "dezzy(一億円P)"
+  },
+  "Click": {
+    "artist_orig": "ME:I"
+  },
+  "CLICK": {
+    "artist_orig": "Girls2",
+    "see_artist": true
+  },
+  "cLick cRack": {
+    "artist_orig": "ギガP"
+  },
+  "Colorful Dreams! Colorful Smiles!": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
+  "COLORFUL VOICE": {
+    "artist_orig": "μ's"
+  },
+  "ColorfulParallel": {
+    "artist_orig": "UtaGe!"
+  },
+  "ColorfulParallel (Instrumental)": {
+    "remap": "ColorfulParallel"
+  },
+  "Colors Arise": {
+    "artist_orig": "流星隊／南雲 鉄虎、高峯 翠、仙石 忍、守沢 千秋、深海 奏汰"
+  },
+  "Come On Yeah": {
+    "artist_orig": "Rumjal"
+  },
+  "Confessions of a Rotten Girl": {
+    "artist_orig": "SAWTOWNE"
+  },
+  "Contact": {
+    "artist_orig": "ダフト・パンク"
+  },
+  "Convenience Love": {
+    "artist_orig": "go!go!vanillas"
+  },
+  "Countach": {
+    "artist_orig": "轟はじめ",
+    "intl": "",
+    "artist_intl": "Todoroki Hajime",
+    "remap": ""
+  },
+  "CRASH MIND": {
+    "artist_orig": "Saint Snow"
+  },
+  "CRASH THE PARTY": {
+    "artist_orig": "KIRA"
+  },
+  "CRASH THE PARTY (Instrumental)": {
+    "remap": "CRASH THE PARTY"
+  },
+  "CRAZY": {
+    "artist_orig": "UMETORA",
+    "see_artist": true
+  },
+  "CRAZY (feat. Hatsune Miku&Kagamine Rin&Megurine Luka&Megpoid&IA)": {
+    "remap": "CRAZY"
+  },
+  "CRAZY (ver. Miyamai Moca)": {
+    "remap": "CRAZY"
+  },
+  "Crazy Roulette": {
+    "artist_orig": "Crazy:B"
+  },
+  "Crazy:B & UNDEAD 「U.S.A.」 あんさんぶるスターズ!! COVER SONG SERIES 01": {
+    "artist_orig": "Crazy:B, UNDEAD & あんさんぶるスターズ!!",
+    "intl": "",
+    "artist_intl": "",
+    "remap": "U.S.A."
+  },
+  "Crush of Judgment": {
+    "artist_orig": "ナイトキラーズ"
+  },
+  "Crush on you": {
+    "artist_orig": "CUTIE STREET"
+  },
+  "CR詠ZY": {
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "CR詠ZY (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 巡音ルカ)": {
+    "remap": "CR詠ZY"
+  },
+  "Cutie Panther": {
+    "artist_orig": "BiBi"
+  },
+  "CYBERPUNK DEAD BOY - Self Cover Ver.": {
+    "intl": "CYBERPUNK DEAD BOY",
+    "artist_orig": "MAIKI P"
+  },
+  "Cyborg": {
+    "artist_orig": "Dna Tru Lyricist"
+  },
+  "Cùng Anh Đồng Hành / 与你同行 ": {
+    "remap": "与你同行~B With U~"
+  },
+  "D/N/A": {
+    "artist_orig": "Azari",
+    "see_artist": true
+  },
+  "D/N/A (VOCALOID Version)": {
+    "remap": "D/N/A"
+  },
+  "DAI DAI DAI ファンタジスタ": {
+    "intl": "DAI DAI DAI Fantasista",
+    "artist_orig": "さくらみこ"
+  },
+  "Daisuke": {
+    "artist_orig": "Y&Co."
+  },
+  "Daisuke feat. KAHORI from 1 LOVE": {
+    "remap": "Daisuke"
+  },
+  "Dance in the Apocalypse": {
+    "artist_orig": "Eden"
+  },
+  "Dancing Clouds": {
+    "artist_orig": "Chillout Sound Festival"
+  },
+  "Dancing Heart La-Pa-Pa-Pa!": {
+    "artist_orig": "Liella!"
+  },
+  "Dancing Raspberry": {
+    "artist_orig": "5yncri5e!"
+  },
+  "Dancing stars on me!": {
+    "artist_orig": "μ's"
+  },
+  "Darling Darling (feat. Natsuki Karin)": {
+    "intl": "Darling Darling",
+    "artist_orig": "Mellowcle, Natsuki Karin"
+  },
+  "Dash": {
+    "artist_orig": "PLAVE"
+  },
+  "day by days": {
+    "artist_orig": "syudou"
+  },
+  "DAYBREAK FRONTLINE": {
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "DAYBREAK FRONTLINE (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & Hatsune Miku)": {
+    "remap": "DAYBREAK FRONTLINE"
+  },
+  "Daydream Warrior": {
+    "artist_orig": "Aqours"
+  },
+  "Dazzling Game": {
+    "artist_orig": "Liella!, 澁谷かのん, ウィーン・マルガレーテ & 鬼塚冬毬"
+  },
+  "Dazzling White Town": {
+    "artist_orig": "Saint Snow"
+  },
+  "ddiction": {
+    "artist_orig": "EVO+",
+    "remap": "[A]ddiction"
+  },
+  "De Lu Lu": {
+    "artist_orig": "VOLTACTION"
+  },
+  "Dear World": {
+    "artist_orig": "MELLOW DEAR US"
+  },
+  "Dear World (Short version)": {
+    "remap": "Dear World"
+  },
+  "Decision": {
+    "artist_orig": "Amai Monogatari"
+  },
+  "Decorator": {
+    "artist_orig": "livetune"
+  },
+  "Deep Blue": {
+    "artist_orig": "Aqours"
+  },
+  "DEEP BLUE TOWNへおいでよ": {
+    "artist_orig": "team うみフレ"
+  },
+  "Deep into you": {
+    "artist_orig": "Neptu, あんさんぶるスターズ!!"
+  },
+  "DEEPNESS": {
+    "artist_orig": "蓮ノ空女学院スクールアイドルクラブ"
+  },
+  "Deer Hunter": {
+    "artist_orig": "&TEAM"
+  },
+  "Del Megirei": {
+    "artist_orig": "Hadi Rahimi"
+  },
+  "DENPA DANCE": {
+    "artist_orig": "夜光性アミューズ"
+  },
+  "DIAMOND FUSION": {
+    "artist_orig": "TRIGGER"
+  },
+  "DIAMOND JOKER": {
+    "artist_orig": "伊吹 翼, 徳川まつり, 四条貴音 (CV: 原 由実) & 所 恵美"
+  },
+  "Din Don Dan": {
+    "artist_orig": "Ryu☆"
+  },
+  "Disc 1: Agile Reef Vol. I": {
+    "artist_orig": "Dravier",
+    "discard": true
+  },
+  "Disco Stick": {
+    "artist_orig": "Will Taylor (UK)"
+  },
+  "DISCOTHEQUE": {
+    "artist_orig": "水樹奈々"
+  },
+  "Distorted Heart": {
+    "artist_orig": "ALKALOID/天城 一彩、白鳥 藍良、礼瀬 マヨイ、風早 巽"
+  },
+  "Ditto": {
+    "artist_orig": "NewJeans"
+  },
+  "Dive Back In Time(动画《时光代理人》片头曲)": {
+    "artist_orig": "BaishaJAWS"
+  },
+  "Do You Love This Kind of Thing": {
+    "artist_orig": "茅原実里"
+  },
+  "DoDone": {
+    "artist_orig": "BEYOOOOONDS"
+  },
+  "DOGLAND": {
+    "artist_orig": "VACHSS"
+  },
+  "Dolls": {
+    "artist_orig": "9MUSES"
+  },
+  "Doutan kyohi": {
+    "artist_orig": "HoneyWorks, Chuutan(CV:Saori Hayami)"
+  },
+  "Drama": {
+    "artist_orig": "aespa"
+  },
+  "Dream Believers": {
+    "artist_orig": "蓮ノ空女学院スクールアイドルクラブ"
+  },
+  "Dream Land!Dream World!": {
+    "artist_orig": "A・ZU・NA"
+  },
+  "DRIP": {
+    "artist_orig": "BABYMONSTER"
+  },
+  "drop pop candy": {
+    "artist_orig": "Giga",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Dunk": {
+    "artist_orig": "轟はじめ"
+  },
+  "Eccentric Party Night!!": {
+    "artist_orig": "五奇人/朔間零、斎宮宗、深海奏汰、日々樹渉、逆先夏目"
+  },
+  "ECHO": {
+    "artist_orig": "Vivid BAD SQUAD",
+    "see_artist": true
+  },
+  "ECHO (feat. Azusawa Kohane&Shiraishi An&Shinonome Akito&Aoyagi Toya&Megurine Luka)": {
+    "intl": "ECHO",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "ECHO (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 巡音ルカ)": {
+    "remap": "ECHO"
+  },
+  "ELECT": {
+    "artist_orig": "niki",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Elect": {
+    "artist_orig": "niki",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Ember Awareness": {
+    "artist_orig": "ScrappyVibes"
+  },
+  "Endless Calm": {
+    "artist_orig": "Harmonic Minds"
+  },
+  "Ensemble Taiso!!": {
+    "artist_orig": "Jin & Akiomi"
+  },
+  "Ensemble Taiso!! - Otona no honne ver.": {
+    "remap": "Ensemble Taiso!!"
+  },
+  "erase or zero": {
+    "artist_orig": "HzEdge(クリスタルP)"
+  },
+  "Error404♡": {
+    "artist_orig": "CUTIE STREET"
+  },
+  "Eutopia": {
+    "artist_orig": "鐘 嵐珠"
+  },
+  "Everybody Move": {
+    "artist_orig": "ビジー・シグナル",
+    "discard": true
+  },
+  "EX19:アイドル活動! (EX19:偶像活动!) (オールスターver.)": {
+    "remap": "アイドル活動!"
+  },
+  "EXCEED": {
+    "artist_orig": "Eden"
+  },
+  "EXCITE": {
+    "artist_orig": "ミウラダイチ"
+  },
+  "EZ DO DANCE": {
+    "artist_orig": "TRF"
+  },
+  "Fabric": {
+    "artist_orig": "Jonas Munk"
+  },
+  "Facances (6)": {
+    "artist_orig": "Fonk"
+  },
+  "FAKE IDOL": {
+    "artist_orig": "藍月なくる"
+  },
+  "Fallen For You": {
+    "artist_orig": "Ha5t"
+  },
+  "FALLIN' LOVE=IT'S WONDERLAND": {
+    "artist_orig": "Ra*bits",
+    "intl": "FALLIN’ LOVE=IT’S WONDERLAND"
+  },
+  "FALLIN'LOVE=IT'S WONDERLAND": {
+    "artist_orig": "Ra*bits/真白 友也、仁兎 なずな、天満 光、紫之 創"
+  },
+  "Fansa Cover": {
+    "artist_orig": "HoneyWorks, Capi",
+    "remap": "ファンサ"
+  },
+  "Fantasie und Fuge in D Major, BWV 912/912a: Fantasie Fuge": {
+    "artist_orig": "ロザリンデ・ハース",
+    "discard": true
+  },
+  "FANTASTIC BABY": {
+    "artist_orig": "BIGBANG"
+  },
+  "Fantastic Departure!": {
+    "artist_orig": "Aqours"
+  },
+  "Far Beyond These Castle Walls": {
+    "artist_orig": "Terry Brown"
+  },
+  "Feel This Moment": {
+    "artist_orig": "SuperFitness"
+  },
+  "Fight for Judge": {
+    "artist_orig": "Knights"
+  },
+  "Fight oh! MIRAI oh!": {
+    "artist_orig": "星見プロダクション, Various Artists"
+  },
+  "Fighting My Way": {
+    "artist_orig": "初星学園 & 花海咲季"
+  },
+  "Fighting My Way [Instrumental]": {
+    "remap": "Fighting My Way"
+  },
+  "Filament Fever": {
+    "artist_orig": "ワンダーランズ×ショウタイム & MEIKO"
+  },
+  "Fire Bird": {
+    "artist_orig": "朝香果林"
+  },
+  "Floor Killer": {
+    "artist_orig": "Merm4id"
+  },
+  "flos": {
+    "intl": "",
+    "artist_orig": "R Sound Design"
+  },
+  "Fly with You!!": {
+    "artist_orig": "Nijigasaki High School Idol Club",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Flyer!": {
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "Flyer! (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & Kagamine Len)": {
+    "remap": "Flyer!"
+  },
+  "Flying Above Microtech": {
+    "artist_orig": "SANTANTICA"
+  },
+  "FOCUS": {
+    "artist_orig": "Hearts2Hearts"
+  },
+  "Foolish Alien": {
+    "artist_orig": "Crazy:B／天城 燐音、HiMERU、桜河 こはく、椎名 ニキ"
+  },
+  "FORBIDDEN RAIN": {
+    "artist_orig": "UNDEAD／朔間 零、羽風 薫、大神 晃牙、乙狩 アドニス"
+  },
+  "Fragile (feat. Shinonome Akito&Aoyagi Toya)": {
+    "intl": "Fragile",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "FREELY TOMORROW": {
+    "artist_orig": "Mitchie M"
+  },
+  "FREELY TOMORROW (feat. 初音ミク)": {
+    "remap": "FREELY TOMORROW"
+  },
+  "FRE△KOUT": {
+    "artist_orig": "BAE"
+  },
+  "FUKKIRETA! (feat. Kasane Teto) (Remix)": {
+    "intl": "FUKKIRETA!",
+    "artist_orig": "Dwandonly, Kasane Teto"
+  },
+  "FUN!!": {
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "Funky Jumping": {
+    "artist_orig": "Da-iCE"
+  },
+  "FUN☆FUN☆わんだふるDAYS!": {
+    "intl": "FUN☆FUN☆Wonderful DAYS!"
+  },
+  "FUSIONIC STARS!!": {
+    "artist_orig": "ESオールスターズ, ESオールスターズ、フラタニティ"
+  },
+  "Future Parade": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
+  "Future☆★Town": {
+    "artist_orig": "PAiDA"
+  },
+  "G4L": {
+    "artist_orig": "Giga"
+  },
+  "Gabriela": {
+    "artist_orig": "KATSEYE"
+  },
+  "GALAXY HidE and SeeK": {
+    "artist_orig": "AZALEA"
+  },
+  "Gam Gam": {
+    "artist_orig": "Max Monti, Mauro Pilato, Mauro Pilato & Max Monti"
+  },
+  "Gameboy": {
+    "artist_orig": "KATSEYE"
+  },
+  "Gangnam Style": {
+    "artist_orig": "サイ"
+  },
+  "Gee": {
+    "artist_orig": "Girls' Generation",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Genuine Revelation": {
+    "artist_orig": "旧fine／天祥院 英智、乱 凪砂、巴 日和、青葉 つむぎ"
+  },
+  "GG EZ": {
+    "artist_orig": "M.Sasuke"
+  },
+  "GGUM": {
+    "artist_orig": "YEONJUN"
+  },
+  "Ghostic Treat House": {
+    "artist_orig": "fine／天祥院 英智、日々樹 渉、姫宮 桃李、伏見 弓弦"
+  },
+  "Gimme×Gimme": {
+    "artist_orig": "八王子P & Giga"
+  },
+  "Gimme×Gimme feat. 初音ミク・鏡音リン": {
+    "remap": "Gimme×Gimme"
+  },
+  "Girls": {
+    "artist_orig": "GARNiDELiA"
+  },
+  "GIRLS' LEGEND U": {
+    "artist_orig": "ウマ娘 プリティーダービー"
+  },
+  "Glory Steady Go!": {
+    "artist_orig": "キノシタ"
+  },
+  "Glory Steady Go! (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 巡音ルカ)": {
+    "remap": "Glory Steady Go!"
+  },
+  "Go In": {
+    "artist_orig": "Yordee"
+  },
+  "Go Wild": {
+    "artist_orig": "轟はじめ"
+  },
+  "Go-Getters": {
+    "artist_orig": "Mori Calliope"
+  },
+  "Golden": {
+    "artist_orig": "KPop Demon Hunters"
+  },
+  "GOLDEN": {
+    "artist_orig": "ヒメヒナ",
+    "artist_intl": "HIMEHINA"
+  },
+  "Golden Abundance 888hz": {
+    "artist_orig": "Soul Resonance Music"
+  },
+  "Good": {
+    "artist_orig": "RINV & DJ Vanh"
+  },
+  "Got Boost?": {
+    "artist_orig": "FANTASTICS from EXILE TRIBE"
+  },
+  "Graceful Punishment": {
+    "artist_orig": "Cascade of… & あんさんぶるスターズ!!"
+  },
+  "Grand Blue": {
+    "artist_orig": "湘南乃風"
+  },
+  "Grateful allegiance": {
+    "artist_orig": "Knights"
+  },
+  "GREATEST": {
+    "artist_orig": "音乃瀬奏"
+  },
+  "Greece 2000 (Max Styler Rework)": {
+    "artist_orig": "Three Drives & Three Drives On a Vinyl"
+  },
+  "Guilty": {
+    "artist_orig": "TAEMIN"
+  },
+  "Guilty Eyes Fever": {
+    "artist_orig": "Guilty Kiss"
+  },
+  "Gum": {
+    "artist_orig": "Jessi"
+  },
+  "G線上のシンデレラ": {
+    "artist_orig": "松浦果南, 黒澤ダイヤ & 小原鞠莉"
+  },
+  "HACK": {
+    "artist_orig": "Shuta Sueyoshi"
+  },
+  "Hamutarou Tottoko Uta": {
+    "artist_orig": "Ham-Hams"
+  },
+  "Hand in Hand": {
+    "artist_orig": "livetune"
+  },
+  "Hand In Hand": {
+    "artist_orig": "kz (livetune)"
+  },
+  "Hand In Hand (Magical Mirai Version)": {
+    "remap": "Hand In Hand"
+  },
+  "Happy Halloween": {
+    "artist_orig": "Junky"
+  },
+  "Happy Halloween (feat. 鏡音リン)": {
+    "remap": "Happy Halloween"
+  },
+  "Happy maker!": {
+    "artist_orig": "μ's"
+  },
+  "HAPPY PARTY TRAIN": {
+    "artist_orig": "Aqours"
+  },
+  "Harmonia Mundi (feat. Thomas Ronkin)": {
+    "artist_orig": "Steve Roach"
+  },
+  "HAVE A NICE DAY": {
+    "artist_orig": "WORLD ORDER"
+  },
+  "Have you been naughty or nice?": {
+    "artist_orig": "Flambé！／天城 燐音、真白 友也、明星 スバル、伏見 弓弦、七種 茨"
+  },
+  "Heart Collector": {
+    "artist_orig": "Knights"
+  },
+  "Heartbeat": {
+    "artist_orig": "DOU12E"
+  },
+  "HELP!!": {
+    "artist_orig": "Kobo Kanaeru"
+  },
+  "Helter-Spider": {
+    "artist_orig": "Crazy:B"
+  },
+  "Helter-Spider (Game Edit)": {
+    "remap": "Helter-Spider"
+  },
+  "HERO": {
+    "artist_orig": "Ayase"
+  },
+  "Higher": {
+    "artist_orig": "IA"
+  },
+  "Higher (Radio Edit)": {
+    "artist_orig": "Shaked Dudovich"
+  },
+  "Holiday∞Holiday": {
+    "intl": "",
+    "artist_orig": "スリーズブーケ",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "HOLOTORI Dance!": {
+    "artist_orig": "HOLOTORI",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Holy Spirit": {
+    "artist_orig": "Fernando Tomitão"
+  },
+  "Honeycomb Summer": {
+    "artist_orig": "Crazy:B"
+  },
+  "Hop? Stop? Nonstop!": {
+    "artist_orig": "Aqours"
+  },
+  "HOT LIMIT": {
+    "artist_orig": "T.M.Revolution",
+    "see_artist": true
+  },
+  "HOT PASSION!!": {
+    "artist_orig": "Sunny Passion"
+  },
+  "HOT SAUCE": {
+    "artist_orig": "BABYMONSTER"
+  },
+  "Hot Summer": {
+    "artist_orig": "f(x)"
+  },
+  "How Sweet": {
+    "artist_orig": "NewJeans"
+  },
+  "How to be mine": {
+    "artist_orig": "Ayatsuno Yuni"
+  },
+  "How To Love (feat. Sofia Reyes) [Boombox Cartel Remix]": {
+    "artist_orig": "キャッシュ・キャッシュ"
+  },
+  "HOWL": {
+    "artist_orig": "Ayumu Imazu"
+  },
+  "Huh": {
+    "artist_orig": "thor@hammer",
+    "discard": true
+  },
+  "HYPE DANCE": {
+    "artist_orig": "Maynard DANCE"
+  },
+  "Hysteric Bullet": {
+    "artist_orig": "GARNiDELiA"
+  },
+  "Hysteric Humanoid": {
+    "artist_orig": "ALKALOID／天城 一彩、白鳥 藍良、礼瀬 マヨイ、風早 巽"
+  },
+  "I Adore You (feat. Topic, Arash & Daecolm)": {
+    "artist_orig": "HUGEL, J. バルヴィン & エリー・ゴールディング"
+  },
+  "I I I": {
+    "artist_orig": "宝鐘マリン ＆ こぼ・かなえる",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "I Just Can't Get Enough": {
+    "artist_orig": "Herd & Fitz",
+    "discard": true
+  },
+  "ICONIC HEART": {
+    "artist_orig": "Hearts2Hearts"
+  },
+  "Ievan Polkka": {
+    "artist_orig": "Otomania"
+  },
+  "III": {
+    "artist_orig": "Justen & Sena"
+  },
+  "IKKITOUSEN!": {
+    "artist_orig": "梅とら"
+  },
+  "Illegal Musician": {
+    "artist_orig": "Nopalzin",
+    "discard": true
+  },
+  "in this unstable world": {
+    "artist_orig": "津島善子 from Aqours"
+  },
+  "INFINITY": {
+    "artist_orig": "NIJISANJI EN",
+    "see_artist": true
+  },
+  "Inner Peace": {
+    "artist_orig": "Ricardo M"
+  },
+  "Instant Crush": {
+    "artist_orig": "ダフト・パンク & ジュリアン・カサブランカス"
+  },
+  "Intergalactic Bound": {
+    "artist_orig": "雄之助, CircusP & 初音ミク"
+  },
+  "Internet Girl": {
+    "artist_orig": "KATSEYE"
+  },
+  "INTERNET OVERDOSE": {
+    "artist_orig": "NEEDY GIRL OVERDOSE, KOTOKO & Aiobahn +81"
+  },
+  "INTERNET YAMERO": {
+    "artist_orig": "NEEDY GIRL OVERDOSE, KOTOKO & Aiobahn +81"
+  },
+  "Into the New World": {
+    "artist_orig": "Girls' Generation",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Invader Invader": {
+    "artist_orig": "きゃりーぱみゅぱみゅ"
+  },
+  "IRIS OUT": {
+    "artist_orig": "米津玄師"
+  },
+  "irony": {
+    "artist_orig": "ClariS"
+  },
+  "It's Me": {
+    "artist_orig": "ILLIT"
+  },
+  "I’m Your Treasure Box *あなたは マリンせんちょうを たからばこからみつけた。": {
+    "intl": "",
+    "artist_orig": "宝鐘マリン"
+  },
+  "Iなんです": {
+    "intl": "I Nandesu",
+    "artist_orig": "I Nandesu",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Jellyfish": {
+    "artist_orig": "5yncri5e!"
+  },
+  "jellyous": {
+    "artist_orig": "ILLIT"
+  },
+  "JIMO-AI Dash!": {
+    "artist_orig": "Aqours"
+  },
+  "Jingle Cowbells": {
+    "artist_orig": "NivramaG"
+  },
+  "Journey": {
+    "artist_orig": "初音ミク, 星乃一歌, 花里みのり, 小豆沢こはね, 天馬司 & 宵崎奏"
+  },
+  "Jugnoo": {
+    "artist_orig": "Shahzaib Paracha"
+  },
+  "Jump Into the New World": {
+    "artist_orig": "Liella!"
+  },
+  "JUST MY ジンセイ": {
+    "artist_orig": "ネコプラpixx."
+  },
+  "KA-GA-YA-KI-RA-RI-RA": {
+    "artist_orig": "Aqours"
+  },
+  "Kadidia Sidibé": {
+    "artist_orig": "Authentic Kosmo"
+  },
+  "Kahen Sanren Mix wo Oboeru Uta": {
+    "artist_orig": "Medansy"
+  },
+  "Kahen Sanren Mix wo Oboeru Uta - OtakuVer.": {
+    "remap": "Kahen Sanren Mix wo Oboeru Uta"
+  },
+  "KAMACHO": {
+    "artist_orig": "Kizuna AI"
+  },
+  "Kawaii Kaiwai": {
+    "artist_orig": "PiKi"
+  },
+  "KAYARARA": {
+    "artist_orig": "Aqours feat.初音ミク"
+  },
+  "KEEP OUT": {
+    "artist_orig": "Eden"
+  },
+  "KEY of Like!": {
+    "artist_orig": "スリーズブーケ, DOLLCHESTRA & みらくらぱーく!"
+  },
+  "KEY of Like! (Off Vocal)": {
+    "remap": "KEY of Like!"
+  },
+  "Không Cách Tha Thứ": {
+    "artist_orig": "Lý Giai Lộ (Li Jia Lu)"
+  },
+  "Kill This Love": {
+    "artist_orig": "BLACKPINK"
+  },
+  "KiLLiNG ME": {
+    "artist_orig": "SiM"
+  },
+  "KING": {
+    "artist_orig": "Kanaria"
+  },
+  "KiRa-KiRa Sensation!": {
+    "artist_orig": "μ's"
+  },
+  "KiRa-KiRa Sensation! - NOZOMI Mix": {
+    "remap": "KiRa-KiRa Sensation!"
+  },
+  "KIRARI MAGIC SHOW": {
+    "artist_orig": "オグリキャップ(高柳知葉),イナリワン(井上遥乃),スマートファルコン(大和田仁美),コパノリッキー(稲垣好),ホッコータルマエ(菊池紗矢香),ワンダーアキュート(須藤叶希)"
+  },
+  "Kiss a kitty": {
+    "artist_orig": "チュウ"
+  },
+  "Kiss Kiss Kiss": {
+    "artist_orig": "小野大輔",
+    "see_artist": true
+  },
+  "Kiss of Life": {
+    "artist_orig": "ALKALOID"
+  },
+  "Knights the Phantom Thief": {
+    "artist_orig": "Knights"
+  },
+  "Koi No Hime Hime Pettanko": {
+    "artist_orig": "Yukari Tamura"
+  },
+  "KOKORO NO TAMAGO": {
+    "artist_orig": "Buono!"
+  },
+  "KONKON Beats": {
+    "artist_orig": "白上フブキ"
+  },
+  "Ku Daina Dariaya": {
+    "artist_orig": "Nura M. Inuwa"
+  },
+  "KU-RU-KU-RU Cruller!": {
+    "artist_orig": "Aqours"
+  },
+  "KUKU-RU Cruller!": {
+    "artist_orig": "Aqours"
+  },
+  "KYAWAII♡5000%": {
+    "intl": "",
+    "artist_orig": "いずれ菖蒲か杜若"
+  },
+  "Kyutama Dancing!": {
+    "artist_orig": "Tsuyoshi Matsubara (Project.R)"
+  },
+  "Kyutama Dancing! (TV Edit)": {
+    "remap": "Kyutama Dancing!"
+  },
+  "LADY CRAZY": {
+    "artist_orig": "HIMEHINA"
+  },
+  "Lamb": {
+    "artist_orig": "GARNiDELiA"
+  },
+  "Lamb.": {
+    "intl": "",
+    "artist_orig": "GARNiDELiA"
+  },
+  "Laughter That Children Love": {
+    "artist_orig": "Zagora ghazal"
+  },
+  "Launch": {
+    "artist_orig": "Two MoroN"
+  },
+  "Le temps des fleurs": {
+    "artist_orig": "Valkyrie"
+  },
+  "LEMON MELON COOKIE": {
+    "artist_orig": "TAK"
+  },
+  "Let's be ONE": {
+    "artist_orig": "Liella!"
+  },
+  "Let's Go!": {
+    "artist_orig": "まとめ集"
+  },
+  "Let’s do the ‘Big-Bang!’": {
+    "intl": "",
+    "artist_orig": "Peaky P-key"
+  },
+  "LEVEL5 -judgelight-": {
+    "artist_orig": "FripSide"
+  },
+  "Life is Onceで候": {
+    "intl": "",
+    "artist_orig": "ROF-MAO",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Lifeboat": {
+    "artist_orig": "Aaron Buckley",
+    "discard": true
+  },
+  "Like a Cat": {
+    "artist_orig": "AOA"
+  },
+  "like JENNIE": {
+    "artist_orig": "JENNIE"
+  },
+  "Lily": {
+    "artist_orig": "Toiki",
+    "see_artist": true
+  },
+  "Lily (feat. Isui)": {
+    "remap": "Lily"
+  },
+  "LiMiT STRiKER!": {
+    "artist_orig": "iLiFE!"
+  },
+  "Listen And You'll See": {
+    "artist_orig": "The Crusaders"
+  },
+  "Little Romance": {
+    "artist_orig": "Knights/朱桜 司、月永 レオ、瀬名 泉、朔間 凛月、鳴上 嵐"
+  },
+  "LOCK YOUR GAZE": {
+    "artist_orig": "MODE/D"
+  },
+  "Lollipop": {
+    "artist_orig": "miComet"
+  },
+  "LONELIEST BABY": {
+    "artist_orig": "μ's"
+  },
+  "Loneliness": {
+    "artist_orig": "Inward Universe"
+  },
+  "Lonesome rabbit": {
+    "artist_orig": "櫻坂46"
+  },
+  "Lost Umbrella": {
+    "artist_orig": "Inaba Cumori"
+  },
+  "LOUDEST BUGS": {
+    "artist_orig": "紅月, あんさんぶるスターズ!!"
+  },
+  "Love": {
+    "artist_orig": "Kodov3"
+  },
+  "LOVE & JOY": {
+    "artist_orig": "木村由姫"
+  },
+  "Love 119": {
+    "artist_orig": "RIIZE"
+  },
+  "LOVE DIVE": {
+    "artist_orig": "IVE"
+  },
+  "Love Fire": {
+    "artist_orig": "PSYCHIC FEVER from EXILE TRIBE"
+  },
+  "Love friend style": {
+    "artist_orig": "SoLaMiDressing"
+  },
+  "LOVE IS THE STRONGEST": {
+    "artist_orig": "May'n"
+  },
+  "Love it Love it": {
+    "artist_orig": "Ra*bits"
+  },
+  "Love it Love it(Game Edit)": {
+    "remap": "Love it Love it"
+  },
+  "Love Love Re:boot": {
+    "artist_orig": "最終未来少女"
+  },
+  "Love Me If You Can": {
+    "artist_orig": "梅とら"
+  },
+  "Love Me More": {
+    "artist_orig": "Apink"
+  },
+  "LOVE PARFAIT": {
+    "artist_orig": "The Shinbi House"
+  },
+  "Love Shot": {
+    "artist_orig": "EXO"
+  },
+  "Love U my friends": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
+  "LOVE&JOY": {
+    "artist_orig": "山本希望"
+  },
+  "Loveit?": {
+    "artist_orig": "biz & ZERA"
+  },
+  "Loveit? (feat. LOLUET)": {
+    "remap": "Loveit?"
+  },
+  "LOVELESS WORLD": {
+    "artist_orig": "μ's"
+  },
+  "Love Me If You Can": {
+    "artist_orig": "Umetora",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "LOVEドッきゅん": {
+    "artist_orig": "CLUB PRINCE"
+  },
+  "LPQ Harmonic Ascension The Flow Unfolds": {
+    "artist_orig": "LPQ"
+  },
+  "Lucky Star Opening": {
+    "artist_orig": "AnimeHub",
+    "remap": "もってけ!セーラーふく"
+  },
+  "lucky train!": {
+    "artist_orig": "るか, もな & みき"
+  },
+  "lucky train! ～のの & リサ & ドロシー & レオナ ver.～": {
+    "remap": "lucky train!"
+  },
+  "Luka Luka Night Fever": {
+    "artist_orig": "samfree"
+  },
+  "Luka Luka Night Fever (feat. Megurine Luka)": {
+    "remap": "Luka Luka Night Fever"
+  },
+  "Luminous Crown": {
+    "artist_orig": "Knights"
+  },
+  "Luminous Crown (Game Edit)": {
+    "remap": "Luminous Crown"
+  },
+  "Luv 4 Luv (Stone's Radio Edit)": {
+    "artist_orig": "Robin s"
+  },
+  "Luvoratorrrrry!": {
+    "artist_orig": "れをる Feat. Nqrse"
+  },
+  "M@GICAL CURE! LOVE SHOT!": {
+    "artist_orig": "SAWTOWNE & 初音ミク"
+  },
+  "M@STERPIECE": {
+    "artist_orig": "765PRO ALLSTARS",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "MACHO!": {
+    "artist_orig": "BABYBEARD"
+  },
+  "MAD GAME": {
+    "artist_orig": "MAD MEDiCiNE"
+  },
+  "Magic Clock": {
+    "artist_orig": "f5ve"
+  },
+  "Magic for your \"Switch\"": {
+    "intl": "",
+    "artist_orig": "Switch/逆先夏目、青葉つむぎ、春川宙",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "magnet": {
+    "artist_orig": "shikabane"
+  },
+  "Magnetic": {
+    "artist_orig": "ILLIT"
+  },
+  "Majestic Magic": {
+    "artist_orig": "Switch×Eden"
+  },
+  "Maji Destiny": {
+    "artist_orig": "M!LK"
+  },
+  "Maji Destiny (Shunta Sono & Jyutaro Yamanaka)": {
+    "remap": "Maji Destiny"
+  },
+  "Make debut!": {
+    "artist_orig": "ウマ娘 プリティーダービー",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Make it!": {
+    "artist_orig": "i☆Ris"
+  },
+  "Makudonarudo": {
+    "artist_orig": "黄明志"
+  },
+  "Makudonarudo (feat. 二宮芽生)": {
+    "remap": "Makudonarudo"
+  },
+  "Marble Make Up A-Ha-Ha!": {
+    "artist_orig": "真中Lala & 南Mirei＆北条Sofi（ｃｖ．茜屋日海夏＆芹澤優＆久保田未夢）"
+  },
+  "MASAYUME CHASING": {
+    "artist_orig": "BoA"
+  },
+  "Mashup: Ievan Polkka, Ngày Mai": {
+    "artist_orig": "V.A",
+    "remap": "Ievan Polkka"
+  },
+  "Master of Humanity": {
+    "artist_orig": "Horror Skunx"
+  },
+  "MECHA-MECHA": {
+    "artist_orig": "MECHATU-A"
+  },
+  "Melenoy Dance": {
+    "artist_orig": "SINGEL RAIDERS"
+  },
+  "Mellow Addiction": {
+    "artist_orig": "MELLOW DEAR US"
+  },
+  "Melody in the Dark": {
+    "artist_orig": "UNDEAD"
+  },
+  "Melt": {
+    "artist_orig": "初音ミク & supercell"
+  },
+  "Melt ice cream": {
+    "artist_orig": "TRAP CHICK"
+  },
+  "Melting Rouge Soul": {
+    "artist_orig": "Adam"
+  },
+  "Melting Rouge Soul (Game Edit)": {
+    "remap": "Melting Rouge Soul"
+  },
+  "Melty Kitchen": {
+    "artist_orig": "Ra*bits"
+  },
+  "Memorial": {
+    "artist_orig": "i☆Ris"
+  },
+  "Mente Má": {
+    "artist_orig": "Mc Staff & Nakama"
+  },
+  "Mermaid festa vol.1": {
+    "artist_orig": "μ's"
+  },
+  "Message of a Rainbow": {
+    "artist_orig": "せな/ななせ"
+  },
+  "METEOR": {
+    "artist_orig": "DIVELA"
+  },
+  "Midas Touch": {
+    "artist_orig": "KISS OF LIFE"
+  },
+  "Midnight Call": {
+    "artist_orig": "ぜったくん"
+  },
+  "Midnight City (Eric Prydz Private Remix) [Mixed]": {
+    "artist_orig": "M83"
+  },
+  "Miku": {
+    "artist_orig": "Anamanaguchi & 初音ミク"
+  },
+  "Milky Starry Charm": {
+    "artist_orig": "Ra*bits"
+  },
+  "Minecraft Tutorial #1": {
+    "artist_orig": "Cheeky Copernicus"
+  },
+  "Mingle Game Song": {
+    "artist_orig": "Jung Jae II"
+  },
+  "Miniskirt": {
+    "artist_orig": "AOA"
+  },
+  "Minor Hypnosis": {
+    "artist_orig": "Onur Tuna"
+  },
+  "MIRACLE WAVE": {
+    "artist_orig": "Aqours"
+  },
+  "MIRACLE WAVE【TVアニメ2期第6話挿入歌】": {
+    "artist_orig": "Aqours"
+  },
+  "MIRAI TICKET": {
+    "artist_orig": "Aqours"
+  },
+  "MIRROR": {
+    "artist_orig": "Ado"
+  },
+  "Mischievous Function": {
+    "artist_orig": "Echoes of Vocaloid",
+    "intl": "",
+    "artist_intl": "",
+    "remap": "おちゃめ機能"
+  },
+  "Misty Frosty Love": {
+    "artist_orig": "桜内梨子 & 渡辺 曜"
+  },
+  "Mix shake!!": {
+    "artist_orig": "スリーズブーケ"
+  },
+  "mochimochi": {
+    "artist_orig": "TAK"
+  },
+  "MOMENT RING": {
+    "artist_orig": "μ's"
+  },
+  "Money Counting Machine": {
+    "artist_orig": "artelligencemusic"
+  },
+  "MONSTER GENERATiON": {
+    "artist_orig": "IDOLiSH7"
+  },
+  "MONSTER GIRLS": {
+    "artist_orig": "R3BIRTH"
+  },
+  "MONTAGEM XONADA": {
+    "artist_orig": "MXZI, dj Samir & DJ Javi26"
+  },
+  "Moon (Ian Ludvig Remix)": {
+    "artist_orig": "Maiki"
+  },
+  "Moonlight": {
+    "artist_orig": "Vivid BAD SQUAD",
+    "see_artist": true
+  },
+  "MORE": {
+    "artist_orig": "K/DA, マディソン・ビアー & i-dle"
+  },
+  "More Super Love": {
+    "artist_orig": "小野大輔"
+  },
+  "mosi mosi?": {
+    "artist_orig": "楽音"
+  },
+  "MOTTAI": {
+    "artist_orig": "P丸様。"
+  },
+  "MOTTO!!!": {
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "MOTTO!!! (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 初音ミク)": {
+    "remap": "MOTTO!!!"
+  },
+  "MOVE": {
+    "artist_orig": "태민"
+  },
+  "Move on Now!": {
+    "artist_orig": "Risuko, Waka, Fūri, Sunao from STAR☆ANIS"
+  },
+  "Move on now!": {
+    "artist_orig": "Risuko, Waka, Fūri, Sunao"
+  },
+  "Move on Now! 〜美月ソロ Ver.〜": {
+    "artist_orig": "りすこ",
+    "remap": "Move on Now!"
+  },
+  "Move on now! 〜美月ソロ Ver.〜(Short Size)": {
+    "remap": "Move on now!"
+  },
+  "Move Your Body Till You Die!": {},
+  "Mr Music": {
+    "artist_orig": "れるりり, ロンチーノ=ペペ & かごめP"
+  },
+  "Mr Music (feat. Hatsune Miku, Megurine Luka, Append, baker, 鏡音リンAppend Power+α, 鏡音レン, GUMI & 歌愛ユキ)": {
+    "remap": "Mr Music"
+  },
+  "Mr. Showtime": {
+    "artist_orig": "ひとしずく & やま"
+  },
+  "Mr. Showtime (feat. 天馬司&鳳えむ&草薙寧々&神代類&巡音ルカ)": {
+    "remap": "Mr. Showtime"
+  },
+  "Mr.Music (ギガP REMIX)": {
+    "artist_orig": "れるりり (当社比P), 日本群星 (オムニバス)"
+  },
+  "MR.TAXI": {
+    "artist_orig": "少女時代"
+  },
+  "Mr.VIRTUALIZER": {
+    "artist_orig": "ヒメヒナ",
+    "artist_intl": "HIMEHINA"
+  },
+  "Music S.T.A.R.T!!": {
+    "artist_orig": "μ's"
+  },
+  "Music the Best 2": {
+    "artist_orig": "JustinSeven Music"
+  },
+  "Musim Yang Selanjutnya": {
+    "artist_orig": "JKT48"
+  },
+  "Musim Yang Selanjutnya - Tsugi No Season": {
+    "remap": "Musim Yang Selanjutnya"
+  },
+  "MY STARWAY": {
+    "artist_orig": "わか, ふうり & ゆな"
+  },
+  "Mystic Fragrance": {
+    "artist_orig": "Knights",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Mystic Light Quest": {
+    "artist_orig": "塞壬唱片-MSR & Machico"
+  },
+  "MY舞☆TONIGHT": {
+    "artist_orig": "Aqours"
+  },
+  "Nagare Gun Meteor Stream Beat": {
+    "remap": "流★群 Meteor Stream"
+  },
+  "Naked Dive": {
+    "artist_orig": "SCREEN mode"
+  },
+  "NATSU☆しようぜ!": {
+    "intl": "NATSU shiyou ze!",
+    "artist_orig": "IDOLiSH7"
+  },
+  "Nebula Dreamscapes": {
+    "artist_orig": "Bass Fun"
+  },
+  "Necchu Syndrome": {
+    "artist_orig": "魔法少女ホロウィッチ!"
+  },
+  "nekojarashi": {
+    "artist_orig": "7co"
+  },
+  "nekojarashi (Anime ver.)": {
+    "remap": "nekojarashi"
+  },
+  "NEO": {
+    "artist_orig": "初音ミク, 星乃一歌, 花里みのり, 小豆沢こはね, 天馬司 & 宵崎奏"
+  },
+  "Neo Sanctuary": {
+    "artist_orig": "fine"
+  },
+  "NEO SKY, NEO MAP!": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
+  "Nepali Flute Musicसदाबहार सुमधुर नेपाली धुन Nostalgic Nepali Folk Morning Flute": {
+    "artist_orig": "Bishram Relaxing"
+  },
+  "nerve": {
+    "artist_orig": "BiS"
+  },
+  "NEW DANCE": {
+    "artist_orig": "XG"
+  },
+  "NEW KAWAII": {
+    "artist_orig": "FRUITS ZIPPER"
+  },
+  "New Romantic Sailors": {
+    "artist_orig": "Guilty Kiss"
+  },
+  "Newtro Kingdom": {
+    "artist_orig": "김가해 (ASTERIA)"
+  },
+  "NEXT CARD": {
+    "artist_orig": "AiScReam"
+  },
+  "NEXT FRONTIER": {
+    "artist_orig": "Uma Musume Pretty Derby",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Night": {
+    "artist_orig": "KORVV"
+  },
+  "NIGHT DANCER": {
+    "artist_orig": "imase"
+  },
+  "Night Of Fire": {
+    "artist_orig": "NIKO"
+  },
+  "nightcord": {
+    "artist_orig": "deaya",
+    "remap": "キャットラビング"
+  },
+  "Nightmare": {
+    "artist_orig": "Azari",
+    "see_artist": true
+  },
+  "Nkuwulira": {
+    "artist_orig": "Dokta Brain"
+  },
+  "NNNCN": {
+    "artist_orig": "TAK"
+  },
+  "No brand girls": {
+    "artist_orig": "μ's"
+  },
+  "No Lies": {
+    "artist_orig": "Pitt Leffer"
+  },
+  "No name yet": {
+    "artist_orig": "Double Face／三毛縞 斑、桜河 こはく"
+  },
+  "No thank Cute!": {
+    "artist_orig": "しぐれうい"
+  },
+  "No.1": {
+    "artist_orig": "mona"
+  },
+  "No.1 (feat. HoneyWorks)": {
+    "remap": "No.1"
+  },
+  "Noir Neige": {
+    "artist_orig": "La Mort"
+  },
+  "Noir Neige (Game Edit)": {
+    "remap": "Noir Neige"
+  },
+  "North Child": {
+    "artist_orig": "内田真礼"
+  },
+  "Nostalogic": {
+    "artist_orig": "yuukiss"
+  },
+  "NOT CUTE ANYMORE": {
+    "artist_orig": "ILLIT"
+  },
+  "Now": {
+    "artist_orig": "Trouble Maker"
+  },
+  "Nubes": {
+    "artist_orig": "Diego Pulgarin"
+  },
+  "numb numb": {
+    "artist_orig": "TAK"
+  },
+  "Nya Mhway Pann": {
+    "artist_orig": "DJ Wine"
+  },
+  "OBF": {
+    "artist_orig": "ジョー・力一"
+  },
+  "Ocean": {
+    "artist_orig": "ジョン・バトラー・トリオ"
+  },
+  "Offshore Waves": {
+    "artist_orig": "Blue Sense"
+  },
+  "Oh my pumpkin!": {
+    "artist_orig": "AKB48"
+  },
+  "Oh,Love&Peace!": {
+    "artist_orig": "μ's"
+  },
+  "OIDEMASE!!〜極楽〜": {
+    "intl": "OIDEMASE!!〜gokuraku〜",
+    "artist_orig": "FES☆TIVE"
+  },
+  "OIDEMASE!!～極楽～ 2021": {
+    "intl": "Oidemase!! Gokuraku 2021",
+    "artist_orig": "FES☆TIVE",
+    "artist_intl": "",
+    "remap": "OIDEMASE!!～極楽～"
+  },
+  "OKP Cipher": {
+    "artist_orig": "アバンギャルディ"
+  },
+  "on the rocks": {
+    "artist_orig": "OSTER project"
+  },
+  "On your mark": {
+    "artist_orig": "蓮ノ空女学院スクールアイドルクラブ"
+  },
+  "One Night Carnival": {
+    "artist_orig": "氣志團"
+  },
+  "One with One": {
+    "artist_orig": "ESオールスターズ"
+  },
+  "only my railgun": {
+    "artist_orig": "fripSide"
+  },
+  "Only One": {
+    "artist_orig": "ロイエル・オーティス"
+  },
+  "OPEN DREAM LAND!": {
+    "artist_orig": "SoLaMi♡SMILE"
+  },
+  "Opus": {
+    "artist_orig": "エリック・プライズ"
+  },
+  "Or the Beautiful Golden Drop": {
+    "artist_orig": "Knights"
+  },
+  "OTAHEN アンセム": {
+    "intl": "OTAHEN Anthem",
+    "artist_orig": "夢見りあむ (CV: 星希成奏)"
+  },
+  "Outbreaker": {
+    "artist_orig": "Hinkik"
+  },
+  "Over The Future": {
+    "artist_orig": "可憐Girl's"
+  },
+  "Overdose": {
+    "artist_orig": "なとり"
+  },
+  "OVERDRIVE": {
+    "artist_orig": "TWS"
+  },
+  "OVERWHELM!": {
+    "artist_orig": "Peaky P-key"
+  },
+  "P.A.R.T.Y. ～ユニバース・フェスティバル～": {
+    "artist_orig": "DA PUMP",
+    "intl": "P. A. R. T. Y. ~Universe Festival~"
+  },
+  "p.h.": {
+    "artist_orig": "SEVENTHLINKS"
+  },
+  "Paloma Blanca": {
+    "artist_orig": "ジョージ・ベイカー"
+  },
+  "PAPARAZZI": {
+    "artist_orig": "少女時代"
+  },
+  "Paparazzi": {
+    "artist_orig": "Girls' Generation"
+  },
+  "Paradise Lost": {
+    "artist_orig": "茅原実里"
+  },
+  "PARANOIA STREET": {
+    "artist_orig": "Crazy:B/天城 燐音、HiMERU、桜河 こはく、椎名 ニキ"
+  },
+  "PASSION": {
+    "artist_orig": "GARNiDELiA"
+  },
+  "Passion flower ～ひびき & ふわり & ファルル ver.～": {
+    "artist_orig": "紫京院ひびき、緑風ふわり、ファルル"
+  },
+  "Patchwork Staccato": {
+    "artist_orig": "toa"
+  },
+  "Patchwork Staccato (feat. Hatsune Miku)": {
+    "remap": "Patchwork Staccato"
+  },
+  "PaⅢ.SENSATION": {
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "Pedro": {
+    "artist_orig": "Jaxomy, Agatino Romero & Raffaella Carrà"
+  },
+  "Pick Up That Knife": {
+    "artist_orig": "Wednesday"
+  },
+  "Piece of my world": {
+    "artist_orig": "Night Ravens"
+  },
+  "Pikkaan!": {
+    "artist_orig": "Giga|Sakurazaka46|TeddyLoid"
+  },
+  "Pikkaan! (feat. Rina Matsuda & Hikaru Morita)": {
+    "remap": "Pikkaan!"
+  },
+  "Playboy": {
+    "artist_orig": "7 Icons"
+  },
+  "Plazma": {
+    "artist_orig": "米津玄師"
+  },
+  "POKÉDANCE": {
+    "artist_orig": "Nanahira & Yuki Honda"
+  },
+  "Polar Star": {
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "PONPONPON": {
+    "artist_orig": "きゃりーぱみゅぱみゅ"
+  },
+  "Ponponpon": {
+    "artist_orig": "Kagamine Rin",
+    "remap": "PONPONPON"
+  },
+  "POP IN 2": {
+    "artist_orig": "B小町",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Pop/Stars": {
+    "artist_orig": "K/DA"
+  },
+  "Popipo": {
+    "artist_orig": "初音ミク & ラマーズP"
+  },
+  "POPPY": {
+    "artist_orig": "STAYC"
+  },
+  "Port Yoneuve": {
+    "artist_orig": "佐藤仁美 & GAME FREAK"
+  },
+  "potatoになっていく": {
+    "intl": "Becoming Potatoes",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "potatoになっていく (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 初音ミク)": {
+    "remap": "potatoになっていく"
+  },
+  "PPPP": {
+    "artist_orig": "TAK"
+  },
+  "PPPP (feat. 初音ミク & 重音テト)": {
+    "remap": "PPPP"
+  },
+  "Presence": {
+    "artist_orig": "DappyTKeys"
+  },
+  "promise": {
+    "artist_orig": "広瀬香美"
+  },
+  "Promise Swords": {
+    "artist_orig": "Knights"
+  },
+  "Psyche's Butterfly": {
+    "artist_orig": "Eden"
+  },
+  "Psyche’s Butterfly": {
+    "artist_orig": "Eden"
+  },
+  "PSYCHIC FIRE": {
+    "artist_orig": "BiBi"
+  },
+  "PSYCHO": {
+    "artist_orig": "BABYMONSTER"
+  },
+  "QUEEN": {
+    "artist_orig": "Kanaria"
+  },
+  "Queencard": {
+    "artist_orig": "i-dle"
+  },
+  "Rabbit": {
+    "artist_orig": "dezzy(一億円P)"
+  },
+  "RAD DOGS": {
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "RAD DOGS (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 初音ミク)": {
+    "remap": "RAD DOGS"
+  },
+  "RAINBOW CIRCUS": {
+    "artist_orig": "fine"
+  },
+  "RaRaRa*Station!": {
+    "intl": "RaRaRa＊Station!",
+    "artist_orig": "Ra*bits, あんさんぶるスターズ!!"
+  },
+  "Rat A Tat!!!": {
+    "artist_orig": "MILLIONSTARS"
+  },
+  "ray": {
+    "artist_orig": "かぐや & 月見ヤチヨ",
+    "info": "Cosmic Princess Kaguya! Version"
+  },
+  "ray (超かぐや姫! Version)": {
+    "artist_orig": "かぐや, 月見ヤチヨ & 超かぐや姫!"
+  },
+  "Ready Smile!!": {
+    "artist_orig": "i☆Ris"
+  },
+  "Ready Steady": {
+    "artist_orig": "Giga"
+  },
+  "Ready Steady (feat. 初音ミク, 鏡音リン, 鏡音レン)": {
+    "remap": "Ready Steady"
+  },
+  "Ready Steady (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 初音ミク)": {
+    "remap": "Ready Steady"
+  },
+  "Ready!! Steady!! Derby!!": {
+    "artist_orig": "ジャングルポケット, アグネスタキオン, マンハッタンカフェ & ダンツフレーム"
+  },
+  "Real": {
+    "artist_orig": "NASHIB QUE"
+  },
+  "Realize!": {
+    "artist_orig": "i☆Ris"
+  },
+  "Reason!!": {
+    "artist_orig": "315 STARS"
+  },
+  "Rebellion Star": {
+    "artist_orig": "Trickstar"
+  },
+  "RED GARDEN": {
+    "artist_orig": "fine & あんさんぶるスターズ!!"
+  },
+  "RED ZONE": {
+    "artist_orig": "桜守歌織/豊川風花/北上麗花/馬場このみ"
+  },
+  "ReDreaming Angel": {
+    "artist_orig": "Sān-Z & HOYO-MiX"
+  },
+  "REGAIN AGAIN LLLLOVE": {
+    "artist_orig": "いきづらい部!"
+  },
+  "renaikekkaikeiho": {
+    "artist_orig": "君に、胸キュン。"
+  },
+  "Replay": {
+    "artist_orig": "SHINee",
+    "see_artist": true
+  },
+  "Revival": {
+    "artist_orig": "A.C.N., Aron Scott & Xantra"
+  },
+  "Right Beside You": {
+    "artist_orig": "ソフィー・B・ホーキンス"
+  },
+  "Ringing evil phone": {
+    "artist_orig": "EVIL NUM+"
+  },
+  "Rising Hope": {
+    "artist_orig": "LiSA"
+  },
+  "RISKY VENUS": {
+    "artist_orig": "Crazy:B"
+  },
+  "RIVER": {
+    "artist_orig": "AKB48"
+  },
+  "Role-Playing Gam": {
+    "artist_orig": "SoraMafuUraSaka",
+    "remap": "Role-Playing Game"
+  },
+  "Role-Playing Game": {
+    "artist_orig": "SoraMafuUraSaka"
+  },
+  "Romantic Now": {
+    "artist_orig": "赤城みりあ(CV:黒沢ともよ)"
+  },
+  "ROSE": {
+    "artist_orig": "HANA"
+  },
+  "round and round": {
+    "artist_orig": "Merm4id"
+  },
+  "Ruby Love": {
+    "artist_orig": "Eve"
+  },
+  "Ruby Love (Game Edit)": {
+    "remap": "Ruby Love"
+  },
+  "RUDE!": {
+    "artist_orig": "Hearts2Hearts",
+    "see_artist": true
+  },
+  "Rumble Bassline": {
+    "artist_orig": "Maelo Music RD"
+  },
+  "Russian Easter Festival, Overture, Op. 36": {
+    "artist_orig": "ロンドン交響楽団 & アンタル・ドラティ"
+  },
+  "Samba de Night Fever": {
+    "artist_orig": "ONE N' ONLY"
+  },
+  "Satellite Eyes": {
+    "artist_orig": "Eclipse Voyager"
+  },
+  "Scapegoat": {
+    "artist_orig": "Azari"
+  },
+  "Secret Masquerade": {
+    "artist_orig": "Knights & あんさんぶるスターズ!!"
+  },
+  "SECRET NIGHT": {
+    "artist_orig": "TRIGGER"
+  },
+  "SELF CONTROL!!": {
+    "artist_orig": "Saint Snow"
+  },
+  "Seven Days \"Prismagic\"": {
+    "artist_orig": "Switch",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Shadow gate to love": {
+    "artist_orig": "Guilty Kiss"
+  },
+  "Shadow Shadow": {
+    "artist_orig": "Azari",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Shake & Shake": {
+    "artist_orig": "sumika"
+  },
+  "shake it!": {
+    "artist_orig": "emon(Tes.)"
+  },
+  "Shangri-La Shower": {
+    "artist_orig": "μ's"
+  },
+  "SHEESH": {
+    "artist_orig": "BABYMONSTER"
+  },
+  "Shine In The Sky☆": {
+    "intl": "Shine in the Sky",
+    "artist_orig": "U149"
+  },
+  "Shine Purity~輝きの純度~": {
+    "artist_orig": "星見プロダクション"
+  },
+  "SHINING LINE*": {
+    "artist_orig": "STAR☆ANIS",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "Shining Star": {
+    "artist_orig": "i☆Ris"
+  },
+  "Shocking Party": {
+    "artist_orig": "A-RISE",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "SHOOT!": {
+    "artist_orig": "RO-KYU-BU!"
+  },
+  "Side Quest King": {
+    "artist_orig": "HOYO-MiX & Jam Hsiao"
+  },
+  "Silent Oath": {
+    "artist_orig": "Knights"
+  },
+  "Sin Dios No Soy Nada": {
+    "artist_orig": "Códigos Tumbados"
+  },
+  "Singin'☆Shine!": {
+    "artist_orig": "『あんさんぶるスターズ！オン・ステージ』オールキャスト"
+  },
+  "Siren": {
+    "artist_orig": "RIIZE",
+    "see_artist": true
+  },
+  "SNAKE EYES": {
+    "artist_orig": "Hakos Baelz"
+  },
+  "Snap Rhythm Is Dancer": {
+    "artist_orig": "RICHARD HARRISON"
+  },
+  "Snow halation": {
+    "artist_orig": "μ's"
+  },
+  "Snow Song Show": {
+    "artist_orig": "DECO*27とsasakure.UK"
+  },
+  "SnowMix♪": {
+    "artist_orig": "marasy & 初音ミク"
+  },
+  "soar": {
+    "artist_orig": "石田燿子"
+  },
+  "Soda Pop": {
+    "artist_orig": "KPop Demon Hunters"
+  },
+  "SODA SODA": {
+    "artist_orig": "TWS"
+  },
+  "Sonate No. 6 in C Minor, Op. 35: III. Allegro moderato": {
+    "artist_orig": "Joachim Fontaine",
+    "discard": true
+  },
+  "SPAGHETTI": {
+    "artist_orig": "LE SSERAFIM",
+    "see_artist": true
+  },
+  "Sparkle": {
+    "artist_orig": "愛美, 伊藤美来, 小笠原仁, 梶原岳人, 鈴木愛理, DIALOGUE+, TrySail, 仲村宗悟, 花澤香菜 & halca",
+    "see_artist": true
+  },
+  "specialist": {
+    "artist_orig": "アトラスサウンドチーム"
+  },
+  "SPECIALZ": {
+    "artist_orig": "King Gnu"
+  },
+  "Special♡Spell": {
+    "intl": "",
+    "artist_orig": "きゅるりんってしてみて"
+  },
+  "Spirit Dance": {
+    "artist_orig": "Lumidelic"
+  },
+  "SPLASH FREE": {
+    "artist_orig": "STYLE FIVE"
+  },
+  "SPNV.": {
+    "artist_orig": "Merry BAD TUNE."
+  },
+  "Spring Is Coming With A Strawberry In The Mouth": {
+    "artist_orig": "キャロライン・ポラチェック"
+  },
+  "STAGE OF SEKAI": {
+    "artist_orig": "Leo/need"
+  },
+  "Star Divine": {
+    "artist_orig": "スタァライト九九組"
+  },
+  "STAR!": {
+    "artist_orig": "YENA"
+  },
+  "STAR! (feat. Hatsune Miku)": {
+    "remap": "STAR!"
+  },
+  "Star!!": {
+    "artist_orig": "CINDERELLA PROJECT"
+  },
+  "Star-mine": {
+    "artist_orig": "初星学園 & Begrazia"
+  },
+  "STARDOM!": {
+    "artist_orig": "せな, りえ, みき & かな"
+  },
+  "STARDOM! ～ゆめ & ローラ Ver.～": {
+    "artist_orig": "せな & りえ"
+  },
+  "Starfruit Supernova": {
+    "artist_orig": "Celeste Strawberry Jam & catapillie"
+  },
+  "Stargaze": {
+    "artist_orig": "Sunn Jellie"
+  },
+  "Starlight Prologue": {
+    "artist_orig": "Liella!"
+  },
+  "starlog": {
+    "artist_orig": "ChouCho"
+  },
+  "START DASH SENSATION": {
+    "artist_orig": "るか, もな & みき"
+  },
+  "START!! True dreams": {
+    "artist_orig": "Liella!"
+  },
+  "START:DASH!!": {
+    "artist_orig": "μ's",
+    "intl": "",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "STAR☆T☆RAIN": {
+    "artist_orig": "B小町"
+  },
+  "STAR☆T☆RAIN -New Arrange Ver.-": {
+    "remap": "STAR☆T☆RAIN"
+  },
+  "Stecu Stecu": {
+    "artist_orig": "Faris Adam"
+  },
+  "Step! ZERO to ONE": {
+    "artist_orig": "Aqours"
+  },
+  "Still Waiting for Your Reply?": {
+    "artist_orig": "吉本おじさん"
+  },
+  "SToRY": {
+    "artist_orig": "Leo/need"
+  },
+  "Strategy": {
+    "artist_orig": "TWICE"
+  },
+  "Strawberry Rush": {
+    "artist_orig": "チュウ"
+  },
+  "Study Equal Magic!": {
+    "artist_orig": "S.E.M"
+  },
+  "Suki Lie": {
+    "artist_orig": "新しい学校のリーダーズ"
+  },
+  "Summer Challenger": {
+    "artist_orig": "水瀬いのり"
+  },
+  "Summer Love": {
+    "artist_orig": "Minerva Land"
+  },
+  "Summer Solstice": {
+    "artist_orig": "Roald Velden & jav3x"
+  },
+  "summertime": {
+    "artist_orig": "cinnamons & evening cinema"
+  },
+  "SUN KISS": {
+    "artist_orig": "TUIDE"
+  },
+  "Sunday Morning": {
+    "artist_orig": "ILLIT"
+  },
+  "Sunlit Smile!": {
+    "artist_orig": "Eve"
+  },
+  "SUNNY DAY SONG": {
+    "artist_orig": "μ's"
+  },
+  "Sunset カンフー": {
+    "intl": "Sunset Kung Fu",
+    "artist_orig": "TrySail"
+  },
+  "SUPADOPA": {
+    "artist_orig": "Ayatsuno Yuni"
+  },
+  "Super Nuko Ni Narenkatta": {
+    "artist_orig": "Mafumafu"
+  },
+  "Supernatural": {
+    "artist_orig": "NewJeans"
+  },
+  "Supernova": {
+    "artist_orig": "MORE MORE JUMP!",
+    "see_artist": true
+  },
+  "Supernova (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & KAITO)": {
+    "remap": "Supernova"
+  },
+  "Superstar": {
+    "artist_orig": "Ayumu Imazu"
+  },
+  "Surprising Click (《时光代理人》三周年企划宣传曲)": {
+    "artist_orig": "AK刘彰 & 娜迪热"
+  },
+  "Surprising Click(《时光代理人》三周年企划宣传曲)": {
+    "artist_orig": "AK刘彰/娜迪热"
+  },
+  "Swee2wink Love Letter": {
+    "artist_orig": "2wink／葵 ひなた ＆ 葵 ゆうた"
+  },
+  "SWEET NONFICTION": {
+    "artist_orig": "NiziU"
+  },
+  "Sweet Sweet White Song": {
+    "artist_orig": "Branco"
+  },
+  "Sweet Sweet White Song (Game Edit)": {
+    "remap": "Sweet Sweet White Song"
+  },
+  "sweet timer": {
+    "artist_orig": "iLiFE!"
+  },
+  "sweet&sweet holiday": {
+    "artist_orig": "printemps"
+  },
+  "SWINGIN' PARONIRIA": {
+    "artist_orig": "UNDEAD"
+  },
+  "Synthetica": {
+    "artist_orig": "Augustine Kizis"
+  },
+  "TAIDADA": {
+    "artist_orig": "ずっと真夜中でいいのに。"
+  },
+  "TAIL": {
+    "artist_orig": "ソンミ"
+  },
+  "Takedown": {
+    "artist_orig": "HUNTR/X, EJAE, オードリー・ヌナ, REI AMI & KPop Demon Hunters Cast"
+  },
+  "Tako Luka Fever": {
+    "artist_orig": "BERLE",
+    "remap": "たこルカ★マグロフィーバー"
+  },
+  "Tame-Lie-One-Step": {
+    "artist_orig": "初星学園 & 紫雲清夏"
+  },
+  "TameOne-Step": {
+    "artist_orig": "初星学園 & 紫雲清夏",
+    "remap": "Tame-Lie-One-Step"
+  },
+  "TAO HUA AN|桃花庵": {
+    "artist_orig": "封茗囧菌"
+  },
+  "Temodemo no Namida -Air Mata Perasaan yang Tak Tersampaikan-": {
+    "remap": "Air Mata Perasaan yang Tak Tersampaikan"
+  },
+  "Temptation Magic": {
+    "artist_orig": "Switch"
+  },
+  "Tenerife": {
+    "artist_orig": "Gitano"
+  },
+  "Tengo Reservado el Hotel": {
+    "artist_orig": "DJ MRK",
+    "discard": true
+  },
+  "Ternyata Kamu": {
+    "artist_orig": "Kohi Sekai"
+  },
+  "THE BADDEST": {
+    "artist_orig": "K/DA, i-dle & Wolftyla"
+  },
+  "THE GENESIS": {
+    "artist_orig": "Eden"
+  },
+  "THE GENESIS (Instrumental)": {
+    "remap": "THE GENESIS"
+  },
+  "The Tempest Night": {
+    "artist_orig": "fine"
+  },
+  "The Unknown": {
+    "artist_orig": "The S.G.S.Project"
+  },
+  "The World Is Mine": {
+    "artist_orig": "supercell"
+  },
+  "The World Is Mine (feat. Hatsune Miku)": {
+    "remap": "The World Is Mine"
+  },
+  "Tick-Trick": {
+    "artist_orig": "zensen"
+  },
+  "Time for the moon night": {
+    "artist_orig": "GFRIEND"
+  },
+  "Time Itself": {
+    "artist_orig": "California Sunshine"
+  },
+  "Tiny Giant": {
+    "artist_orig": "Sān-Z, HOYO-MiX & Ashley Alisha"
+  },
+  "Tiny Me": {
+    "artist_orig": "マサラダ"
+  },
+  "Tiny Stars": {
+    "artist_orig": "澁谷かのん & 唐 可可"
+  },
+  "Toca Toca": {
+    "artist_orig": "Fly Project"
+  },
+  "Toca Toca Que Tengo Que Hacer": {
+    "artist_orig": "S4DVIBES"
+  },
+  "Today Will Be Cheerful": {
+    "artist_orig": "Fuwari-P, Gumi V3"
+  },
+  "TOKIMEKI Runners": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
+  "TOKIMEKI Runners (TVアニメ挿入歌Ver.)": {
+    "remap": "TOKIMEKI Runners"
+  },
+  "Tokyo Drift": {
+    "artist_orig": "TERIYAKI BOYZ"
+  },
+  "TOMBOY": {
+    "artist_orig": "i-dle"
+  },
+  "Too Many Broken Hearts (Extended Version)": {
+    "artist_orig": "ジェイソン・ドノヴァン"
+  },
+  "Trap For You": {
+    "artist_orig": "Eve"
+  },
+  "TRICK with TREAT!!": {
+    "intl": "",
+    "artist_orig": "2wink"
+  },
+  "Trinity Field": {
+    "artist_orig": "福原綾香, 渕上舞, 松井恵理子"
+  },
+  "TRIPLE BOOST": {
+    "artist_orig": "ザ・チルドレン starring 平野綾＆白石涼子＆戸松遥"
+  },
+  "Trouble Maker": {
+    "artist_orig": "Trouble Maker"
+  },
+  "True Love": {
+    "artist_orig": "Somebody Hear Me"
+  },
+  "Tulip": {
+    "artist_orig": "LiPPS"
+  },
+  "Tulip (M@STER VERSION)": {
+    "remap": "Tulip"
+  },
+  "Twilight Pentagram": {
+    "artist_orig": "オルタード／朔間 零、日々樹 渉、深海 奏汰、 斎宮 宗、逆先 夏目"
+  },
+  "Twilight Twilight": {
+    "artist_orig": "PiKi"
+  },
+  "T氏の話を信じるな": {
+    "intl": "T-shi no Hanashi o Shinjiru na",
+    "artist_orig": "ピノキオピー"
+  },
+  "T氏の話を信じるな (feat. 初音ミク & 重音テト)": {
+    "remap": "T氏の話を信じるな"
+  },
+  "U.S.A": {
+    "artist_orig": "Yellavena"
+  },
+  "U.S.A.": {
+    "artist_orig": "DA PUMP"
+  },
+  "U.S.A. (Instrumental)": {
+    "remap": "U.S.A."
+  },
+  "UCHIDA 1": {
+    "artist_orig": "GINTA & ODAKEi"
+  },
+  "UFO": {
+    "artist_orig": "f5ve"
+  },
+  "ULTRA C": {
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "ULTRA C (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 初音ミク)": {
+    "remap": "ULTRA C"
+  },
+  "UNDEAD": {
+    "artist_orig": "YOASOBI"
+  },
+  "V": {
+    "artist_orig": "HIMEHINA"
+  },
+  "VAVAVA!バーチャル大分": {
+    "intl": "VAVAVA!Virtual OOITA",
+    "artist_orig": "白銀ノエル"
+  },
+  "Vega": {
+    "artist_orig": "Alex Pich & Shinobi",
+    "discard": true
+  },
+  "Very Berry Sweet White": {
+    "artist_orig": "Special for Princess!"
+  },
+  "Villain Alert!": {
+    "artist_orig": "유즈하리코(Yuzuha Riko)"
+  },
+  "Virtual to LIVE": {
+    "artist_orig": "にじさんじ"
+  },
+  "Visión De Túnel": {
+    "artist_orig": "WaltDx"
+  },
+  "VIVA LA LIBERATION": {
+    "artist_orig": "天堂天彦 & カリスマ"
+  },
+  "Vivid BAD SQUAD × MEIKO": {
+    "artist_orig": "Opovero"
+  },
+  "Voice of sword": {
+    "artist_orig": "Knights"
+  },
+  "Wake Me Up": {
+    "artist_orig": "TWICE"
+  },
+  "Watch Me": {
+    "artist_orig": "天乃リリサ(CV: 前田佳織里) & 橘 美花莉(CV: 鬼頭明里)"
+  },
+  "Watch me!": {
+    "artist_orig": "YOASOBI"
+  },
+  "WATER BLUE NEW WORLD": {
+    "artist_orig": "Aqours"
+  },
+  "WDA (Whole Different Animal)": {
+    "artist_orig": "aespa"
+  },
+  "WDA (Whole Different Animal) [feat. G-DRAGON]": {
+    "remap": "WDA (Whole Different Animal)"
+  },
+  "We on Fire": {
+    "artist_orig": "&TEAM"
+  },
+  "We Survive": {
+    "artist_orig": "KOTOKO"
+  },
+  "What a Wonderful Dream!!": {
+    "artist_orig": "Liella!"
+  },
+  "What is Love?": {
+    "artist_orig": "TWICE"
+  },
+  "What is my LIFE?": {
+    "artist_orig": "いきづらい部!"
+  },
+  "Whiplash": {
+    "artist_orig": "aespa"
+  },
+  "white festival": {
+    "artist_orig": "pure white canvas"
+  },
+  "WHITE NIGHT": {
+    "artist_orig": "Jake Miller & HOYO-MiX"
+  },
+  "White Night! White Wish!": {
+    "artist_orig": "初星学園, 葛城リーリヤ, 花海佑芽 & 藤田ことね"
+  },
+  "Who?": {
+    "artist_orig": "Azari"
+  },
+  "Why?": {
+    "artist_orig": "PLAVE"
+  },
+  "Wife": {
+    "artist_orig": "i-dle"
+  },
+  "Wigglewiggle": {
+    "artist_orig": "Hello Venus"
+  },
+  "WILD STARS": {
+    "artist_orig": "μ's"
+  },
+  "Wink": {
+    "artist_orig": "Azari"
+  },
+  "Wink (feat. Rosu)": {
+    "intl": "Wink",
+    "artist_orig": "Azari"
+  },
+  "Wink (feat. ロス)": {
+    "remap": "Wink"
+  },
+  "WINNER! ゴジュウジャー!": {
+    "intl": "WINNER! GOZYUGER!",
+    "artist_orig": "Wienners"
+  },
+  "WINNER! ゴジュウジャー! (オリジナル・カラオケ)": {
+    "remap": "WINNER! ゴジュウジャー!"
+  },
+  "WiSH VOYAGE": {
+    "artist_orig": "IDOLiSH7"
+  },
+  "Won't let you go!": {
+    "artist_orig": "星乃夢奈"
+  },
+  "WonChu Kiss Me!": {
+    "artist_orig": "SAKURA*TRICK, 高山春香(CV:戸松遥), 園田優(CV:井口裕香), 野田コトネ(CV:相坂優歌), 南しずく(CV:五十嵐裕美), 池野楓(CV:渕上舞) & 飯塚ゆず(CV:戸田めぐみ)"
+  },
+  "Wonderful Happiness": {
+    "artist_orig": "Knights"
+  },
+  "Wonderful Rush": {
+    "artist_orig": "μ's"
+  },
+  "Woodlands": {
+    "artist_orig": "Tom Meira Armony"
+  },
+  "World's End Dancehall": {
+    "artist_orig": "wowaka"
+  },
+  "Yahweh Sabaoth": {
+    "artist_orig": "Michée N Adoration Piano"
+  },
+  "YANKARI": {
+    "artist_orig": "Hauwa Yarfulani"
+  },
+  "YATTA!": {
+    "artist_orig": "はっぱ隊"
+  },
+  "Yes! 東京": {
+    "artist_orig": "EBiDAN",
+    "intl": "Yes! Tokyo"
+  },
+  "Yes! 東京 (feat. SUPER★DRAGON, Sakurashimeji, ONE N' ONLY, BUDDiiS, ICEx & Lienel)": {
+    "remap": "Yes! 東京"
+  },
+  "You & Me": {
+    "artist_orig": "田村ゆかり"
+  },
+  "You & 合図": {
+    "artist_orig": "音乃瀬奏",
+    "intl": "You & aIzu",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "You May Dream": {
+    "artist_orig": "LISP"
+  },
+  "You're All I Need": {
+    "artist_orig": "Christopher S"
+  },
+  "You're Speculation": {
+    "artist_orig": "ALKALOID"
+  },
+  "Your Affection": {
+    "artist_orig": "平田志穂子"
+  },
+  "Your Idol": {
+    "artist_orig": "KPop Demon Hunters"
+  },
+  "Zma Da Yar Dasi Mri Stargi": {
+    "artist_orig": "Saleh Dilyar",
+    "discard": true
+  },
+  "Zombies": {
+    "artist_orig": "DECO*27",
+    "see_artist": true
+  },
+  "Zombies (Giga Waha Remix)": {
+    "remap": "Zombies"
+  },
+  "Çam Kolonyası": {
+    "artist_orig": "Onur Akın"
+  },
+  "ĐỘ TỘC 2": {
+    "intl": "Be The One",
+    "artist_orig": "PHÚC DU, PHÁO, ĐỘ MIXI"
+  },
+  "رقصة الرمال - Dance of the Sands": {
+    "artist_orig": "1M MUSIC"
+  },
+  "「Crazy ∞ nighT」": {
+    "intl": "",
+    "artist_orig": "ひとしずくP × やま△"
+  },
+  "「機界戦隊ゼンカイジャー」主題歌 「全力全開! ゼンカイジャー」": {
+    "intl": "Zenryoku Zenkai! Zenkaiger",
+    "artist_orig": "つるの剛士 & ことのみ児童合唱団",
+    "remap": "全力全開! ゼンカイジャー"
+  },
+  "〜↑↑": {
+    "artist_orig": "赤城ウェン"
+  },
+  "ありのままのストーリーを": {
+    "intl": "Arinomama no Story wo",
+    "artist_orig": "のぼる↑"
+  },
+  "あんさんぶるスターズ!! Knights「Or the Beautiful Golden Drop」 (Game Edit)": {
+    "remap": "Or the Beautiful Golden Drop"
+  },
+  "あんさんぶる体操!!": {
+    "intl": "Ensemble Taiso!!",
+    "artist_orig": "Jin & Akiomi/佐賀美 陣、椚 章臣"
+  },
+  "あんさんぶる体操！！": {
+    "intl": "Ensemble Taisou!!"
+  },
+  "いけないボーダーライン": {
+    "intl": "Ikenai Borderline",
+    "artist_orig": "ワルキューレ"
+  },
+  "いとしーさー": {
+    "artist_orig": "輿水幸子, 多田李衣菜, 藤原肇, 水本ゆかり, 森久保乃々",
+    "intl": "itoshisa"
+  },
+  "いますぐ輪廻": {
+    "intl": "Retry Now",
+    "artist_orig": "なきそ"
+  },
+  "いーあるふぁんくらぶ": {
+    "intl": "I-aru Fanclub",
+    "artist_orig": "みきとP"
+  },
+  "いーあるふぁんくらぶ (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 鏡音リン)": {
+    "remap": "いーあるふぁんくらぶ"
+  },
+  "い～やい～やい～や": {
+    "intl": "I~ya I~ya I~ya",
+    "artist_orig": "Neru"
+  },
+  "ういこうせん": {
+    "intl": "UIKOUSEN",
+    "artist_orig": "しぐれうい"
+  },
+  "うい麦畑でつかまえて": {
+    "intl": "Catcher in the Ui",
+    "artist_orig": "しぐれうい",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "うまぴょい伝説": {
+    "intl": "Umapyoi Legend",
+    "artist_orig": "ウマ娘 プリティーダービー"
+  },
+  "うまるん体操": {
+    "intl": "Umarun Taisou",
+    "artist_orig": "妹S, 土間うまる(CV:田中あいみ), 海老名菜々(CV:影山 灯), 本場切絵(CV:白石晴香) & 橘・シルフィンフォード(CV:古川由利奈)"
+  },
+  "うみゃうにゃはっぴーらいふ": {
+    "artist_orig": "水宮枢",
+    "intl": "Umyaunyahappylife"
+  },
+  "えぶりでいホスト": {
+    "intl": "Everyday Host Club",
+    "artist_orig": "えぶホスPlayers & えぶりでいホスト"
+  },
+  "えれくとりっく・えんじぇぅ": {
+    "intl": "Electric Angel",
+    "artist_orig": "ヤスオ",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "えれくとりっく・えんじぇぅ feat.鏡音リン、鏡音レン": {
+    "remap": "えれくとりっく・えんじぇぅ"
+  },
+  "おこちゃま戦争": {
+    "intl": "Okochama Sensou",
+    "artist_orig": "Giga"
+  },
+  "おしゃれ番長": {
+    "intl": "Fashionable School Gang Leader",
+    "artist_orig": "ORANGE RANGE"
+  },
+  "おそ松さんのボンバシェー!": {
+    "intl": "Osomatsusan no Bombashéj",
+    "artist_orig": "DA PUMP"
+  },
+  "おちゃめ機能": {
+    "intl": "Ochame Kinou",
+    "artist_orig": "ラマーズP"
+  },
+  "おつかれSUMMER": {
+    "artist_orig": "HALCALI",
+    "intl": "Otsukare Summer"
+  },
+  "おどるポンポコリン": {
+    "intl": "Odoru Ponpokorin",
+    "artist_orig": "B.B.クィーンズ",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "おねがいダーリン": {
+    "intl": "Onegai Darling",
+    "artist_orig": "P丸様。"
+  },
+  "おもいでしりとり": {
+    "intl": "Omoideshiritori",
+    "artist_orig": "DIALOGUE+"
+  },
+  "おジャ魔女カーニバル!!": {
+    "intl": "Ojamajo Carnival!!",
+    "artist_orig": "MAHO堂"
+  },
+  "お姉さま♡ラヴコール": {
+    "artist_orig": "ラプラス・ダークネス",
+    "intl": "Onee-sama♡Love Call",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "お嫁♡HOLIC": {
+    "artist_orig": "Nerissa Ravencroft"
+  },
+  "お気に召すまま": {
+    "intl": "Oki ni Mesu mama",
+    "artist_orig": "Eve"
+  },
+  "お気に召すまま (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 鏡音レン)": {
+    "remap": "お気に召すまま"
+  },
+  "お返事まだカナ?おじさん構文!": {
+    "intl": "Ohenji Mada Kana? Ojisan Koubun!",
+    "artist_orig": "吉本おじさん"
+  },
+  "お願い! シンデレラ": {
+    "artist_orig": "THE IDOLM@STER CINDERELLA GIRLS!!",
+    "intl": "Onegai! Cinderella",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "かくれんぼ": {
+    "intl": "숨바꼭질",
+    "artist_orig": "PLAVE"
+  },
+  "からくりピエロ": {
+    "artist_orig": "MORE MORE JUMP!",
+    "intl": "Karakuri Pierrot"
+  },
+  "からくりピエロ (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 初音ミク)": {
+    "remap": "からくりピエロ"
+  },
+  "かわいいさがしてくれますか?": {
+    "intl": "Can You Find Our Cuteness?",
+    "artist_orig": "CUTIE STREET"
+  },
+  "かわいいだけじゃだめですか?": {
+    "intl": "Kawaii Dakejya Damedesuka?",
+    "artist_orig": "CUTIE STREET"
+  },
+  "きゃぴ": {
+    "artist_orig": "宝鐘マリン",
+    "intl": "Kyapi",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "きゃわぽっぴんどぅー": {
+    "artist_orig": "iLiFE!",
+    "intl": "Kyawa Poppin' Do",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "きゅうくらりん": {
+    "intl": "Kyu-Kurarin",
+    "artist_orig": "いよわ"
+  },
+  "きゅるりんしてみて": {
+    "intl": "Kyururin Sitemite",
+    "artist_orig": "きゅるりんってしてみて"
+  },
+  "きゅんっ！ヴァンパイアガール": {
+    "intl": "Kyun! Vampire Girl",
+    "artist_orig": "THE iDOLM@STER 2"
+  },
+  "きゅんっ！ヴァンパイアガール（M@STER VERSION） オリジナル・カラオケ": {
+    "artist_orig": "THE IDOLM＠STER"
+  },
+  "きゅーぴっど。": {
+    "intl": "Cupid",
+    "artist_orig": "天音かなた",
+    "artist_intl": "Kanata Amane"
+  },
+  "きょうもハレバレ": {
+    "intl": "Kyoumo Harebare",
+    "artist_orig": "ふわりP"
+  },
+  "ぎぶみーAwesome!!!!": {
+    "artist_orig": "Happy Around!"
+  },
+  "くりてぃかる♡ぷりちー": {
+    "artist_orig": "iLiFE!",
+    "intl": "Critical♡Pretty"
+  },
+  "けっかおーらい": {
+    "intl": "Kekka Orai - My Hero Academia: Vigilantes Opening Theme Song",
+    "artist_orig": "こっちのけんと"
+  },
+  "こころのたまご": {
+    "intl": "Kokoro no Tamago",
+    "artist_orig": "Buono!"
+  },
+  "これからのSomeday": {
+    "intl": "Korekara no Someday"
+  },
+  "ころころガール": {
+    "artist_orig": "iLiFE!",
+    "intl": "KoroKoro Girl"
+  },
+  "ころしちゃった!": {
+    "intl": "Koroshichatta!",
+    "artist_orig": "夏山よつぎ"
+  },
+  "ごはん食べヨ": {
+    "intl": "Let's eat food",
+    "artist_orig": "Mega Shinnosuke"
+  },
+  "さくゆいたいそう": {
+    "intl": "Sakuyui Exercise",
+    "artist_orig": "さくゆい"
+  },
+  "さくらんぼ": {
+    "intl": "Sakuranbo",
+    "artist_orig": "大塚 愛"
+  },
+  "さようなら、花泥棒さん": {
+    "intl": "Sayounara, Hanadorobou-san",
+    "artist_orig": "メル"
+  },
+  "さようなら、花泥棒さん (cover)": {
+    "remap": "さようなら、花泥棒さん"
+  },
+  "さらば、佳き日": {
+    "intl": "Saraba, Yoki Hi"
+  },
+  "しあわせえぼりゅ～しょん♡ ～こむぎ&いろはVer.～": {
+    "intl": "Happiness Evolution",
+    "artist_orig": "わんだふるぷりきゅあ!, aim & 後本萌葉"
+  },
+  "しかばねの踊り": {
+    "intl": "Dance of Corpse",
+    "artist_orig": "きくお"
+  },
+  "しゅわりん☆どり～みん": {
+    "intl": "Shuwarin☆Dreaming",
+    "artist_orig": "Pastel*Palettes"
+  },
+  "しょーがいゼッタイそーあい宣言♥": {
+    "intl": "Shougai Zettai Souai Sengen♥",
+    "artist_orig": "Special for Princess!"
+  },
+  "すき、きらい": {
+    "intl": "Love, Hate",
+    "artist_orig": "ファントムシータ"
+  },
+  "すきっ!": {
+    "artist_orig": "ときめき♡宣伝部",
+    "intl": "Suki!",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "すきっ!～超ver～": {
+    "remap": "すきっ!"
+  },
+  "すきっちゅーの!": {
+    "intl": "Sukichuuno!",
+    "artist_orig": "HoneyWorks"
+  },
+  "すきっちゅーの! (feat. ちゅーたん (CV:早見沙織))": {
+    "remap": "すきっちゅーの!"
+  },
+  "すきっちゅーの！": {
+    "intl": "Sukichuuno!",
+    "artist_orig": "HoneyWorks"
+  },
+  "すきっちゅーの！ (feat. かぴ)": {
+    "remap": "すきっちゅーの！"
+  },
+  "すきなことだけでいいです": {
+    "intl": "All I Need are Things I Like",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "すきなことだけでいいです Live from 五臓六腑 Tour 2019": {
+    "intl": "All I Need Are Things I Like Live from Gozou-Roppu Tour 2019",
+    "artist_orig": "ピノキオピー"
+  },
+  "すとーきんぐ♡LOVE": {
+    "intl": "Stalkinglove",
+    "artist_orig": "#らぶしっく"
+  },
+  "すーぱーUtaGe!砲": {
+    "artist_orig": "UtaGe!"
+  },
+  "すーぱーUtaGe!砲 (Instrumental)": {
+    "remap": "すーぱーUtaGe!砲"
+  },
+  "すーぱー☆あふぇくしょん": {
+    "intl": "Super Affection",
+    "artist_orig": "栗林みな実, 橋本みゆき, Faylan, 美郷あき, yozuca* & RINO"
+  },
+  "すーぱーかれんたいむ!": {
+    "intl": "Super Karen Time",
+    "artist_orig": "FRUITS ZIPPER"
+  },
+  "すーぱーぬこわーるど": {
+    "artist_orig": "IA",
+    "intl": "Super Nuko World",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ずうっといっしょ!": {
+    "artist_orig": "キタニタツヤ",
+    "intl": "Zuutto Issho!",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "そして最後のページには": {
+    "artist_orig": "μ's",
+    "intl": "Soshite Saigo no Page ni wa"
+  },
+  "そして最後のページには (然后是最后一页)": {
+    "remap": "そして最後のページには"
+  },
+  "それは僕たちの奇跡": {
+    "intl": "Sore wa Bokutachi no Kiseki",
+    "artist_orig": "μ's"
+  },
+  "たこルカ★マグロフィーバー": {
+    "intl": "Tako Luka★Maguro Fever",
+    "artist_orig": "samfree"
+  },
+  "だから僕は音楽を辞めた": {
+    "intl": "That's Why I Gave Up on Music",
+    "artist_orig": "ヨルシカ"
+  },
+  "だってだって噫無情": {
+    "intl": "Datte Datte Aa Mujou",
+    "artist_orig": "μ's"
+  },
+  "ちがう!!!": {
+    "artist_orig": "サイゼP",
+    "intl": "Chigau!!!",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ちっちゃな私": {
+    "artist_orig": "マサラダ",
+    "intl": "Chiccha na Watashi",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ちゅ、多様性。": {
+    "intl": "Chu,Tayousei.",
+    "artist_orig": "ano"
+  },
+  "でび&えん☆Reversible-Ring": {
+    "artist_orig": "牧野由依, アロマゲドン & 渡部優衣"
+  },
+  "でび&えん☆Reversible-Ring(inst)": {
+    "remap": "でび&えん☆Reversible-Ring"
+  },
+  "ときめきポポロン♪": {
+    "intl": "Tokimeki Poporon",
+    "artist_orig": "チマメ隊"
+  },
+  "とくべチュ、して": {
+    "intl": "Tokubechu Shite",
+    "artist_orig": "=LOVE"
+  },
+  "とても素敵な六月でした": {
+    "intl": "It was a very nice June",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "とりぷるばか": {
+    "artist_orig": "ラマーズP"
+  },
+  "どうして": {
+    "artist_orig": "LIGHTSUM",
+    "intl": "Doshite"
+  },
+  "どきどきキュン!で大暴走♡": {
+    "intl": "Dokidokikyun! De Daiboso",
+    "artist_orig": "いずれ菖蒲か杜若"
+  },
+  "どりーみんチュチュ": {
+    "intl": "dreamin chuchu",
+    "artist_orig": "Emon(Tes.)",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "どりーみんチュチュ (Feat. 巡音ルカ&初音ミク)": {
+    "remap": "どりーみんチュチュ"
+  },
+  "なかま歌": {
+    "intl": "Nakamaka",
+    "artist_orig": "不知火建設"
+  },
+  "なぜ?謎?!ANSWER": {
+    "intl": "WHY?MYSTERY?!ANSWER",
+    "artist_orig": "熊田茜音, 増井優花 & 名探偵プリキュア!"
+  },
+  "なってしまった!": {
+    "artist_orig": "μ's",
+    "intl": "Natte Shimatta!"
+  },
+  "なでなで": {
+    "intl": "NadeNade",
+    "artist_orig": "HoneyWorks"
+  },
+  "なんじゃモンじゃ! ニンジャ祭り!": {
+    "artist_orig": "伊勢大貴",
+    "intl": "Nan Ja Mon Ja! Ninja Matsuri!"
+  },
+  "にぎにぎにじたうん!": {
+    "intl": "Niginigi Nijitown!",
+    "artist_orig": "にじさんじ & 周央サンゴ",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "にこぷり♡女子道": {
+    "intl": "Nicopuri ♡ Joshidou"
+  },
+  "にっこり^^調査隊のテーマ": {
+    "intl": "Theme of Niccori Survey Team",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "にっこり^^調査隊のテーマ (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 初音ミク)": {
+    "remap": "にっこり^^調査隊のテーマ"
+  },
+  "にんころダンス": {
+    "intl": "Ninkoro Dance",
+    "artist_orig": "MARUMOCHI from HoneyWorks",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ねぇねぇねぇ。": {
+    "intl": "Nee Nee Nee.",
+    "artist_orig": "ピノキオピー"
+  },
+  "ねぇよな": {
+    "intl": "Neiyona",
+    "artist_orig": "meiyo"
+  },
+  "ねっちゅーシンドローム": {
+    "intl": "Necchu Syndrome",
+    "artist_orig": "魔法少女ホロウィッチ!"
+  },
+  "ねねちのギラギラファンミーティング": {
+    "intl": "Nenechi's Giragira Fan Meeting",
+    "artist_orig": "桃鈴ねね"
+  },
+  "のぼせもんHERO": {
+    "artist_orig": "チバニャン & Giga",
+    "intl": "Nobosemon HERO",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "はいよろこんで": {
+    "intl": "Hai Yorokonde",
+    "artist_orig": "こっちのけんと"
+  },
+  "はしる! とおく! とどく!": {
+    "intl": "Hashiru! Tooku! Todoku!",
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "はちゃめちゃわちゃライフ!": {
+    "intl": "Hacha Mecha Wacha Life!",
+    "artist_orig": "FRUITS ZIPPER"
+  },
+  "ぱぺっとかふぇ": {
+    "intl": "Puppet Cafe",
+    "artist_orig": "マリア マリオネット"
+  },
+  "ひたむきシンデレラ!": {
+    "intl": "Devoted Cinderella!",
+    "artist_orig": "CUTIE STREET"
+  },
+  "ぴえヨンブートダンス": {
+    "artist_orig": "ぴえヨン",
+    "intl": "Pieyon Boot Dance"
+  },
+  "ぴゅあいんざわーるど": {
+    "artist_orig": "FRUITS ZIPPER",
+    "intl": "Pure in the World"
+  },
+  "ぴょいっと♪はれるや!": {
+    "intl": "Pyoitto Hallelujah!",
+    "artist_orig": "ウマ娘 プリティーダービー",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ぴょん": {
+    "intl": "Pyon",
+    "artist_orig": "MIMI"
+  },
+  "ぷりきゅきゅ": {
+    "intl": "Purikyukyu",
+    "artist_orig": "CUTIE STREET",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ぷりきゅきゅ (Instrumental)": {
+    "remap": "ぷりきゅきゅ"
+  },
+  "ぷわぷわーお!": {
+    "intl": "Puwa Puwa-O!"
+  },
+  "ぺこマリ体操": {
+    "intl": "PekoMari Taisou",
+    "artist_orig": "兎田ぺこら、宝鐘マリン"
+  },
+  "ほんまやで☆なんでやねん☆しらんけど": {
+    "intl": "Honmayade Nandeyanen Shirankedo",
+    "artist_orig": "モナキ"
+  },
+  "ぼかろころしあむ": {
+    "intl": "Vocaloid Colosseum",
+    "artist_orig": "DIVELA"
+  },
+  "ぼかろころしあむ (feat. 鏡音リン)": {
+    "remap": "ぼかろころしあむ"
+  },
+  "ぽっぴっぽー": {
+    "intl": "PoPiPo",
+    "artist_orig": "ラマーズP"
+  },
+  "ぽっぴっぽー (feat. Hatsune Miku)": {
+    "remap": "ぽっぴっぽー"
+  },
+  "ま~ぶるMake up a-ha-ha! (Marble Make Up A-Ha-Ha!)": {
+    "artist_orig": "茜屋日海夏, 芹澤優"
+  },
+  "まいたけダンス": {
+    "intl": "Maitake Dance",
+    "artist_orig": "儒烏風亭らでん"
+  },
+  "まさかのConfession": {
+    "artist_orig": "AKB48"
+  },
+  "まつり": {
+    "intl": "Matsuri",
+    "artist_orig": "藤井 風"
+  },
+  "まるかいて地球": {
+    "intl": "Marukaite Chikyuu",
+    "artist_orig": "浪川 大輔"
+  },
+  "ま～ぶる Make up aha!": {
+    "artist_orig": "らぁら&のん"
+  },
+  "みくみくにしてあげる♪": {
+    "artist_orig": "ika",
+    "intl": "Miku Miku ni Shite Ageru♪",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "みんなだいすき": {
+    "intl": "Minna Daisuki"
+  },
+  "みんなスター!": {
+    "intl": "We're All In This Together",
+    "artist_orig": "キャスト(ハイスクール・ミュージカル)"
+  },
+  "みんな集まれ! キョウリュウジャー": {
+    "intl": "Minna Atsumare! Kyoryuger",
+    "artist_orig": "高取ヒデアキ"
+  },
+  "めっちゃGoing!!": {
+    "intl": "Meccha Going!!",
+    "artist_orig": "宮下 愛",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "めにしゅき♡ラッシュっしゅ!": {
+    "intl": "Super Suki Shuki Rush",
+    "artist_orig": "Uma Musume Pretty Derby",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "めらめらハートが熱くなる": {
+    "artist_orig": "MARs あいら・りずむ・みおん",
+    "intl": "Mera Mera Heart ga Atsuku Naru"
+  },
+  "めらめらハートが熱くなる (熊熊燃烧的心越发炙热)": {
+    "artist_orig": "阿澄佳奈 (Asumi Kana), 原紗友里 (はらさゆり), 片岡あづさ"
+  },
+  "もういちど ルミナス": {
+    "intl": "Luminous Once More",
+    "artist_orig": "Pastel*Palettes"
+  },
+  "もぎゅっと\"love\"で接近中!": {
+    "intl": "Mogyutto “love” de Sekkin Chuu!",
+    "artist_orig": "μ's"
+  },
+  "もってけ!セーラーふく": {
+    "intl": "Motteke! Sailor Fuku",
+    "artist_orig": "泉こなた, 柊かがみ, 柊つかさ & 高良みゆき"
+  },
+  "もっとはやくそれになりたい！": {
+    "intl": "Motto Hayaku Sore ni Naritai!"
+  },
+  "もっふんろ〜る": {
+    "artist_orig": "すぷれあ",
+    "intl": "Moffu'n'Roll"
+  },
+  "ももいろの鍵": {
+    "intl": "The peachy key",
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "ももいろの鍵 (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 巡音ルカ)": {
+    "remap": "ももいろの鍵"
+  },
+  "やらないか": {
+    "artist_orig": "小野大輔",
+    "intl": "yaranaica"
+  },
+  "よいこのための金爆入門メドレー": {
+    "artist_orig": "ゴールデンボンバー"
+  },
+  "ようこそジャパリパークへ": {
+    "intl": "Welcome to Japari Park",
+    "artist_orig": "PPP & どうぶつビスケッツ"
+  },
+  "らびゅ&ピース伝説": {
+    "intl": "Rabyu & Peace Densetsu",
+    "artist_orig": "PM6:∞ & あんさんぶるスターズ!!"
+  },
+  "らぶきゅん♡うぉんてっど": {
+    "artist_orig": "きゅるりんってしてみて",
+    "intl": "Love-kyun♡Wanted"
+  },
+  "れもん☆れもねーど": {
+    "intl": "Lemon☆Lemonade",
+    "artist_orig": "ぜろから☆すた→と"
+  },
+  "わがままバースデー": {
+    "artist_orig": "ひめらぶ",
+    "intl": "Spoiled Birthday"
+  },
+  "わたしの一番かわいいところ": {
+    "intl": "Watashi no Ichiban Kawaiitokoro",
+    "artist_orig": "FRUITS ZIPPER"
+  },
+  "わーいわいわい わいわいわい!": {
+    "artist_orig": "わいわいわい",
+    "intl": "Wai Wai Wai Waiwaiwai!"
+  },
+  "わーいわいわい わいわいわい！": {
+    "intl": "Waaai Wai Wai Wai Wai Wai!",
+    "artist_orig": "わいわいわい"
+  },
+  "アイのシナリオ": {
+    "intl": "Ai No Scenario",
+    "artist_orig": "CHiCO with HoneyWorks"
+  },
+  "アイカ": {
+    "intl": "Aika",
+    "artist_orig": "れるりり"
+  },
+  "アイカツ☆ステップ!": {
+    "artist_orig": "せな, りえ, みき, かな & ななせ",
+    "intl": "Aikatsu☆Step!"
+  },
+  "アイカツ☆ステップ! 〜ゆめ・ローラ・あこ・真昼・小春 ver.〜": {
+    "remap": "アイカツ☆ステップ!"
+  },
+  "アイカツ☆ステップ！": {
+    "artist_orig": "せな/りえ/みき/かな/ななせ",
+    "intl": "Aikatsu☆Step!",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "アイカツ☆ステップ！ (ゆめ・ローラ・あこ・真昼・小春 ver.)": {
+    "artist_orig": "せな/りえ/みき/かな/ななせ"
+  },
+  "アイディスマイル": {
+    "intl": "IDSMILE",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "アイディスマイル (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & MEIKO)": {
+    "remap": "アイディスマイル"
+  },
+  "アイデンティティ": {
+    "artist_orig": "Kanaria",
+    "intl": "Identity",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "アイドル": {
+    "intl": "Idol",
+    "artist_orig": "YOASOBI"
+  },
+  "アイドルパワー": {
+    "artist_orig": "M!LK",
+    "intl": "IDOLPOWER"
+  },
+  "アイドルライフエクストラパック": {
+    "intl": "idol life extra pack",
+    "artist_orig": "iLiFE!"
+  },
+  "アイドルライフスターターパック": {
+    "intl": "Idol Life Starter Pack",
+    "artist_orig": "iLiFE!"
+  },
+  "アイドルライフブースターパック": {
+    "intl": "Idol Life Booster Pack",
+    "artist_orig": "iLiFE!"
+  },
+  "アイドルライフメガパック": {
+    "artist_orig": "iLiFE!",
+    "intl": "Idol Life Mega Pack",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "アイドル新鋭隊": {
+    "intl": "Newly Edgy Idols",
+    "artist_orig": "Mitchie M"
+  },
+  "アイドル新鋭隊 (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 初音ミク)": {
+    "remap": "アイドル新鋭隊"
+  },
+  "アイドル活動!": {
+    "intl": "Idol Activity!",
+    "artist_orig": "わか, ふうり & すなお"
+  },
+  "アイドル活動!(Short Size)": {
+    "remap": "アイドル活動!"
+  },
+  "アイノマテリアル": {
+    "artist_orig": "MORE MORE JUMP！"
+  },
+  "アイリッド": {
+    "intl": "EYELID",
+    "artist_orig": "ぬゆり"
+  },
+  "アイリッド (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 巡音ルカ)": {
+    "remap": "アイリッド"
+  },
+  "アキシブウェイ": {
+    "intl": "Akishibu Way",
+    "artist_orig": "アキシブproject"
+  },
+  "アクセラレイト": {
+    "intl": "Accelerate",
+    "artist_orig": "吉田夜世"
+  },
+  "アクセラレイト (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 巡音ルカ)": {
+    "remap": "アクセラレイト"
+  },
+  "アツクナレ": {
+    "intl": "Atsukunare",
+    "artist_orig": "フランシュシュ"
+  },
+  "アニマル": {
+    "intl": "Animal",
+    "artist_orig": "DECO*27"
+  },
+  "アニマーレ・ファンファーレ": {
+    "intl": "Animale Fanfare",
+    "artist_orig": "ヤマギシコージ"
+  },
+  "アユミ☆マジカルショータイム": {
+    "intl": "Ayumi☆Magical Showtime",
+    "artist_orig": "キノシタ"
+  },
+  "アユミ☆マジカルショータイム (Remastered)": {
+    "remap": "アユミ☆マジカルショータイム"
+  },
+  "アンチユー": {
+    "intl": "Anti you",
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "アンチユー (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 巡音ルカ)": {
+    "remap": "アンチユー"
+  },
+  "アンテナ39": {
+    "intl": "Antenna 39",
+    "artist_orig": "柊マグネタイト"
+  },
+  "アンノウン・マザーグース": {
+    "artist_orig": "Wowaka",
+    "intl": "Unknown Mother-Goose"
+  },
+  "イアイア★ナイトオブデザイア": {
+    "intl": "IA IA★Night of Desire",
+    "artist_orig": "samfree"
+  },
+  "イガク": {
+    "intl": "Medicine",
+    "artist_orig": "原口沙輔"
+  },
+  "イフ": {
+    "artist_orig": "MORE MORE JUMP!",
+    "see_artist": true,
+    "intl": "If"
+  },
+  "イフ (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 初音ミク)": {
+    "remap": "イフ"
+  },
+  "イヤイヤ星人": {
+    "artist_orig": "すとぷり",
+    "intl": "Iya Iya Seijin"
+  },
+  "インレイド": {
+    "intl": "In Raid",
+    "artist_orig": "VOLTACTION"
+  },
+  "ウィマーマ・サーガ": {
+    "intl": "UiMa-Ma Saga",
+    "artist_orig": "しぐれうい"
+  },
+  "ウマすぎ!グルメパレード": {
+    "intl": "Umalicious! Gourmet Parade",
+    "artist_orig": "ウマ娘 プリティーダービー"
+  },
+  "ウミユリ海底譚": {
+    "artist_orig": "n-buna",
+    "intl": "Umiyuri Kaiteitan",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ウーニャカ": {
+    "intl": "U-NYAKA",
+    "artist_orig": "夏色まつり"
+  },
+  "エアロピクルス": {
+    "artist_orig": "コメアニメ",
+    "intl": "Aeropickles"
+  },
+  "エイリアンエイリアン": {
+    "intl": "Alien Alien",
+    "artist_orig": "ナユタン星人"
+  },
+  "エゴイスト": {
+    "intl": "EGOIST",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "エゴイスト (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & MEIKO)": {
+    "remap": "エゴイスト"
+  },
+  "エゴロック": {
+    "intl": "Ego rock",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "エスパーエスパー": {
+    "artist_orig": "ナユタン星人 & 初音ミク",
+    "intl": "Esper Esper",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "エンディング・テーマ キズナ～ゴーバスターズ！": {
+    "intl": "Ending Theme Kizuna: Go-Busters!",
+    "artist_orig": "謎の新ユニットSTA☆MEN"
+  },
+  "エンパープル": {
+    "artist_orig": "Harumaki Gohan",
+    "intl": "Empurple",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "エンヴィーベイビー": {
+    "intl": "Envy Baby",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "オシリスダンス": {
+    "intl": "Osiris Dance",
+    "artist_orig": "みつあくま, 初音ミク & 重音テト"
+  },
+  "オツキミリサイタル": {
+    "intl": "Otsukimi Recital",
+    "artist_orig": "じん"
+  },
+  "オトナブルー": {
+    "intl": "Otonablue",
+    "artist_orig": "新しい学校のリーダーズ"
+  },
+  "オトナモード": {
+    "intl": "Otona mode",
+    "artist_orig": "STAR☆ANIS"
+  },
+  "オトナモード ～みくる ver.～": {
+    "artist_orig": "もな",
+    "intl": "Otona mode"
+  },
+  "オトモダチフィルム": {
+    "intl": "Otomodachi Film"
+  },
+  "オドループ": {
+    "intl": "Oddloop",
+    "artist_orig": "フレデリック"
+  },
+  "オペラ!スペースオペラ!": {
+    "intl": "Opera! Space Opera!",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "オペラ!スペースオペラ! (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 鏡音レン)": {
+    "remap": "オペラ!スペースオペラ!"
+  },
+  "オペラ！スペースオペラ！": {
+    "intl": "Opera! Space Opera!",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "オペラ！スペースオペラ！ (feat. 天馬司&鳳えむ&草薙寧々&神代類&鏡音レン)": {
+    "remap": "オペラ！スペースオペラ！"
+  },
+  "オモイノカケラ": {
+    "artist_orig": "Switch/逆先夏目、青葉つむぎ、春川宙",
+    "intl": "Omoi no Kakera",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "オルターエゴ": {
+    "artist_orig": "Misumi",
+    "intl": "Alter Ego"
+  },
+  "オルターエゴ (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 初音ミク)": {
+    "remap": "オルターエゴ"
+  },
+  "オンリーワンダー": {
+    "intl": "Only Wonder",
+    "artist_orig": "フレデリック"
+  },
+  "オーバーライド": {
+    "intl": "Override",
+    "artist_orig": "吉田夜世"
+  },
+  "オールセーブチャレンジ": {
+    "intl": "All-Save Challenge",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "オールセーブチャレンジ (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & KAITO)": {
+    "remap": "オールセーブチャレンジ"
+  },
+  "カイコ": {
+    "intl": "Stuckmoth",
+    "artist_orig": "DECO*27"
+  },
+  "カリスマさびら": {
+    "intl": "Charisma Sabira",
+    "artist_orig": "七人のカリスマ/カリスマ"
+  },
+  "カリスマジャンボリー": {
+    "intl": "Charisma Jamboree",
+    "artist_orig": "七人のカリスマ & カリスマ"
+  },
+  "カリスマックス": {
+    "intl": "CHARISMAX",
+    "artist_orig": "Snow Man"
+  },
+  "カリスマピクニック": {
+    "artist_orig": "七人のカリスマ/カリスマ"
+  },
+  "カリスマピザパーティー": {
+    "intl": "Charisma Pizza Party",
+    "artist_orig": "七人のカリスマ/カリスマ"
+  },
+  "カリスマ・イン・ダ・ハウス": {
+    "intl": "Charisma In Da House",
+    "artist_orig": "七人のカリスマ/カリスマ"
+  },
+  "カルテNo.2222": {
+    "intl": "Karte No.2222",
+    "artist_orig": "きゅるりんってしてみて"
+  },
+  "カレンダーガール": {
+    "intl": "Calendar Girl",
+    "artist_orig": "STAR☆ANIS"
+  },
+  "ガチ夢中!": {
+    "artist_orig": "超特急",
+    "intl": "Gachi Muchu!"
+  },
+  "ガラクタロード": {
+    "artist_orig": "初星学園",
+    "intl": "GARAKUTA ROAD",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ガーリッシュエイジ": {
+    "intl": "Girlish Age",
+    "artist_orig": "小倉唯"
+  },
+  "ガールズ・イン・ザ・フロンティア": {
+    "intl": "Girls in the Frontier",
+    "artist_orig": "渋谷凛 (CV: 福原綾香), 早坂美玲 (CV: 朝井彩加), 木村夏樹 (CV: 安野希世乃), 小日向美穂 (CV: 津田美波) & 塩見周子 (CV: ルゥティン)"
+  },
+  "キスのひとつで": {
+    "intl": "Kissnohitotsude",
+    "artist_orig": "佐咲紗花"
+  },
+  "キスキツネ": {
+    "intl": "Kiss Kitsune",
+    "artist_orig": "HIMEHINA"
+  },
+  "キスハグ侵略者!": {
+    "intl": "Kiss Hug Invader",
+    "artist_orig": "iLiFE!"
+  },
+  "キス・ミー・パティシエ": {
+    "intl": "Kiss Me Patissier",
+    "artist_orig": "CANDY TUNE"
+  },
+  "キス・ミー・パティシエ (Instrumental)": {
+    "remap": "キス・ミー・パティシエ"
+  },
+  "キズナミュージック♪": {
+    "artist_orig": "Poppin'Party",
+    "intl": "KIZUNA MUSIC♪"
+  },
+  "キセキヒカル": {
+    "intl": "Kiseki Hikaru"
+  },
+  "キミと××××したいだけ": {
+    "intl": "Just Wanna xxxx With You",
+    "artist_orig": "ファントムシータ"
+  },
+  "キャットフード": {
+    "artist_orig": "初音　ミク"
+  },
+  "キャットラビング": {
+    "intl": "Cat Loving",
+    "artist_orig": "香椎モイミ"
+  },
+  "キャンディークッキーチョコレート": {
+    "intl": "CandyCookieChocolate",
+    "artist_orig": "はろける"
+  },
+  "キャンディークッキーチョコレート (feat. 初音ミク & 重音テト)": {
+    "remap": "キャンディークッキーチョコレート"
+  },
+  "キュートなキューたい": {
+    "artist_orig": "CUTIE STREET",
+    "intl": "CUTIE SPHERE",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "キライのちスキ!": {
+    "artist_orig": "ano",
+    "intl": "Kirai nochi Suki!"
+  },
+  "キラフル ミラクル キラメイジャー": {
+    "intl": "Kiraful Miracle Kiramager",
+    "artist_orig": "出口たかし"
+  },
+  "キラメクMiLieへ": {
+    "intl": "Kirameku MiLie e",
+    "artist_orig": "イタズラ☆ストレート《アリス(CV:田中美海)、アル(CV:近藤玲奈)、ヒフミ(CV:本渡楓)、ユウカ(CV:春花らん)》"
+  },
+  "キラー": {
+    "intl": "KILLER",
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "キラー (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 鏡音リン)": {
+    "remap": "キラー"
+  },
+  "ギガンティックO.T.N": {
+    "artist_orig": "ギガP",
+    "intl": "Gigantic O.T.N",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ギミチョコ!!": {
+    "intl": "Gimme Chocolate!!",
+    "artist_orig": "BABYMETAL"
+  },
+  "ギュッと!": {
+    "artist_orig": "超ときめき♡宣伝部",
+    "intl": "Gyutto"
+  },
+  "クノイチでも恋がしたい": {
+    "artist_orig": "みきとP",
+    "intl": "Kunoichi Demo Koi ga Shitai"
+  },
+  "クマクマレスQ": {
+    "intl": "KumaKuma ResQ",
+    "artist_orig": "レスQベアズ & あんさんぶるスターズ!!"
+  },
+  "クリームソーダとシャンデリア": {
+    "intl": "Creamsoda and Chandelier",
+    "artist_orig": "Mei & Henrii"
+  },
+  "クリームソーダとシャンデリア (feat. ねんね)": {
+    "remap": "クリームソーダとシャンデリア"
+  },
+  "クリームソーダとシャンデリア (instrumental)": {
+    "remap": "クリームソーダとシャンデリア"
+  },
+  "クレイジー・ビート": {
+    "intl": "Crazy Beat",
+    "artist_orig": "さつき が てんこもり"
+  },
+  "クローバー・クラブ": {
+    "intl": "Clover.Club",
+    "artist_orig": "ゆうゆ"
+  },
+  "グッバイ宣言": {
+    "intl": "Good-Bye Declaration",
+    "artist_orig": "Chinozo"
+  },
+  "グリズリーに襲われたら♡": {
+    "intl": "Grizzly Ni Osowaretara",
+    "artist_orig": "神宿"
+  },
+  "グリーンライツ・セレナーデ": {
+    "intl": "Greenlights Serenade",
+    "artist_orig": "Omoi"
+  },
+  "ケボーン! リュウソウジャー": {
+    "intl": "Que Booom! Ryusoulger",
+    "artist_orig": "Sister MAYO"
+  },
+  "ココロオドル": {
+    "intl": "Kokoro Odoru",
+    "artist_orig": "nobodyknows+"
+  },
+  "コットンキャンディえいえいおー!": {
+    "intl": "Cotton Candy Ei-Ei-Oh!",
+    "artist_orig": "黒澤ルビィ"
+  },
+  "コツコツPON": {
+    "intl": "KotsukotsuPON - TV Edit",
+    "artist_orig": "ブンドリオ・ブンデラス(CV:松本梨香)"
+  },
+  "コトノハカンタービレ": {
+    "artist_orig": "ALKALOID & あんさんぶるスターズ!!",
+    "intl": "Kotonoha Cantabile",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "コノウタトマレイヒ": {
+    "intl": "Kono Uta Tomareihi",
+    "artist_orig": "緑風ふわり"
+  },
+  "コノウタトマレイヒ ~ふわり & のの & リサ ver.~": {
+    "artist_orig": "緑風ふわり, みほ & ななせ",
+    "remap": "コノウタトマレイヒ"
+  },
+  "コンココンコンココンコンコン": {
+    "intl": "konkokonkonkokonkonkon",
+    "artist_orig": "轟はじめ/ReGLOSS"
+  },
+  "コンビニエンスラブ": {
+    "intl": "Convenience Love",
+    "artist_orig": "go!go!vanillas"
+  },
+  "コンプレックス♡プリンセス": {
+    "intl": "Complex Princess",
+    "artist_orig": "宝鐘マリン"
+  },
+  "コンプレックス・イマージュ": {
+    "intl": "complex image"
+  },
+  "コールボーイ": {
+    "intl": "Call Boy"
+  },
+  "ゴーストルール": {
+    "intl": "Ghost Rule",
+    "artist_orig": "DECO*27"
+  },
+  "サイエンス": {
+    "intl": "Science",
+    "artist_orig": "MIMI"
+  },
+  "サイクロンライフ!": {
+    "intl": "Cyclone LiFE",
+    "artist_orig": "iLiFE!"
+  },
+  "サイバーパンクデッドボーイ": {
+    "intl": "CYBER PUNK DEAD BOY",
+    "artist_orig": "マイキP"
+  },
+  "サイバーパンクデッドボーイ (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 鏡音リン)": {
+    "remap": "サイバーパンクデッドボーイ"
+  },
+  "サイバーパンクデッドボーイ (Self Cover Ver.)": {
+    "remap": "サイバーパンクデッドボーイ"
+  },
+  "サイレントマジョリティー": {
+    "intl": "Silent Majority",
+    "artist_orig": "欅坂46"
+  },
+  "サインはB": {
+    "intl": "Sign wa B",
+    "artist_orig": "B小町",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "サインはB -New Arrange Ver.-": {
+    "remap": "サインはB"
+  },
+  "サインはB -アイ Solo Ver.-": {
+    "remap": "サインはB"
+  },
+  "サマーツインテール": {
+    "artist_orig": "≒JOY",
+    "intl": "SUMMER TWINTAIL"
+  },
+  "サラマンダー": {
+    "intl": "Salamander",
+    "artist_orig": "DECO*27"
+  },
+  "サンシャインぴっかぴか音頭": {
+    "intl": "Sanshain Pikkapika Ondo"
+  },
+  "サンドリヨン": {
+    "intl": "Cendrillon",
+    "artist_orig": "シグナルP"
+  },
+  "サンドリヨン 10th Anniversary": {
+    "intl": "Cendrillon 10th Anniversary",
+    "artist_orig": "Dios/シグナルP"
+  },
+  "ザムザ": {
+    "intl": "Samsa",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "ザムザ (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & KAITO)": {
+    "remap": "ザムザ"
+  },
+  "シアワセ√コヨリニウム": {
+    "intl": "SHIAWASE√KOYORINIUM",
+    "artist_orig": "博衣こより"
+  },
+  "シカ色デイズ": {
+    "intl": "Shikairo Days",
+    "artist_orig": "鹿乃子のこ, 虎視虎子, 虎視餡子 & 馬車芽めめ"
+  },
+  "シス×ラブ": {
+    "artist_orig": "HoneyWorks",
+    "intl": "Sis×Love"
+  },
+  "シス×ラブ (feat. 成海聖奈 (CV:雨宮天) & 成海萌奈(CV:夏川椎菜))": {
+    "remap": "シス×ラブ"
+  },
+  "シダレヤナギ 2021": {
+    "intl": "Shidareyanagi 2021",
+    "artist_orig": "FES☆TIVE"
+  },
+  "シニカルナイトプラン": {
+    "intl": "Cynical Night Plan",
+    "artist_orig": ":irai"
+  },
+  "シネマ": {
+    "intl": "Cinema",
+    "artist_orig": "Ayase",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "シネマ (feat. 小豆沢こはね&白石杏&東雲彰人&青柳冬弥&初音ミク)": {
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "シネマ (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & KAITO)": {
+    "remap": "シネマ"
+  },
+  "シャルル": {
+    "intl": "Charles",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "シャンティ": {
+    "intl": "SHANTI",
+    "artist_orig": "wotaku"
+  },
+  "シャンティ (feat. KAITO)": {
+    "remap": "シャンティ"
+  },
+  "シャンティ (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & KAITO)": {
+    "remap": "シャンティ"
+  },
+  "シュガーソングとビターステップ": {
+    "intl": "Sugar Song and Bitter Step",
+    "artist_orig": "UNISON SQUARE GARDEN"
+  },
+  "シュガーラッシュ": {
+    "intl": "Sugar Rush",
+    "artist_orig": "さくらみこ, 星街すいせい & miComet"
+  },
+  "シュビドゥビ☆スイーツタイム": {
+    "intl": "Shubidubi☆Sweets Time"
+  },
+  "ショウタイム・ルーラー": {
+    "intl": "Showtime Ruler",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "ショウタイム・ルーラー (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 鏡音リン)": {
+    "remap": "ショウタイム・ルーラー"
+  },
+  "シルエット": {
+    "intl": "Silhouette",
+    "artist_orig": "KANA-BOON"
+  },
+  "シル・ヴ・プレジデント": {
+    "intl": "S’il Vous President",
+    "artist_orig": "P丸様。"
+  },
+  "シンデレラ": {
+    "intl": "Cinderella",
+    "artist_orig": "DECO*27"
+  },
+  "ジャックポットサッドガール": {
+    "intl": "Jackpot Sad Girl",
+    "artist_orig": "東京フィルハーモニー交響楽団 & セカイシンフォニースペシャルバンド"
+  },
+  "ジャンキーナイトタウンオーケストラ": {
+    "artist_orig": "すりぃ"
+  },
+  "ジングルベルがとまらない": {
+    "intl": "Jingle Bells ga Tomaranai",
+    "artist_orig": "Aqours"
+  },
+  "スイカ・パルファム": {
+    "intl": "Watermelon Parfum",
+    "artist_orig": "なみだ色の消しごむ"
+  },
+  "スイートマジック": {
+    "intl": "Sweet Magic",
+    "artist_orig": "Junky",
+    "see_artist": true
+  },
+  "スキキライ": {
+    "intl": "Suki Kirai",
+    "artist_orig": "HoneyWorks"
+  },
+  "スキスキDieスキ超Ayeシテル": {
+    "intl": "Suki-Suki Diesuki Cho Ayeiteru",
+    "artist_orig": "宝鐘マリン"
+  },
+  "スキスキハンター♡": {
+    "artist_orig": "Special for Princess!",
+    "intl": "Suki Suki Hunter"
+  },
+  "スキスキ星人": {
+    "intl": "Suki Suki Seijin",
+    "artist_orig": "すとぷり"
+  },
+  "スゴすぎ前橋ウィッチーズ!": {
+    "artist_orig": "前橋ウィッチーズ"
+  },
+  "ススメ→トゥモロウ": {
+    "artist_orig": "高坂穂乃果, 南ことり & 園田海未",
+    "intl": "Susume→Tomorrow"
+  },
+  "スタートライン!": {
+    "artist_orig": "せな & りえ",
+    "intl": "Start Line!"
+  },
+  "スターナイトスノウ": {
+    "intl": "Star Night Snow",
+    "artist_orig": "n-buna × Orangestar & 初音ミク"
+  },
+  "スターライト": {
+    "intl": "Starlight",
+    "artist_orig": "大空スバル"
+  },
+  "ステップ!": {
+    "intl": "STEP!"
+  },
+  "スパッと!スパイ&スパイス": {
+    "intl": "Supatto! Spy & Spice",
+    "artist_orig": "ツキカゲ"
+  },
+  "スプリットダンス": {
+    "intl": "Split Dance",
+    "artist_orig": "えいぷ"
+  },
+  "スプリットダンス (feat. 初音ミク & 重音テト)": {
+    "remap": "スプリットダンス"
+  },
+  "スマイル*シンフォニー": {
+    "intl": "Smile Symphony",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "スリリング・ワンウェイ": {
+    "intl": "Thrilling・One Way",
+    "artist_orig": "Aqours"
+  },
+  "スーパーヒーロー": {
+    "artist_orig": "Guiano",
+    "intl": "Superhero",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "セカイはまだ始まってすらいない": {
+    "intl": "The World Hasn't Even Started Yet",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "セブンティーン": {
+    "artist_orig": "YOASOBI",
+    "intl": "Seventeen",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "セレナーデ": {
+    "intl": "Serenade",
+    "artist_orig": "なとり"
+  },
+  "ソワレ": {
+    "intl": "Soirée",
+    "artist_orig": "星街すいせい"
+  },
+  "ソングオブザデッド": {
+    "intl": "Song of the Dead",
+    "artist_orig": "KANA-BOON"
+  },
+  "ゾンビ": {
+    "intl": "Zombies",
+    "artist_orig": "DECO*27"
+  },
+  "タチアガレ!": {
+    "intl": "Tachiagare!",
+    "artist_orig": "Wake Up, Girls!"
+  },
+  "タチアガレ!/Instrumental": {
+    "intl": "Tachiagare!",
+    "artist_orig": "Wake Up, Girls!",
+    "remap": "タチアガレ!"
+  },
+  "タッカー's スキルアップアイランド": {
+    "intl": "Tucker's Grindin' Island",
+    "artist_orig": "ウマ娘 プリティーダービー"
+  },
+  "ダイアモンド": {
+    "intl": "Diamond",
+    "artist_orig": "Kasumi Nakasu"
+  },
+  "ダイダイダイダイダイキライ": {
+    "intl": "DaiDaiDaiDaiDaikirai",
+    "artist_orig": "雨良"
+  },
+  "ダイヤモンドプリンセスの憂鬱": {
+    "intl": "Diamond Princess no Yuuutsu"
+  },
+  "ダダダダダ!": {
+    "intl": "Dadadadada",
+    "artist_orig": "iON!"
+  },
+  "ダダダダダル": {
+    "intl": "Dadadadadaru",
+    "artist_orig": "雨良"
+  },
+  "ダダダダ天使": {
+    "intl": "Dadadada Tenshi",
+    "artist_orig": "ナナヲアカリ"
+  },
+  "ダンスホール": {
+    "intl": "Dance Hall",
+    "artist_orig": "Mrs. GREEN APPLE"
+  },
+  "ダンスロボットダンス": {
+    "intl": "Dance Robot Dance",
+    "artist_orig": "ナユタン星人",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ダーリン": {
+    "intl": "Darling",
+    "artist_orig": "須田景凪"
+  },
+  "ダーリンダンス": {
+    "intl": "Darling Dance",
+    "artist_orig": "かいりきベア"
+  },
+  "ダーリンダーリン": {
+    "artist_orig": "めろくる & 夏色花梨",
+    "intl": "Darling Darling"
+  },
+  "ダーリンダーリン (feat. 夏色花梨)": {
+    "remap": "ダーリンダーリン"
+  },
+  "チェリボム": {
+    "intl": "Cherry Bomb",
+    "artist_orig": "SILENT SIREN"
+  },
+  "チェリーポップ": {
+    "intl": "Cherry Pop",
+    "artist_orig": "DECO*27"
+  },
+  "チカっとチカ千花っ♡": {
+    "intl": "Chikatto Chika Chika♡",
+    "artist_orig": "藤原千花"
+  },
+  "チキチキバンバン": {
+    "intl": "CIKI CIKI BAM BAM",
+    "artist_orig": "QUEENDOM"
+  },
+  "チグハグ": {
+    "artist_orig": "THE SUPER FRUIT",
+    "intl": "Chiguhagu"
+  },
+  "チュルリラ・チュルリラ・ダッダッダ!": {
+    "intl": "Chururira Chururira Daddadda!",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "チュルリラ・チュルリラ・ダッダッダ! (feat. 天馬司, 鳳えむ, 草薙寧々 & 神代類)": {
+    "remap": "チュルリラ・チュルリラ・ダッダッダ!"
+  },
+  "チューリングラブ": {
+    "intl": "Turing Love",
+    "artist_orig": "ナナヲアカリ"
+  },
+  "チューリングラブ (feat. Sou)": {
+    "remap": "チューリングラブ"
+  },
+  "チョコレイト・ディスコ": {
+    "artist_orig": "Perfume",
+    "intl": "Chocolate Disco"
+  },
+  "チョコレートメランコリー": {
+    "artist_orig": "≠ME",
+    "intl": "Chocolate Melancholy"
+  },
+  "チルドレンレコード": {
+    "intl": "Children Record",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "チルノのパーフェクトさんすう教室": {
+    "intl": "Cirno's Perfect Math Class",
+    "artist_orig": "IOSYS"
+  },
+  "チルノのパーフェクトさんすう教室(KARAOKE Ver)": {
+    "artist_orig": "IOSYS"
+  },
+  "ツギハギスタッカート": {
+    "intl": "Patchwork Staccato",
+    "artist_orig": "とあ"
+  },
+  "ツギハギスタッカート (feat. 初音ミク)": {
+    "remap": "ツギハギスタッカート"
+  },
+  "ツギハギスタッカート (feat. 桃井愛莉, 日野森雫 & 初音ミク)": {
+    "remap": "ツギハギスタッカート"
+  },
+  "ツナガルコネクト": {
+    "artist_orig": "Rina Tennoji",
+    "intl": "Tsunagaru Connect",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "テオ": {
+    "intl": "Teo",
+    "artist_orig": "Omoi"
+  },
+  "テトリス": {
+    "intl": "Tetoris",
+    "artist_orig": "柊マグネタイト"
+  },
+  "テレキャスタービーボーイ": {
+    "intl": "Telecaster B-boy",
+    "artist_orig": "すりぃ"
+  },
+  "テレパシ": {
+    "intl": "Telepathy",
+    "artist_orig": "DECO*27"
+  },
+  "ディスコティックナイト": {
+    "intl": "Discotheque Night",
+    "artist_orig": "NEKOZUME"
+  },
+  "デイバイデイズ": {
+    "intl": "day by days",
+    "artist_orig": "syudou"
+  },
+  "デスぺレート": {
+    "artist_orig": "TeddyLoid & Giga",
+    "intl": "Desperate",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "デビルじゃないもん": {
+    "intl": "Devil Janai Mon",
+    "artist_orig": "DECO*27 & ピノキオピー"
+  },
+  "デートプランA to Z": {
+    "artist_orig": "√AtoZ"
+  },
+  "トゥウィンクル空中戦": {
+    "intl": "Twinkle Kuuchuusen",
+    "artist_orig": "2wink"
+  },
+  "トライアングル・ドリーマー": {
+    "intl": "Triangle Dreamer",
+    "artist_orig": "虹のコンキスタドール"
+  },
+  "トリコリコPLEASE!!": {
+    "intl": "Torikoriko PLEASE!!"
+  },
+  "トリコロージュ": {
+    "artist_orig": "Niru Kajitsu",
+    "intl": "Tricologe",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "トレセン音頭": {
+    "intl": "Tracen Ondo",
+    "artist_orig": "ウマ娘 プリティーダービー"
+  },
+  "トワイライトライト": {
+    "intl": "Twilight Light",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "トンツカタンタン": {
+    "intl": "Tontsukatantan",
+    "artist_orig": "クレイジーウォウウォ!!"
+  },
+  "トンデモワンダーズ": {
+    "intl": "Tondemo-Wonderz",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "トンデモワンダーズ (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & KAITO)": {
+    "remap": "トンデモワンダーズ"
+  },
+  "ド!ド!ド!": {
+    "intl": "Do! Do! Do!",
+    "artist_orig": "みらくらぱーく!"
+  },
+  "ドキピポ☆エモーション": {
+    "intl": "Dokipipo☆Emotion",
+    "artist_orig": "天王寺璃奈(田中ちえ美)"
+  },
+  "ドクター=ファンクビート": {
+    "intl": "Doctor=Funk Beat",
+    "artist_orig": "nyanyannya"
+  },
+  "ドッタバッタ珍道中!": {
+    "intl": "Dotta Batta Chindochu!",
+    "artist_orig": "Ookami Mio",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ドラマチックLOVE": {
+    "artist_orig": "一条シン, 十王院カケル, 太刀花ユキノジョウ, 涼野ユウ, 西園寺レオ, 香賀美タイガ & 鷹梁ミナト"
+  },
+  "ドリームパレード": {
+    "intl": "Dream Parade",
+    "artist_orig": "i☆Ris"
+  },
+  "ニア": {
+    "intl": "Near",
+    "artist_orig": "夏代孝明"
+  },
+  "ニッポン笑顔百景": {
+    "intl": "Nippon Egao Hyakkei",
+    "artist_orig": "ももいろクローバーZ"
+  },
+  "ニヒリズムプリズム": {
+    "artist_orig": "原因は自分にある。",
+    "intl": "Nihilism Prism"
+  },
+  "ネコカブリーナ": {
+    "intl": "Neko Kaburi-Na",
+    "artist_orig": "猫又おかゆ"
+  },
+  "ネバーフィクション": {
+    "intl": "NeverFiction",
+    "artist_orig": "Kanaria"
+  },
+  "ネバーフィクション (feat. 星街すいせい)": {
+    "remap": "ネバーフィクション"
+  },
+  "ノンフィクション!!": {
+    "intl": "Nonfiction!!",
+    "artist_orig": "Liella!"
+  },
+  "ハイドアンド·シーク": {
+    "intl": "Hide And Seek"
+  },
+  "ハイファイレイヴァー": {
+    "artist_orig": "EasyPop"
+  },
+  "ハオ": {
+    "intl": "HAO",
+    "artist_orig": "DECO*27"
+  },
+  "ハッピィクレッシェンド": {
+    "artist_orig": "STAR☆ANIS"
+  },
+  "ハッピーシンセサイザ": {
+    "intl": "Happy Synthesizer",
+    "artist_orig": "EasyPop"
+  },
+  "ハッピーシンセサイザ (Cover)": {
+    "remap": "ハッピーシンセサイザ"
+  },
+  "ハッピーシンセサイザ (feat. 花里みのり, 桐谷遥, 桃井愛莉 & 日野森雫)": {
+    "remap": "ハッピーシンセサイザ"
+  },
+  "ハナニナレ!": {
+    "artist_orig": "Jin & Akiomi,あんさんぶるスターズ!!"
+  },
+  "ハナムケのハナタバ": {
+    "intl": "Hanamuke no Hanataba",
+    "artist_orig": "コメティック"
+  },
+  "ハニートラップ・マリアージュ": {
+    "intl": "Honey Trap Mariage",
+    "artist_orig": "Crazy:B"
+  },
+  "ハム太郎 とっとこうた": {
+    "intl": "Hamutaro Tottoko Uta"
+  },
+  "ハム太郎とっとこうた": {
+    "intl": "Hamutaro Tottokouta",
+    "artist_orig": "とっとこハム太郎"
+  },
+  "ハレ晴レユカイ": {
+    "intl": "Hare Hare Yukai",
+    "artist_orig": "平野 綾, 茅原実里 & 後藤邑子"
+  },
+  "ハロ/ハワユ": {
+    "intl": "Hello / How Are You?",
+    "artist_orig": "ナノウ"
+  },
+  "ハロウィン・ナイト": {
+    "intl": "Halloween Night",
+    "artist_orig": "AKB48"
+  },
+  "ハローセカイ": {
+    "intl": "Hello, SEKAI",
+    "artist_orig": "DECO*27, tepe"
+  },
+  "ハローセカイ / バーチャル・シンガーver.": {
+    "intl": "Hello, SEKAI Virtual Singer Version",
+    "artist_orig": "初音ミク, 鏡音リン, 鏡音レン, 巡音ルカ, MEIKO & KAITO",
+    "remap": "ハローセカイ"
+  },
+  "ハロー・ニューワールド": {
+    "artist_orig": "n.k",
+    "intl": "Hello New World",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ハート イロ トリドリ〜ム": {
+    "intl": "Heart Iro Tori Dream",
+    "artist_orig": "彩瀬なる"
+  },
+  "ハート111": {
+    "intl": "Heart 111",
+    "artist_orig": "ゆーり"
+  },
+  "バグ": {
+    "intl": "bug",
+    "artist_orig": "かいりきベア"
+  },
+  "バグ (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & 鏡音レン)": {
+    "remap": "バグ"
+  },
+  "バタフライ・グラフィティ": {
+    "intl": "Butterfly Graffiti",
+    "artist_orig": "八王子P",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "バタフライ・グラフィティ feat. 初音ミク": {
+    "remap": "バタフライ・グラフィティ"
+  },
+  "バチモリーナ": {
+    "intl": "Bachimorina",
+    "artist_orig": "iON!"
+  },
+  "バブるバブル": {
+    "intl": "BaburuBubble",
+    "artist_orig": "MADAMADA"
+  },
+  "バブリン": {
+    "intl": "Bubblin'",
+    "artist_orig": "HIMEHINA"
+  },
+  "バラライカ": {
+    "intl": "Balalaika",
+    "artist_orig": "ユミコ"
+  },
+  "パLIFE!パLIKE!パLOUGH!パLOVE!": {
+    "intl": "PaLIFE!PaLIKE!PaLOUGH!PaLOVE!",
+    "artist_orig": "パンダドラゴン"
+  },
+  "パイパイ仮面でどうかしらん?": {
+    "intl": "How about Paipai Mask?",
+    "artist_orig": "宝鐘マリン",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "パジャマパーティーズのうた": {
+    "intl": "Pajama Parties no Uta",
+    "artist_orig": "パジャマパーティーズ"
+  },
+  "パラソルサイダー": {
+    "intl": "Parasol Cider",
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "パラソルサイダー (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 巡音ルカ)": {
+    "remap": "パラソルサイダー"
+  },
+  "パレリラパレリラ": {
+    "intl": "pareriraparerira",
+    "artist_orig": "天晴れ!原宿"
+  },
+  "パンダヒーロー": {
+    "intl": "Panda Hero",
+    "artist_orig": "ハチ"
+  },
+  "パンプキンズナイトメア": {
+    "intl": "Pumpkin's Nightmare",
+    "artist_orig": "るなちゅ"
+  },
+  "パンプキンズナイトメア (feat. 鏡音リン)": {
+    "remap": "パンプキンズナイトメア"
+  },
+  "パーペキヒーロー": {
+    "artist_orig": "天月-あまつき-, まふまふ, un:c, Gero, 少年T, そらる, 超学生, となりの坂田。 & luz",
+    "intl": "Papeki Hero",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ヒアソビ": {
+    "intl": "PlayFire / Hiasobi",
+    "artist_orig": "かめりあ"
+  },
+  "ヒカリスペクトル": {
+    "artist_orig": "Ra*bits",
+    "intl": "Hikari Spectre"
+  },
+  "ヒトリゴト": {
+    "intl": "Hitorigoto",
+    "artist_orig": "ClariS"
+  },
+  "ヒバナ": {
+    "artist_orig": "DECO*27",
+    "intl": "HIBANA",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ヒビカセ": {
+    "artist_orig": "Giga",
+    "intl": "hibikase",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ヒミツミチ": {
+    "artist_orig": "いきづらい部！",
+    "intl": "Himitsu Michi"
+  },
+  "ヒミツミチ (Off Vocal)": {
+    "remap": "ヒミツミチ"
+  },
+  "ヒラリ/ヒトリ/キラリ": {
+    "artist_orig": "わか, ふうり, すなお, れみ, もえ, えり, ゆな & りすこ"
+  },
+  "ヒロインは平均以下。": {
+    "intl": "Heroine wa Heikin Ika.",
+    "artist_orig": "高嶺のなでしこ"
+  },
+  "ヒロインは平均以下。(2026 Album Ver.)": {
+    "remap": "ヒロインは平均以下。"
+  },
+  "ヒロイン育成計画": {
+    "intl": "Heroine ikusei keikaku",
+    "artist_orig": "HoneyWorks"
+  },
+  "ヒロイン育成計画 (feat. 涼海ひより(CV:水瀬いのり))": {
+    "remap": "ヒロイン育成計画"
+  },
+  "ビタミンSUMMER!": {
+    "intl": "Vitamin SUMMER!",
+    "artist_orig": "Liella!"
+  },
+  "ビターチョコデコレーション": {
+    "intl": "Bitter Choco Decoration",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "ビターチョコデコレーション (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & 初音ミク)": {
+    "remap": "ビターチョコデコレーション"
+  },
+  "ビバハピ": {
+    "intl": "Viva Happy",
+    "artist_orig": "Mitchie M"
+  },
+  "ビビっとラブ": {
+    "intl": "Bibitto Love",
+    "artist_orig": "CHiCO with HoneyWorks & まふまふ"
+  },
+  "ビビデバ": {
+    "intl": "BIBBIDIBA",
+    "artist_orig": "星街すいせい",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ビリ": {
+    "intl": "BIRI",
+    "artist_orig": "角巻わため"
+  },
+  "ビルじゃないもん": {
+    "intl": "Devil Janai Mon",
+    "artist_orig": "DECO*27"
+  },
+  "ピーマン体操": {
+    "artist_orig": "有馬かな(CV:潘めぐみ)",
+    "intl": "Piiman Taisou",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ファイアダンス": {
+    "intl": "Fire Dance",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "ファタール": {
+    "intl": "Fatal",
+    "artist_orig": "GEMN, 中島健人 & キタニタツヤ"
+  },
+  "ファタール - Fatal": {
+    "remap": "ファタール"
+  },
+  "ファンサ": {
+    "intl": "Fansa",
+    "artist_orig": "mona"
+  },
+  "ファンサ (feat. HoneyWorks)": {
+    "remap": "ファンサ"
+  },
+  "フィクション": {
+    "intl": "Fiction",
+    "artist_orig": "sumika"
+  },
+  "フィラメントフィーバー": {
+    "artist_orig": "栗山夕璃",
+    "intl": "Filament Fever",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "フィーリングラデーション": {
+    "intl": "feelingradation",
+    "artist_orig": "ReGLOSS"
+  },
+  "フォニイ": {
+    "intl": "phony",
+    "artist_orig": "ツミキ",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "フォニイ (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & MEIKO)": {
+    "remap": "フォニイ"
+  },
+  "フューエル": {
+    "intl": "FUEL",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "フューエル (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & KAITO)": {
+    "remap": "フューエル"
+  },
+  "フュージョン": {
+    "intl": "Fusion",
+    "artist_orig": "DI:Verse"
+  },
+  "フライディ・チャイナタウン": {
+    "intl": "Fly-day Chinatown",
+    "artist_orig": "泰葉"
+  },
+  "フライド☆プライド": {
+    "intl": "FRIED PRIDE",
+    "artist_orig": "REAL AKIBA BOYZ, 田口華有, AiRyA & REAL AKIBA BAND"
+  },
+  "フライングゲット": {
+    "intl": "Flying Get",
+    "artist_orig": "AKB48"
+  },
+  "フラジール": {
+    "intl": "Fragile",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "フラジール (feat. 東雲彰人 & 青柳冬弥)": {
+    "remap": "フラジール"
+  },
+  "フラジール (feat. 東雲彰人&青柳冬弥)": {
+    "remap": "フラジール"
+  },
+  "フランケンシュタインの怪物": {
+    "artist_orig": "HIMEHINA",
+    "intl": "Frankenstein no Kaibutsu"
+  },
+  "フリコドウル": {
+    "intl": "Furiko Doll",
+    "artist_orig": "ヒメヒナ",
+    "artist_intl": "HIMEHINA"
+  },
+  "フレンド革命": {
+    "intl": "Friend Revolution",
+    "artist_orig": "内田彩澄"
+  },
+  "ブラッディ・グルービー": {
+    "intl": "Bloody Groovy",
+    "artist_orig": "ChroNoiR"
+  },
+  "ブリキノダンス": {
+    "artist_orig": "日向電工",
+    "intl": "Buriki no Dance",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ブレインロット": {
+    "intl": "Brain Rot",
+    "artist_orig": "東京真中"
+  },
+  "プレイ": {
+    "artist_orig": "Giga",
+    "intl": "Play",
+    "see_artist": true
+  },
+  "プロポーズ": {
+    "artist_orig": "なとり",
+    "intl": "Propose",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "プロミスザスター": {
+    "artist_orig": "BiSH",
+    "intl": "Promise the Star"
+  },
+  "プロミスザスター (向繁星许诺)": {
+    "artist_orig": "BiSH"
+  },
+  "ヘイヴン": {
+    "intl": "HAVEN",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "ヘビーローテーション": {
+    "intl": "Heavy Rotation",
+    "artist_orig": "AKB48"
+  },
+  "ベノム": {
+    "intl": "Venom",
+    "artist_orig": "Kairiki Bear"
+  },
+  "ベノム(feat. flower)": {
+    "remap": "ベノム"
+  },
+  "ベリイ・ベリイ・スイート・ホワイト♡": {
+    "intl": "Very Berry Sweet White",
+    "artist_orig": "Special for Princess!"
+  },
+  "ペンタトニック": {
+    "intl": "pentatonic",
+    "artist_orig": "星乃一歌, 花里みのり, 小豆沢こはね, 天馬司, 宵崎奏 & 初音ミク"
+  },
+  "ポジティブ☆ダンスタイム": {
+    "intl": "Positive Dance Time",
+    "artist_orig": "キノシタ"
+  },
+  "ポジティブ☆ダンスタイム (feat. 音街ウナ & 鏡音リン)": {
+    "remap": "ポジティブ☆ダンスタイム"
+  },
+  "ポッピンキャンディ☆フィーバー!": {
+    "intl": "Poppin' Candy Fever!",
+    "artist_orig": "キノシタ"
+  },
+  "ポニーテールとシュシュ": {
+    "artist_orig": "AKB48",
+    "intl": "Ponytail to Shushu"
+  },
+  "マインドブランド": {
+    "intl": "Mind Brand",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "マジ!Magic!PEACH!": {
+    "artist_orig": "VOLTACTION"
+  },
+  "マジLOVE1000%": {
+    "intl": "Maji LOVE 1000%",
+    "artist_orig": "ST☆RISH"
+  },
+  "マジック・メイド": {
+    "intl": "Magic Maid",
+    "artist_orig": "MIMI"
+  },
+  "マチアプリンセス": {
+    "artist_orig": "吉本おじさん",
+    "intl": "Machi Apprincess",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "マトリョシカ": {
+    "artist_orig": "ハチ",
+    "intl": "MATORYOSHKA",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "マフィア": {
+    "intl": "Mafia",
+    "artist_orig": "wotaku"
+  },
+  "マーシャル・マキシマイザー": {
+    "intl": "Marshall Maximizer",
+    "artist_orig": "Hiiragi Magnetite"
+  },
+  "マーシャル・マキシマイザー (feat. 可不)": {
+    "remap": "マーシャル・マキシマイザー"
+  },
+  "マーシャル・マキシマイザー (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 巡音ルカ)": {
+    "remap": "マーシャル・マキシマイザー"
+  },
+  "ミスター": {
+    "intl": "Mister",
+    "artist_orig": "KARA"
+  },
+  "ミニスカート": {
+    "intl": "Miniskirt",
+    "artist_orig": "AOA",
+    "remap": "Miniskirt"
+  },
+  "ミラクル☆パラダイス": {
+    "artist_orig": "i☆Ris",
+    "intl": "Miracle☆Paradise"
+  },
+  "ミラクルペイント": {
+    "intl": "Miracle Paint",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "ミラクルペイント (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 初音ミク)": {
+    "remap": "ミラクルペイント"
+  },
+  "ムテキDUOエナジー": {
+    "artist_orig": "ひまり & みつき",
+    "intl": "UNBEATABLE DUO ENERGY"
+  },
+  "ムリムリ進化論": {
+    "intl": "MURI MURI EVOLUTION",
+    "artist_orig": "ナナヲアカリ"
+  },
+  "ムーンライトディスコ": {
+    "intl": "Moonlight Disco",
+    "artist_orig": "月都スペクタクル"
+  },
+  "メイド☆至上主義": {
+    "artist_orig": "HoneyWorks",
+    "intl": "Maid Shijousugi"
+  },
+  "メイド☆至上主義 (feat. かぴ, Hanon & Kotoha)": {
+    "remap": "メイド☆至上主義"
+  },
+  "メグメグ☆ファイアーエンドレスナイト": {
+    "intl": "MEGUMEGU☆FIRE ENDLESS NIGHT",
+    "artist_orig": "samfree"
+  },
+  "メグメグ☆ファイアーエンドレスナイト SAM's Be more hot remix": {
+    "artist_orig": "samfree",
+    "intl": "",
+    "artist_intl": "",
+    "remap": "メグメグ☆ファイアーエンドレスナイト"
+  },
+  "メグメグ☆フャイヤーエンドレスナイト": {
+    "artist_orig": "samfree"
+  },
+  "メズマライザー": {
+    "intl": "Mesmerizer",
+    "artist_orig": "サツキ, 初音ミク & 重音テト"
+  },
+  "メランコリック": {
+    "intl": "Melancholic",
+    "artist_orig": "Junky"
+  },
+  "メルト": {
+    "intl": "Melt",
+    "artist_orig": "ryo (supercell) & 初音ミク"
+  },
+  "メルヘラトキシン": {
+    "intl": "Meruhera Tokishin",
+    "artist_orig": "そらまふうらさか"
+  },
+  "メロウ": {
+    "intl": "Mellow",
+    "artist_orig": "須田景凪"
+  },
+  "モア!ジャンプ!モア!": {
+    "intl": "More! Jump! More!",
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "モア!ジャンプ!モア! (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 初音ミク)": {
+    "remap": "モア!ジャンプ!モア!"
+  },
+  "モエチャッカファイア": {
+    "intl": "Moechakkafire",
+    "artist_orig": "弌誠"
+  },
+  "モニタリング": {
+    "intl": "Monitoring",
+    "artist_orig": "DECO*27"
+  },
+  "ヤラララ": {
+    "artist_orig": "AnythingBecomeMoe",
+    "intl": "YARARARA",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ヤンキーボーイ・ヤンキーガール": {
+    "artist_orig": "トーマ",
+    "intl": "Yankee Boy・Yankee Girl",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ユメクライミング": {
+    "artist_orig": "iLiFE!",
+    "intl": "Yume Climbing"
+  },
+  "ユメノトビラ": {
+    "intl": "Yume no Tobira",
+    "artist_orig": "μ's"
+  },
+  "ユメヲカケル!": {
+    "intl": "Run for Our Dream!",
+    "artist_orig": "ウマ娘 プリティーダービー",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ユメヲカケル! (TV Size)": {
+    "intl": "Run for Our Dream! (TV Size)",
+    "artist_orig": "スペシャルウィーク, サイレンススズカ, トウカイテイオー, ウオッカ, ダイワスカーレット, ゴールドシップ & メジロマックイーン"
+  },
+  "ユリーカ": {
+    "intl": "Eureka",
+    "artist_orig": "スキマスイッチ"
+  },
+  "ライアーダンサー": {
+    "intl": "Liar Dancer",
+    "artist_orig": "マサラダ"
+  },
+  "ライアーダンス": {
+    "intl": "Liar Dance",
+    "artist_orig": "DECO*27"
+  },
+  "ライラック": {
+    "intl": "Lilac",
+    "artist_orig": "Mrs. GREEN APPLE"
+  },
+  "ラビットホール": {
+    "intl": "Rabbit Hole",
+    "artist_orig": "DECO*27"
+  },
+  "ラブカ?": {
+    "intl": "Love Ka?",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "ラブカ? (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & MEIKO)": {
+    "remap": "ラブカ?"
+  },
+  "ラブソングに襲われる": {
+    "artist_orig": "=LOVE",
+    "intl": "Love Song ni Osowareru"
+  },
+  "ラブノベルス": {
+    "intl": "Love Novels"
+  },
+  "ラブポーション": {
+    "intl": "LovePotion",
+    "artist_orig": "INOSON, POPREQ"
+  },
+  "ラブポーション (cover)": {
+    "remap": "ラブポーション"
+  },
+  "ラブミ!": {
+    "intl": "Love Me!",
+    "artist_orig": "Oozora Subaru",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ラプラスショコラ": {
+    "artist_orig": "Kai",
+    "intl": "Laplace's Chocolat"
+  },
+  "ラミィズバリバリワークアウト": {
+    "intl": "Lamy's Baribari Workout",
+    "artist_orig": "雪花ラミィ"
+  },
+  "ラヴィ": {
+    "intl": "Lavie",
+    "artist_orig": "すりぃ",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ラヴィット": {
+    "intl": "Loveit",
+    "artist_orig": "ピノキオピー"
+  },
+  "リアライズ": {
+    "intl": "Realize",
+    "artist_orig": "柊マグネタイト",
+    "artist_intl": "Hiiragi Magnetite",
+    "remap": ""
+  },
+  "リアライズ (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 初音ミク)": {
+    "remap": "リアライズ"
+  },
+  "リバーシブル・キャンペーン": {
+    "intl": "Reversible Campaign",
+    "artist_orig": "DECO*27"
+  },
+  "リモコン": {
+    "artist_orig": "じーざす(ワンダフル☆オポチュニティ!)",
+    "intl": "Rimokon"
+  },
+  "リモコン feat.鏡音リン、鏡音レン": {
+    "remap": "リモコン"
+  },
+  "リリィ": {
+    "intl": "Lily",
+    "artist_orig": "吐息"
+  },
+  "リリリリ★バーニングナイト": {
+    "intl": "Lily Lily ☆ Burning Night",
+    "artist_orig": "samfree"
+  },
+  "ルカルカ★ナイトフィーバー": {
+    "intl": "Luka Luka ★ Night Fever",
+    "artist_orig": "samfree"
+  },
+  "ルマ": {
+    "intl": "Ruma",
+    "artist_orig": "かいりきベア"
+  },
+  "ループザルーム": {
+    "intl": "Loop the Room",
+    "artist_orig": "rusino"
+  },
+  "レイニースノードロップ": {
+    "intl": "Rainy Snowdrop",
+    "artist_orig": "Re:nG"
+  },
+  "レッツ! ジュウオウダンス": {
+    "intl": "Let's! Zyuoh Dance",
+    "artist_orig": "大西洋平"
+  },
+  "レッツゴー!陰陽師": {
+    "intl": "Let's Go! Onnmyouji",
+    "artist_orig": "矢部野彦麿&琴姫With坊主ダンサーズ"
+  },
+  "レディバグ": {
+    "artist_orig": "DOLLCHESTRA",
+    "intl": "Ladybug"
+  },
+  "レミングミング": {
+    "intl": "LEMINGMING",
+    "artist_orig": "かいりきベア"
+  },
+  "ロウワー": {
+    "intl": "Lower one's eyes",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "ロキ": {
+    "intl": "Roki",
+    "artist_orig": "みきとP"
+  },
+  "ロケットサイダー": {
+    "intl": "Rocket Cider",
+    "artist_orig": "ナユタン星人"
+  },
+  "ロストアンブレラ": {
+    "intl": "Lost Umbrella",
+    "artist_orig": "稲葉曇"
+  },
+  "ロストワンの号哭": {
+    "artist_orig": "Neru",
+    "intl": "Lost One no Goukoku"
+  },
+  "ロッタラ ロッタラ": {
+    "artist_orig": "Buono!"
+  },
+  "ロミオとシンデレラ": {
+    "intl": "Romeo and Cinderella",
+    "artist_orig": "doriko"
+  },
+  "ロミオとシンデレラ (feat. 桃井愛莉, 日野森雫 & 初音ミク)": {
+    "remap": "ロミオとシンデレラ"
+  },
+  "ロールプレイングゲーム": {
+    "intl": "Roleplaying Game",
+    "artist_orig": "そらまふうらさか"
+  },
+  "ワンスアポンアドリーム": {
+    "intl": "Once upon a dream",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "ワンダー・スターター": {
+    "intl": "Wonder Starter",
+    "artist_orig": "鈴代紗弓, 蟹沢萌子, 夏吉ゆうこ, 長谷川里桃 & 中川梨花"
+  },
+  "ワンチャン僕の女神様っ!!!": {
+    "artist_orig": "ぽこた"
+  },
+  "ワンルームシュガーライフ": {
+    "intl": "One Room Sugar Life",
+    "artist_orig": "ナナヲアカリ"
+  },
+  "ワールズエンド・ダンスホール": {
+    "artist_orig": "wowaka(現実逃避P), 初音ミク & 巡音ルカ"
+  },
+  "ワールドイズマイン": {
+    "intl": "World Is Mine",
+    "artist_orig": "ryo (supercell)",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ワールドワイドワンダー": {
+    "intl": "Worldwide Wander",
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "ワーワーワールド": {
+    "intl": "Wah Wah World",
+    "artist_orig": "Giga & Mitchie M",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ヴァンパイア": {
+    "intl": "The Vampire",
+    "artist_orig": "DECO*27",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "ヴィラン": {
+    "intl": "VILLAIN",
+    "artist_orig": "てにをは"
+  },
+  "ヴィラン (feat. 朝比奈まふゆ & 暁山瑞希)": {
+    "remap": "ヴィラン"
+  },
+  "一旦ステイ TONIGHT": {
+    "intl": "Ittan Stay Tonight",
+    "artist_orig": "不破湊"
+  },
+  "一笑江湖": {
+    "artist_orig": "刘汉成"
+  },
+  "一等星のニュアンス": {
+    "intl": "Ittousei no Nuance"
+  },
+  "七彩阳光": {},
+  "七彩阳光现在开始 (社会摇版)": {
+    "remap": "七彩阳光"
+  },
+  "七色の絵の具で": {
+    "artist_orig": "ナナランド",
+    "intl": "With the Seven Color Paints"
+  },
+  "三原色": {
+    "intl": "RGB",
+    "artist_orig": "YOASOBI"
+  },
+  "下等馬": {
+    "artist_orig": "洛天依"
+  },
+  "不可Boom": {
+    "intl": "Fukaboom",
+    "artist_orig": "ChroNoiR"
+  },
+  "不可思議のカルテ": {
+    "intl": "Fukashigi no KARTE",
+    "artist_orig": "桜島麻衣(CV:瀬戸麻沙美), 古賀朋絵(CV:東山奈央), 双葉理央(CV:種﨑敦美), 豊浜のどか(CV:内田真礼), 梓川かえで(CV:久保ユリカ) & 牧之原翔子(CV:水瀬いのり)"
+  },
+  "不眠之夜": {
+    "artist_orig": "张杰 & HOYO-MiX"
+  },
+  "与你同行B~with~U": {
+    "artist_orig": "幽舞越山"
+  },
+  "与你同行~B With U~": {
+    "artist_orig": "kz(livetune)"
+  },
+  "与梦盛开": {
+    "artist_orig": "赵方婧, 王梓钰"
+  },
+  "世界は恋に落ちている": {
+    "intl": "Sekai Wa Koi Ni Ochiteiru",
+    "artist_orig": "CHiCO with HoneyWorks"
+  },
+  "世界は恋に落ちている Instrumental": {
+    "remap": "世界は恋に落ちている"
+  },
+  "世界を照らすテトラッド": {
+    "intl": "Tonal Twinkle Tetrad",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "世界を照らすテトラッド (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 初音ミク)": {
+    "remap": "世界を照らすテトラッド"
+  },
+  "世界一可愛い私": {
+    "intl": "Sekaiichi Kawaii Watashi",
+    "artist_orig": "初星学園 & 藤田ことね"
+  },
+  "乙女どもよ。": {
+    "intl": "Otomedomoyo",
+    "artist_orig": "CHiCO with HoneyWorks"
+  },
+  "乙姫心で恋宮殿": {
+    "intl": "Otohime Heart de Love Kyuuden"
+  },
+  "交织together": {
+    "artist_orig": "泠鸢yousa/hanser"
+  },
+  "人ってただの筒じゃないですか": {
+    "intl": "Hitotte Tadanotsutsujanaidesuka",
+    "artist_orig": "月ノ美兎"
+  },
+  "人マニア": {
+    "artist_orig": "原口沙輔",
+    "intl": "Hito Mania",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "今宵月の館にて": {
+    "intl": "Koyoi Tsuki no Yakata ni te",
+    "artist_orig": "あんさんぶるスターズ！！"
+  },
+  "今度 いつ 君に会えるのかな": {
+    "intl": "Kondo itsu kimi ni aeru no kana",
+    "artist_orig": "長谷川白紙"
+  },
+  "仮死化": {
+    "intl": "Kashika",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "仮死化 (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & MEIKO)": {
+    "remap": "仮死化"
+  },
+  "仮装狂騒曲": {
+    "intl": "Kasou Kyousoukyoku",
+    "artist_orig": "初星学園, 倉本千奈, 篠澤 広 & 月村手毬"
+  },
+  "仮装狂騒曲 [Instrumental]": {
+    "remap": "仮装狂騒曲"
+  },
+  "会いたかった": {
+    "artist_orig": "AKB48",
+    "intl": "Aitakatta"
+  },
+  "会いにKiTE!": {
+    "artist_orig": "iLiFE!"
+  },
+  "会いにKiTE! (2026 support ver.)": {
+    "remap": "会いにKiTE!"
+  },
+  "但願人長久": {
+    "artist_orig": "フェイ・ウォン"
+  },
+  "俺こそオンリーワン": {
+    "intl": "Orekoso Only One",
+    "artist_orig": "森崎ウィン"
+  },
+  "倍倍FIGHT!": {
+    "intl": "BAIBAI FIGHT!",
+    "artist_orig": "CANDY TUNE"
+  },
+  "偽物人間40号": {
+    "intl": "Nisemononinngen40gou",
+    "artist_orig": "¿?shimon"
+  },
+  "偽物人間40号 (self cover)": {
+    "remap": "偽物人間40号"
+  },
+  "僕たちはひとつの光": {
+    "intl": "Bokutachi wa Hitotsu no Hikari",
+    "artist_orig": "μ's"
+  },
+  "僕のウィーク・ポイント": {
+    "intl": "Boku No Weak Point",
+    "artist_orig": "SPRINT・ING!, あんさんぶるスターズ!!"
+  },
+  "僕は僕を好きになる": {
+    "artist_orig": "乃木坂46",
+    "intl": "Boku wa Boku o Suki ni Naru"
+  },
+  "僕らのLIVE 君とのLIFE": {
+    "intl": "Bokura no LIVE Kimi to no LIFE",
+    "artist_orig": "μ's"
+  },
+  "僕らは今のなかで": {
+    "intl": "Bokura wa Ima no Naka de",
+    "artist_orig": "μ's"
+  },
+  "元気全開 DAY! DAY! DAY!": {
+    "intl": "Genki Zenkai DAY! DAY! DAY!"
+  },
+  "光の中で花咲いて": {
+    "artist_orig": "蓮ノ空女学院スクールアイドルクラブ",
+    "intl": "Hikari no Naka de Hana Saite"
+  },
+  "光线": {
+    "artist_orig": "小精灵"
+  },
+  "光线 (Bdf2021单曲)": {
+    "artist_orig": "小精灵"
+  },
+  "全力キング": {
+    "artist_orig": "古川貴之",
+    "intl": "Zenryoku King"
+  },
+  "全力キング (TVサイズ)": {
+    "intl": "Zenryoku King",
+    "artist_orig": "古川貴之"
+  },
+  "全力全開! ゼンカイジャー": {
+    "intl": "Zenryoku Zenkai! Zenkaiger",
+    "artist_orig": "つるの剛士 & ことのみ児童合唱団"
+  },
+  "全肯定!": {
+    "artist_orig": "フレン・E・ルスタリオ",
+    "intl": "Zenkoutei!",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "全速ドリーマー": {
+    "intl": "Zensoku Dreamer"
+  },
+  "六兆年と一夜物語": {
+    "intl": "Roku Chounen To Ichiya Monogatari",
+    "artist_orig": "Roselia"
+  },
+  "円環のRefraction": {
+    "artist_orig": "Eden"
+  },
+  "冬がくれた予感": {
+    "artist_orig": "BiBi",
+    "intl": "Fuyu ga Kureta Yokan"
+  },
+  "刀ピークリスマスのテーマソング2022": {
+    "intl": "TouPea Christmas 2022",
+    "artist_orig": "ピーナッツくん"
+  },
+  "刀ピークリスマスのテーマソング2023": {
+    "intl": "TouPea Christmas 2023"
+  },
+  "刀ピークリスマスのテーマソング2024": {
+    "intl": "TouPea Christmas no Theme Song 2024",
+    "artist_orig": "ピーナッツくん"
+  },
+  "初心LOVE": {
+    "intl": "Ubu Love",
+    "artist_orig": "なにわ男子"
+  },
+  "初心LOVE(うぶらぶ)": {
+    "artist_orig": "なにわ男子"
+  },
+  "初恋のこたえ。": {
+    "artist_orig": "高嶺のなでしこ"
+  },
+  "初恋のひと。": {
+    "intl": "Hatsukoi No Hito.",
+    "artist_orig": "高嶺のなでしこ"
+  },
+  "初梦谣": {
+    "artist_orig": "SING女团"
+  },
+  "刹那ストリングス": {
+    "artist_orig": "手羽先センセーション",
+    "intl": "Setsuna Strings"
+  },
+  "劇薬中毒": {
+    "intl": "GekiyakuChudoku",
+    "artist_orig": "=LOVE"
+  },
+  "劣等上等": {
+    "intl": "BRING IT ON",
+    "artist_orig": "Giga"
+  },
+  "劣等上等 feat. 鏡音リン・レン": {
+    "remap": "劣等上等"
+  },
+  "勾指起誓": {
+    "artist_orig": "洛天依 & ilem"
+  },
+  "化けの花": {
+    "intl": "BAKENOHANA",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "化けの花 (feat. 宵崎奏&朝比奈まふゆ&東雲絵名&暁山瑞希&KAITO)": {
+    "remap": "化けの花"
+  },
+  "千変万華": {
+    "intl": "Senpen Banka",
+    "artist_orig": "スリーズブーケ"
+  },
+  "千本桜": {
+    "intl": "Senbonzakura",
+    "artist_orig": "黒うさP"
+  },
+  "千本桜 feat.初音ミク": {
+    "remap": "千本桜"
+  },
+  "千盏": {
+    "artist_orig": "SING女团"
+  },
+  "千里邀月": {
+    "artist_orig": "纯白p"
+  },
+  "卑怯戦隊うろたんだー": {
+    "artist_orig": "シンP",
+    "intl": "Hikyou Sentai Urotander",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "卡加布烈島": {
+    "artist_orig": "YOYO家族藝人"
+  },
+  "反乌托邦": {
+    "artist_orig": "宸寻"
+  },
+  "只因你太美": {
+    "artist_orig": "赵品霖, 朱云龙, 苟晨浩宇, 何屹繁"
+  },
+  "可変3連MIXをおぼえる歌": {
+    "artist_orig": "iLiFE!",
+    "intl": "Kahen 3-ren MIX wo Oboeru Uta"
+  },
+  "可変三連MIXをおぼえるうた": {
+    "intl": "Kahen Sanren Mix wo Oboeru Uta",
+    "artist_orig": "iLiFE!"
+  },
+  "可愛くてごめん": {
+    "intl": "Kawaikute Gomen",
+    "artist_orig": "HoneyWorks"
+  },
+  "可愛くてごめん (feat. HoneyWorks & かぴ) [ぶりっ子ブリブリボンキュッボン]": {
+    "remap": "可愛くてごめん"
+  },
+  "可愛くてごめん (feat. ちゅーたん(CV:早見沙織))": {
+    "remap": "可愛くてごめん"
+  },
+  "右肩の蝶": {
+    "intl": "Migikata No Cho",
+    "artist_orig": "のりぴー"
+  },
+  "同担☆拒否": {
+    "artist_orig": "HoneyWorks",
+    "intl": "Doutan☆Kyohi",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "同担☆拒否 (feat. かぴ)": {
+    "remap": "同担☆拒否"
+  },
+  "同频Melody": {
+    "artist_orig": "闹闹 / LS / 莫米兔"
+  },
+  "同频Melody（洛天依版）": {
+    "remap": "同频Melody"
+  },
+  "同频Melody（鹿火CAVY版）": {
+    "remap": "同频Melody"
+  },
+  "名前のない怪物": {
+    "intl": "Namae No Nai Kaibutsu",
+    "artist_orig": "EGOIST"
+  },
+  "名残り桜": {
+    "artist_orig": "AKB48",
+    "intl": "Nagori Zakura"
+  },
+  "向阳": {
+    "artist_orig": "咬人猫"
+  },
+  "向阳 (Bdf2021单曲)": {
+    "artist_orig": "咬人猫"
+  },
+  "君にしか読めない手紙": {
+    "intl": "A letter only you can read.",
+    "artist_orig": "風真いろは"
+  },
+  "君のこころは輝いてるかい?": {
+    "intl": "Kimi no Kokoro wa Kagayaiteru kai?",
+    "artist_orig": "Aqours"
+  },
+  "君の瞳を巡る冒険": {
+    "artist_orig": "Aqours",
+    "intl": "Kimi no Hitomi o Meguru Bouken",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "君セン!": {
+    "artist_orig": "iLiFE!",
+    "intl": "Kimisen!",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "君色に染まる": {
+    "intl": "kimiiro ni somaru",
+    "artist_orig": "TOKOTOKO(西沢さんP)"
+  },
+  "君色マリンスノウ": {
+    "intl": "Colorful Marine Snow",
+    "artist_orig": "カルロス袴田(サイゼP)"
+  },
+  "君色マリンスノウ (feat. 初音ミク)": {
+    "remap": "君色マリンスノウ"
+  },
+  "听见WO!": {
+    "artist_orig": "阿萨Aza"
+  },
+  "告白予行練習": {
+    "intl": "KOKUHAKU YOKOU RENSHUU",
+    "artist_orig": "HoneyWorks"
+  },
+  "告白実行委員会": {
+    "intl": "Kokuhaku Jikkou Iinkai"
+  },
+  "告白日和、です!": {
+    "artist_orig": "南ことり, 小泉花陽 & μ's",
+    "intl": "Kokuhaku Biyori, desu!"
+  },
+  "咏春": {
+    "artist_orig": "Seven combination"
+  },
+  "唯一、愛ノ詠": {
+    "intl": "Yuiitsu, Ai no Uta",
+    "artist_orig": "梅とら"
+  },
+  "唱": {
+    "intl": "Show",
+    "artist_orig": "Ado"
+  },
+  "唱 (A Cappella)": {
+    "remap": "唱"
+  },
+  "回レ!雪月花": {
+    "artist_orig": "歌組雪月花",
+    "intl": "Maware! Setsugetsuka",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "夏に去りし君を想フ": {
+    "artist_orig": "baker",
+    "intl": "Natsu ni Sarishi Kimi o Omofu"
+  },
+  "夏に去りし君を想フ (feat. 初音ミク)": {
+    "remap": "夏に去りし君を想フ"
+  },
+  "夏への扉 Never end ver.": {
+    "intl": "The Door Towards Summer Never end ver."
+  },
+  "夏恋花火": {
+    "intl": "Natsu Koi Hanabi",
+    "artist_orig": "シャノ & 40mP"
+  },
+  "夏色えがおで1,2,Jump!": {
+    "intl": "Natsuiro Egao de 1,2,Jump!",
+    "artist_orig": "μ's"
+  },
+  "夜の踊り子": {
+    "intl": "Yoru No Odoriko",
+    "artist_orig": "サカナクション"
+  },
+  "夜もすがら君想ふ": {
+    "intl": "Yomosugara Kimi Omou",
+    "artist_orig": "TOKOTOKO(西沢さんP)"
+  },
+  "夢にかけるRainbow": {
+    "intl": "Yume ni Kakeru Rainbow",
+    "artist_orig": "エンジェルスターズ"
+  },
+  "夢にエール! パティシエール♪": {
+    "artist_orig": "五條真由美",
+    "intl": "Yume ni Eeru Patishieeru"
+  },
+  "大いなる愛の前に全ては巡り来る": {
+    "artist_orig": "Eden, あんさんぶるスターズ！！",
+    "intl": "Oinaru Ai no Mae ni Subete wa Megurikuru"
+  },
+  "大声ダイヤモンド": {
+    "intl": "Ogoediamond",
+    "artist_orig": "AKB48"
+  },
+  "大好き ずっと永遠に": {
+    "artist_orig": "恋太郎ファミリー"
+  },
+  "大好き♡ずっと永遠に♡": {
+    "artist_orig": "恋太郎ファミリー",
+    "intl": "I Love You ♡ Forever and Always ♡"
+  },
+  "大嫌いなはずだった。": {
+    "intl": "Daikirainahazudatta",
+    "artist_orig": "HoneyWorks"
+  },
+  "大江戸ジュリアナイト": {
+    "intl": "Ooedo Julia Night",
+    "artist_orig": "Mitchie M"
+  },
+  "大课间跑步音乐": {
+    "artist_orig": "Various Artist"
+  },
+  "天下無敵☆メテオレンジャー!": {
+    "intl": "Tenkamuteki Meteor Ranger!",
+    "artist_orig": "RYUSEITAI"
+  },
+  "天使のクローバー": {
+    "intl": "Tenshi no Clover",
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "天使のクローバー (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 鏡音リン)": {
+    "remap": "天使のクローバー"
+  },
+  "天天天国地獄国": {
+    "intl": "Tententengokujigokugoku",
+    "artist_orig": "Aiobahn +81, ななひら & P丸様。"
+  },
+  "天武の舞、暁の門": {
+    "intl": "TENBUNO MAI AKATSUKINO MON",
+    "artist_orig": "kaori"
+  },
+  "太陽、なってあげよっか?♡": {
+    "intl": "I could be your Sun?",
+    "artist_orig": "社 美胡(CV:ファイルーズあい)"
+  },
+  "太陽系デスコ": {
+    "intl": "Solar System Disco",
+    "artist_orig": "ナユタン星人"
+  },
+  "女々しくて": {
+    "intl": "Memeshikute",
+    "artist_orig": "ゴールデンボンバー"
+  },
+  "女の子が恋の手錠をかけたら逃がさない！": {
+    "intl": "Won't let you go!",
+    "artist_orig": "星乃夢奈"
+  },
+  "好き!雪!本気マジック": {
+    "intl": "Suki! Yuki! Honki Magic",
+    "artist_orig": "Mitchie M"
+  },
+  "好きish": {
+    "artist_orig": "AKB48",
+    "intl": "Suki-ish"
+  },
+  "好きすぎて滅!": {
+    "intl": "Sukisugite METSU!",
+    "artist_orig": "M!LK"
+  },
+  "妄想感傷代償連盟": {
+    "intl": "Mousou Kanshou Daishou Renmei",
+    "artist_orig": "DECO*27"
+  },
+  "妙子": {
+    "intl": "Taeko"
+  },
+  "始まりは君の空": {
+    "intl": "Hajimari wa Kimi no Sora",
+    "artist_orig": "Liella!"
+  },
+  "威風堂々": {
+    "intl": "Ifuudoudou",
+    "artist_orig": "梅とら",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "威風堂々 (feat. 東雲彰人, 青柳冬弥 & KAITO)": {
+    "remap": "威風堂々"
+  },
+  "威風堂々 feat.巡音ルカ、初音ミク、GUMI、IA、鏡音リン&MAYU": {
+    "remap": "威風堂々"
+  },
+  "守護ってルーナイト": {
+    "intl": "Escort me! Luknight",
+    "artist_orig": "姫森ルーナ"
+  },
+  "完璧ぐ~のね": {
+    "intl": "Kanpekigu No Ne"
+  },
+  "宵々古今": {
+    "intl": "Yoiyoi Kokon",
+    "artist_orig": "REOL"
+  },
+  "寄明月": {
+    "artist_orig": "SING女团"
+  },
+  "将进酒": {
+    "artist_orig": "DMYoung/佑可猫"
+  },
+  "小学生万能BGM": {
+    "artist_orig": "秦欣"
+  },
+  "小学生广播体操七彩阳光": {
+    "artist_orig": "网络歌手"
+  },
+  "小悪魔LOVE": {
+    "intl": "Koakuma LOVE",
+    "artist_orig": "桜坂しずく"
+  },
+  "小悪魔だってかまわない!": {
+    "intl": "Koakumadattekamawanai!",
+    "artist_orig": "めいちゃん"
+  },
+  "少女レイ": {
+    "intl": "Shoujo Rei",
+    "artist_orig": "みきとP",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "少女レイ (feat. 桐谷遥, 日野森雫 & 初音ミク)": {
+    "remap": "少女レイ"
+  },
+  "少女交響曲": {
+    "intl": "Shoujo Koukyoukyoku"
+  },
+  "嵐のなかの恋だから": {
+    "artist_orig": "μ's"
+  },
+  "帝国少女": {
+    "artist_orig": "R Sound Design",
+    "intl": "Imperial Girl"
+  },
+  "常夏☆サンシャイン": {
+    "intl": "Tokonatsu☆Sunshine",
+    "artist_orig": "澁谷かのん, 唐 可可, 嵐 千砂都 & 平安名すみれ"
+  },
+  "幸福刑": {
+    "intl": "Koufuku Kei",
+    "artist_orig": "LonePi"
+  },
+  "幸福刑 (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & MEIKO)": {
+    "remap": "幸福刑"
+  },
+  "幻日ミステリウム": {
+    "artist_orig": "Aqours",
+    "intl": "Genjitsu Mysterium"
+  },
+  "強風オールバック": {
+    "intl": "Kyoufuu All Back",
+    "artist_orig": "ゆこぴ"
+  },
+  "彩虹节拍": {
+    "artist_orig": "肥皂菌丨珉珉的猫咪丨, 易言, 音阙诗听, 赵方婧 & 西瓜Kune"
+  },
+  "彩虹节拍(BDF2020主题曲)": {
+    "remap": "彩虹节拍"
+  },
+  "影色舞": {
+    "intl": "SilhouetteDance",
+    "artist_orig": "MyGO!!!!!"
+  },
+  "待ってて愛のうた": {
+    "artist_orig": "Aqours",
+    "intl": "Mattete Ai no Uta"
+  },
+  "微熱からMystery": {
+    "intl": "Binetsu kara Mystery",
+    "artist_orig": "lily white & μ's"
+  },
+  "心予報": {
+    "intl": "Kokoroyohou",
+    "artist_orig": "Eve"
+  },
+  "心予報 (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 初音ミク)": {
+    "remap": "心予報"
+  },
+  "心做し": {
+    "intl": "kokoronashi",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "心跳光谱": {
+    "artist_orig": "多多poi, 晏宁, 圈9, 七海Nana7mi, 阿梓从小就很可爱, 小可学妹"
+  },
+  "心跳光谱（真人版）": {
+    "remap": "心跳光谱"
+  },
+  "心跳光谱（真人版） (Bdf2022单曲)": {
+    "artist_orig": "多多poi/晏宁/圈9/七海Nana7mi/阿梓从小就很可爱/小可学妹"
+  },
+  "思い出以上になりたくて": {
+    "intl": "Omoide Ijou ni Naritakute"
+  },
+  "怪物": {
+    "intl": "Monster",
+    "artist_orig": "YOASOBI"
+  },
+  "恋": {
+    "intl": "Koi",
+    "artist_orig": "星野源"
+  },
+  "恋、はじめました。": {
+    "artist_orig": "=LOVE",
+    "intl": "Koi, Hajimemashita."
+  },
+  "恋するフォーチュンクッキー": {
+    "intl": "Koisuru Fortune Cookies",
+    "artist_orig": "AKB48"
+  },
+  "恋になりたいAQUARIUM": {
+    "artist_orig": "Aqours"
+  },
+  "恋のチュートリアル": {
+    "artist_orig": "Liella!",
+    "intl": "Koi no Tutorial"
+  },
+  "恋のヒメヒメぺったんこ": {
+    "artist_orig": "姫野湖鳥",
+    "intl": "Koi no Hime Hime Pettanko"
+  },
+  "恋はスリル、ショック、サスペンス": {
+    "artist_orig": "愛内里菜",
+    "intl": "Koi wa Thrill, Shock, Suspense"
+  },
+  "恋はメリーゴーランド": {
+    "intl": "Koi wa Merry go round",
+    "artist_orig": "THE SUPER FRUIT"
+  },
+  "恋ひ恋ふ縁": {
+    "intl": "Koi Kou Enishi"
+  },
+  "恋愛サーキュレーション": {
+    "intl": "Renai Circulation",
+    "artist_orig": "Kana Hanazawa"
+  },
+  "恋愛決壊警報": {
+    "artist_orig": "君に、胸キュン。",
+    "intl": "Renai Kekkai Keihou"
+  },
+  "恋愛裁判": {
+    "intl": "Love Trial",
+    "artist_orig": "40mP"
+  },
+  "恋餃子": {
+    "artist_orig": "STAiNY"
+  },
+  "悔やむと書いてミライ": {
+    "intl": "Kuyamu To Kaite Mirai",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "悔やむと書いてミライ (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & 初音ミク)": {
+    "remap": "悔やむと書いてミライ"
+  },
+  "悪ノ召使": {
+    "intl": "The Servant of Evil"
+  },
+  "悪ノ娘": {
+    "intl": "The Daughter of Evil"
+  },
+  "悪魔の踊り方": {
+    "intl": "Akuma no Odorikata",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "惑星ループ": {
+    "intl": "Planet Loop",
+    "artist_orig": "ナユタン星人"
+  },
+  "想いよひとつになれ": {
+    "intl": "Omoi yo Hitotsu ni Nare",
+    "artist_orig": "Aqours",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "想いよひとつになれ【第11話挿入歌】 (TVサイズ)": {
+    "remap": "想いよひとつになれ"
+  },
+  "愛♡スクリ～ム!": {
+    "artist_orig": "AiScReam"
+  },
+  "愛くださいませ": {
+    "artist_orig": "≠ME",
+    "intl": "Ai Kudasai Mase"
+  },
+  "愛してるばんざーい!": {
+    "intl": "Aishiteru Banzai!",
+    "artist_orig": "μ's"
+  },
+  "愛のシュプリーム!": {
+    "intl": "Love Supreme!",
+    "artist_orig": "fhána"
+  },
+  "愛の詩": {
+    "artist_orig": "ラマーズP",
+    "intl": "Ai no Uta"
+  },
+  "愛の詩 (feat. 初音ミク)": {
+    "remap": "愛の詩"
+  },
+  "愛包ダンスホール": {
+    "intl": "Heart Pie Dancehall",
+    "artist_orig": "HIMEHINA"
+  },
+  "愛属性": {
+    "artist_orig": "ピノキオピー",
+    "intl": "Ai Zokusei"
+  },
+  "愛言葉V": {
+    "intl": "Love Words V",
+    "artist_orig": "DECO*27"
+  },
+  "成敗いたAAAAAす!": {
+    "intl": "SEIBAIITAAAAASU!",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "成敗いたAAAAAす! (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 巡音ルカ)": {
+    "remap": "成敗いたAAAAAす!"
+  },
+  "成敗いたAAAAAす！": {
+    "intl": "SEIBAIITAAAAASU!",
+    "artist_orig": "Wonderful★opportunity!"
+  },
+  "成敗いたAAAAAす！-ショート ver.-": {
+    "artist_orig": "Wonderful★opportunity!"
+  },
+  "我ら!": {
+    "intl": "Warera!"
+  },
+  "我ら完全無敵のアイドル!!": {
+    "intl": "Warera Kanzenmutekino Idol!!",
+    "artist_orig": "B小町"
+  },
+  "我愛メイデン": {
+    "intl": "Wo Ai Maiden",
+    "artist_orig": "Hanyuu Maigo"
+  },
+  "我愛メイデン (Cover)": {
+    "remap": "我愛メイデン"
+  },
+  "承認欲求": {
+    "artist_orig": "櫻坂46",
+    "intl": "Shoninyokkyu"
+  },
+  "指先のアリアドネ": {
+    "intl": "",
+    "artist_orig": "Crazy:B",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "捕まえて、今夜。": {
+    "intl": "Tsukamaete, Tonight!",
+    "artist_orig": "新浜レオン"
+  },
+  "敦盛2011": {
+    "intl": "Atsumori 2011"
+  },
+  "新宝島": {
+    "intl": "Shin Takara Jima",
+    "artist_orig": "サカナクション"
+  },
+  "新時代": {
+    "intl": "New Genesis",
+    "artist_orig": "Ado"
+  },
+  "无法原谅": {
+    "artist_orig": "李佳璐"
+  },
+  "旦那様とのラブラブ・ラブソング": {
+    "intl": "Dannasama to no Love Love Love Song",
+    "artist_orig": "フェンリース",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "明日の私に幸あれ": {
+    "intl": "Good luck to me tomorrow",
+    "artist_orig": "ナナヲアカリ"
+  },
+  "星の鳴動響きし時に": {
+    "artist_orig": "Valkyrie"
+  },
+  "星座密码": {
+    "artist_orig": "AOA"
+  },
+  "星座密码 (《巴啦啦小魔仙之奇迹舞步》动漫片尾曲)": {
+    "artist_orig": "A2A"
+  },
+  "星座密码 (动画片《巴啦啦小魔仙之奇迹舞步》主题曲)": {
+    "artist_orig": "AOA"
+  },
+  "星期五的早安": {
+    "remap": "金曜日のおはよう",
+    "artist_orig": "张昕[女]"
+  },
+  "春嵐": {
+    "artist_orig": "john",
+    "intl": "Shunran",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "春情ロマンティック": {
+    "artist_orig": "lily white & μ's",
+    "intl": "Shunjo Romantic"
+  },
+  "時よ止まれ": {
+    "intl": "Toki Yo Tomare",
+    "artist_orig": "ILLIT"
+  },
+  "時空超えてユニバース": {
+    "artist_orig": "M!LK",
+    "intl": "Toki Koete Universe"
+  },
+  "最上級にかわいいの!": {
+    "intl": "saijyoukyuunikawaiino",
+    "artist_orig": "超ときめき♡宣伝部"
+  },
+  "最低で最高のParadiso": {
+    "intl": "Saitei de Saikou no Paradis"
+  },
+  "最高速 Fall in Love": {
+    "artist_orig": "ミーア、パピ、セントレア、スー、メロ、ラクネラ, ハピ, セントレア, スー(CV:野村真悠華), メロ & ラクネラ"
+  },
+  "月が綺麗ねと言われたい!": {
+    "artist_orig": "カササギ",
+    "intl": "Tsuki ga Kirei ne to Iwaretai!",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "月に向かって撃て": {
+    "artist_orig": "星街すいせい",
+    "intl": "Moonshot",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "月光": {
+    "artist_orig": "Vivid BAD SQUAD",
+    "intl": "Gekkou"
+  },
+  "月光 (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & MEIKO)": {
+    "remap": "月光"
+  },
+  "月夜見海月": {
+    "artist_orig": "スリーズブーケ",
+    "intl": "Tsukuyomi Kurage"
+  },
+  "未体験HORIZON": {
+    "intl": "Mitaiken HORIZON",
+    "artist_orig": "Aqours"
+  },
+  "未完成ドリーム！": {
+    "intl": "Mikansei Dream!",
+    "artist_orig": "スクールアイドルミュージカル"
+  },
+  "未熟DREAMER": {
+    "intl": "Mijuku DREAMER"
+  },
+  "来来☆2winkイリュージョン": {
+    "intl": "Rairai 2wink Illusion",
+    "artist_orig": "2wink, あんさんぶるスターズ!!"
+  },
+  "東京サマーセッション": {
+    "intl": "Tokyo Summer Session",
+    "artist_orig": "HoneyWorks"
+  },
+  "東京テディベア": {
+    "intl": "Tokyo Teddy Bear",
+    "artist_orig": "鏡音リン・レン"
+  },
+  "根も葉もRumor": {
+    "intl": "Ne mo Ha mo Rumor",
+    "artist_orig": "AKB48"
+  },
+  "桃源恋歌": {
+    "intl": "Tougen Renka",
+    "artist_orig": "GARNiDELiA"
+  },
+  "桃花庵": {
+    "artist_orig": "Listening to Yinque's Poems & Enclosure fungus"
+  },
+  "極楽浄土": {
+    "intl": "Gokurakujoudo",
+    "artist_orig": "GARNiDELiA"
+  },
+  "正解はいらない": {
+    "intl": "Seikai Wa Iranai",
+    "artist_orig": "ナナヲアカリ"
+  },
+  "此刻Memories": {
+    "artist_orig": "李艺彤"
+  },
+  "此刻Memories (BDF2024主题曲)": {
+    "artist_orig": "李艺彤"
+  },
+  "残酷な天使のテーゼ": {
+    "intl": "The Cruel Angel's Thesis",
+    "artist_orig": "高橋洋子"
+  },
+  "気まぐれメルシィ": {
+    "intl": "Kimagure Mercy",
+    "artist_orig": "八王子P"
+  },
+  "気まぐれメルシィ (feat. 初音ミク)": {
+    "remap": "気まぐれメルシィ"
+  },
+  "水彩世界": {
+    "artist_orig": "スリーズブーケ",
+    "intl": "Suisai Sekai"
+  },
+  "永遠プレッシャー": {
+    "artist_orig": "AKB48"
+  },
+  "永遠メイド主義": {
+    "artist_orig": "あっとほぉーむカフェ",
+    "intl": "Eien Maid Shugi",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "決めたよHand in Hand": {
+    "artist_orig": "高海千歌, 桜内梨子 & 渡辺 曜",
+    "intl": "Kimeta yo Hand in Hand"
+  },
+  "流★群 Meteor Stream": {
+    "artist_orig": "H.K.君"
+  },
+  "流星☆ラブビーム!": {
+    "artist_orig": "星川サラ",
+    "intl": "Shooting Star☆Love Beam!",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "流星花火": {
+    "intl": "Ryusei Hanabi",
+    "artist_orig": "RYUSEITAI"
+  },
+  "海馬成長痛": {
+    "intl": "Hippocampal Pain",
+    "artist_orig": "ずっと真夜中でいいのに。"
+  },
+  "涙のパレード": {
+    "intl": "Parade of Tears",
+    "artist_orig": "fhána"
+  },
+  "深海少女": {
+    "intl": "Shinkaisyoujo",
+    "artist_orig": "ゆうゆ"
+  },
+  "混沌ブギ": {
+    "intl": "Konton Boogie",
+    "artist_orig": "jon-YAKITORY"
+  },
+  "演劇": {
+    "intl": "Engeki",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "烈火": {
+    "artist_orig": "niki",
+    "intl": "Rekka",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "無敵級*ビリーバー": {
+    "artist_orig": "中須かすみ",
+    "intl": "Muteki-kyuu*Believer",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "無理すぎ♡オタクハート": {
+    "intl": "Murisugi Otakuheart",
+    "artist_orig": "いずれ菖蒲か杜若"
+  },
+  "熱異常": {
+    "intl": "Heat abnormal",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "熱異常 (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & KAITO)": {
+    "remap": "熱異常"
+  },
+  "爆ラブ+ケミストリー": {
+    "intl": "BAKU LOVE CHEMISTRY",
+    "artist_orig": "博衣こより"
+  },
+  "爆裂愛してる": {
+    "intl": "Bakuretsu Aishiteru",
+    "artist_orig": "M!LK"
+  },
+  "独りんぼエンヴィー": {
+    "intl": "Hitorinbo Envy",
+    "artist_orig": "koyori"
+  },
+  "独りんぼエンヴィー (Cover)": {
+    "remap": "独りんぼエンヴィー"
+  },
+  "独りんぼエンヴィー (feat. 宵崎奏, 暁山瑞希 & 初音ミク)": {
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "猫じゃらし": {
+    "artist_orig": "7co"
+  },
+  "甩甩尾巴舞": {
+    "artist_orig": "伍岚妮"
+  },
+  "男の子の目的は何？": {
+    "intl": "Otokonoko no mokuteki ha nani?",
+    "artist_orig": "HoneyWorks"
+  },
+  "病名は愛だった": {
+    "intl": "Byoumeiha Aidatta",
+    "artist_orig": "Neru"
+  },
+  "白い雪のプリンセスは": {
+    "intl": "The Snow White Princess is",
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "白祭": {
+    "intl": "white festival",
+    "artist_orig": "真っ白なキャンバス"
+  },
+  "白線": {
+    "intl": "Hakusen",
+    "artist_orig": "初星学園 & 葛城リーリヤ"
+  },
+  "白金ディスコ": {
+    "artist_orig": "物語シリーズ",
+    "intl": "Platinum Disco"
+  },
+  "百花繚乱": {
+    "intl": "In Bloom",
+    "artist_orig": "幾田りら"
+  },
+  "盛れ!ミ・アモーレ": {
+    "intl": "More! Mi Amore",
+    "artist_orig": "Juice=Juice"
+  },
+  "目撃!テト31世": {
+    "intl": "Mokugeki! Teto 31sei",
+    "artist_orig": "はろける"
+  },
+  "目撃!テト31世 (feat. 重音テト & 雨衣)": {
+    "remap": "目撃!テト31世"
+  },
+  "相性×優勝ドロップス": {
+    "intl": "Aishou×Yushou Drops",
+    "artist_orig": "Idios"
+  },
+  "真・運命 (曽野舜太&山中柔太朗)": {
+    "artist_orig": "M!LK",
+    "intl": "Maji Destiny"
+  },
+  "知らないLove*教えてLove": {
+    "intl": "Shiranai Love*Oshiete Love"
+  },
+  "硝子の花園": {
+    "intl": "Garasu no Hanazono"
+  },
+  "神っぽいな": {
+    "intl": "Kamippoi na",
+    "artist_orig": "ピノキオピー"
+  },
+  "神のまにまに": {
+    "intl": "Kamino Manimani",
+    "artist_orig": "れるりり"
+  },
+  "神のまにまに (feat. 天馬司, 鳳えむ, 草薙寧々, 神代類 & 初音ミク)": {
+    "remap": "神のまにまに"
+  },
+  "神のまにまに (Instrumental)": {
+    "remap": "神のまにまに"
+  },
+  "神様の神様": {
+    "artist_orig": "ハナエ"
+  },
+  "神様の神様　（TVアニメ・オープニング Ver.）": {
+    "intl": "Kamisamano Kamisama",
+    "artist_orig": "ハナエ"
+  },
+  "祭夜絵巻": {
+    "intl": "Matsuriyo Emaki",
+    "artist_orig": "紅月/蓮巳敬人、鬼龍紅郎、神崎颯馬"
+  },
+  "私、アイドル宣言": {
+    "intl": "Watashi Idol Sengen",
+    "artist_orig": "CHiCO with HoneyWorks"
+  },
+  "私のSymphony": {
+    "intl": "Watashi no Symphony",
+    "artist_orig": "Liella!",
+    "artist_intl": ""
+  },
+  "私のSymphony ～2022Ver.～": {
+    "intl": "Watashi no Symphony",
+    "artist_orig": "Liella!",
+    "artist_intl": "",
+    "remap": "私のSymphony"
+  },
+  "私は、わたしの事が好き。": {
+    "intl": "Watashiwa Watashino Kotoga Suki",
+    "artist_orig": "HoneyWorks & かぐや"
+  },
+  "私は雨": {
+    "artist_orig": "25時、ナイトコードで。",
+    "intl": "I'm the Rain"
+  },
+  "私は雨 (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & 鏡音レン)": {
+    "remap": "私は雨"
+  },
+  "秘密の扉から会いにきて": {
+    "artist_orig": "田村ゆかり",
+    "intl": "Himitsu no Tobira Kara Ai ni Kite"
+  },
+  "第ゼロ感": {
+    "intl": "Dai Zero Kan",
+    "artist_orig": "10-FEET"
+  },
+  "第三套小学生广播体操 七彩阳光音乐版": {
+    "remap": "七彩阳光"
+  },
+  "第六感": {
+    "intl": "The Sixth Sense",
+    "artist_orig": "Reol"
+  },
+  "箱庭のコラル": {
+    "intl": "Coral",
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
+  "粛聖!! ロリ神レクイエム☆": {
+    "intl": "SyukuseiLorikamiRequiem",
+    "artist_orig": "しぐれうい"
+  },
+  "約束の絆": {
+    "intl": "Yakusoku no Kizuna",
+    "artist_orig": "妖夢討伐隊[栗山未来、名瀬美月、新堂愛]"
+  },
+  "純恋愛のインゴット": {
+    "intl": "Pure Love Ingot",
+    "artist_orig": "tuki."
+  },
+  "純恋愛のインゴット - Pure Love Ingot": {
+    "remap": "純恋愛のインゴット"
+  },
+  "終わらないシンフォニア": {
+    "intl": "Owaranai Symphonia",
+    "artist_orig": "フィーネ"
+  },
+  "絶対敵対メチャキライヤー": {
+    "intl": "Unfriendly Hater",
+    "artist_orig": "メドミア"
+  },
+  "繚乱!ビクトリーロード": {
+    "intl": "Ryoran! Victory Road",
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
+  "罰ゲーム": {
+    "intl": "Batsugame"
+  },
+  "美しく生きろ": {
+    "artist_orig": "高嶺のなでしこ",
+    "intl": "Utsukishiku Ikiro"
+  },
+  "美少女無罪♡パイレーツ": {
+    "intl": "Bishoujyo Muzai Pirates",
+    "artist_orig": "宝鐘マリン",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "聚光": {
+    "artist_orig": "兰音Reine"
+  },
+  "聚光 (BDF2023主题曲兰音Reine版)": {
+    "artist_orig": "兰音Reine"
+  },
+  "脱法ロック": {
+    "intl": "Dappou Rock",
+    "artist_orig": "Neru"
+  },
+  "脳内革命ガール": {
+    "intl": "Brain Revolution Girl",
+    "artist_orig": "MARETU",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "脳内革命ガール (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 初音ミク)": {
+    "remap": "脳内革命ガール"
+  },
+  "脳漿炸裂ガール": {
+    "intl": "Noushou Sakuretsu Girl",
+    "artist_orig": "れるりり"
+  },
+  "自分REST@RT": {
+    "intl": "Jibun REST@RT",
+    "artist_orig": "THE IDOLM@STER"
+  },
+  "自力本願レボリューション": {
+    "intl": "Jiriki Hongan Revolution"
+  },
+  "舞台少女体操": {
+    "intl": "Butai Shoujo Taiso",
+    "artist_orig": "スタァライト九九組"
+  },
+  "花に風": {
+    "intl": "Hananikaze",
+    "artist_orig": "バルーン"
+  },
+  "花の塔": {
+    "intl": "Hana no Tou",
+    "artist_orig": "さユり"
+  },
+  "花ハ踊レヤいろはにほ": {
+    "intl": "Hana wa Odoreya Irohaniho"
+  },
+  "花月成双": {
+    "artist_orig": "三无Marblue"
+  },
+  "落花情": {
+    "artist_orig": "Seven combination"
+  },
+  "虎視眈々": {
+    "artist_orig": "梅とら",
+    "intl": "Koshitantan",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "虚無さん": {
+    "intl": "Mr.Nihil",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "虚無さん (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & 鏡音レン)": {
+    "remap": "虚無さん"
+  },
+  "虹色Passions!": {
+    "intl": "Nijiiro Passions!",
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
+  "蟾蜍": {
+    "artist_orig": "三无Marblue"
+  },
+  "街": {
+    "intl": "City",
+    "artist_orig": "Vivid BAD SQUAD"
+  },
+  "裏表ラバーズ": {
+    "intl": "Uraomote Lovers",
+    "artist_orig": "wowaka"
+  },
+  "触摸天空": {
+    "artist_orig": "漆柚柚柚, 易言, 凑诗, 舞蹈区锦鲤姬"
+  },
+  "言い訳Maybe": {
+    "artist_orig": "AKB48",
+    "intl": "Iiwake Maybe"
+  },
+  "誇り高きアイドル": {
+    "intl": "Hokoritakaki idol",
+    "artist_orig": "mona(CV:夏川椎菜)"
+  },
+  "貴方の恋人になりたい": {
+    "intl": "Anata No Koibito Ni Naritai",
+    "artist_orig": "チョーキューメイ"
+  },
+  "質問、恋って何でしょうか?": {
+    "intl": "Shitsumon Koitte nandeshoka?",
+    "artist_orig": "MARUMOCHI from HoneyWorks"
+  },
+  "贱侠": {
+    "artist_orig": "阿萨Aza"
+  },
+  "超最強": {
+    "intl": "chosaikyo",
+    "artist_orig": "超ときめき♡宣伝部"
+  },
+  "超特急逃走中": {
+    "intl": "Tyoutokkyuu Tousoutyuu",
+    "artist_orig": "=LOVE"
+  },
+  "踊": {
+    "intl": "Odo",
+    "artist_orig": "Ado"
+  },
+  "踊れオーケストラ": {
+    "intl": "Odore Orchestra",
+    "artist_orig": "YASUHIRO(康寛)"
+  },
+  "転生林檎": {
+    "artist_orig": "ピノキオピー",
+    "intl": "Tensei Ringo"
+  },
+  "輝夜の城で踊りたい": {
+    "intl": "Kaguya no Shiro de Odoritai",
+    "artist_orig": "μ's"
+  },
+  "逆光": {
+    "intl": "Backlight",
+    "artist_orig": "Ado"
+  },
+  "酔いどれ知らず": {
+    "intl": "Yoidore Shirazu",
+    "artist_orig": "Kanaria",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "酔いどれ知らず (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & MEIKO)": {
+    "remap": "酔いどれ知らず"
+  },
+  "金曜日のおはよう": {
+    "intl": "Kinyoubi no Ohayou",
+    "artist_orig": "HoneyWorks"
+  },
+  "金色千夜夢舞台": {
+    "intl": "Konjiki Senya Yumebutai"
+  },
+  "閃光": {
+    "intl": "Senkou",
+    "artist_orig": "[Alexandros]"
+  },
+  "闪耀回响": {
+    "artist_orig": "陈乐一, 肥皂菌丨珉珉的猫咪丨, 易言, Vaniah维"
+  },
+  "阿吽のビーツ": {
+    "artist_orig": "羽生まゐご"
+  },
+  "限りなく灰色へ": {
+    "intl": "Kagirinaku haiiro he",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "限りなく灰色へ (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & 鏡音リン)": {
+    "remap": "限りなく灰色へ"
+  },
+  "雑魚": {
+    "intl": "Zako",
+    "artist_orig": "柊マグネタイト"
+  },
+  "難聴系男子が倒せない": {
+    "artist_orig": "ラマーズP",
+    "intl": "Nanchoukei Danshi ga Taosenai"
+  },
+  "難聴系男子が倒せない (feat. 鏡音リン)": {
+    "remap": "難聴系男子が倒せない"
+  },
+  "雨トキメキ恋模様": {
+    "intl": "Ame Tokimeki Koimoyo",
+    "artist_orig": "いろはにほへっと あやふぶみ"
+  },
+  "雪は何色": {
+    "intl": "Yuki Ha Naniiro",
+    "artist_orig": "kotoha"
+  },
+  "青と夏": {
+    "intl": "Ao To Natsu",
+    "artist_orig": "Mrs. GREEN APPLE"
+  },
+  "青空Jumping Heart": {
+    "intl": "",
+    "artist_orig": "Aqours",
+    "artist_intl": "",
+    "remap": ""
+  },
+  "青空のラプソディ": {
+    "intl": "Rhapsody of Blue Sky",
+    "artist_orig": "fhána"
+  },
+  "革命道中": {
+    "intl": "On The Way",
+    "artist_orig": "アイナ・ジ・エンド"
+  },
+  "響喜乱舞": {
+    "intl": "Kyokiranbu",
+    "artist_orig": "GARNiDELiA"
+  },
+  "風は吹いている": {
+    "artist_orig": "AKB48",
+    "intl": "Kaze wa Fuiteiru"
+  },
+  "飾って": {
+    "intl": "Embellish",
+    "artist_orig": "25時、ナイトコードで。"
+  },
+  "骸骨楽団とリリア": {
+    "intl": "Gaikotsu Gakudan to Lilia"
+  },
+  "魅惑劇": {
+    "intl": "Miwakugeki",
+    "artist_orig": "Valkyrie"
+  },
+  "魔性少女": {
+    "intl": "Devilish Girl",
+    "artist_orig": "ファントムシータ"
+  },
+  "魔法みたいなミュージック!": {
+    "intl": "Music Like Magic!",
+    "artist_orig": "OSTER project"
+  },
+  "魔法少女とチョコレゐト": {
+    "intl": "Magical Girl and Chocolate",
+    "artist_orig": "ピノキオピー"
+  },
+  "뿜뿜": {
+    "intl": "Bboom Bboom",
+    "artist_orig": "모모랜드"
+  },
+  "잘자요 아가씨": {
+    "intl": "Good Night Ojosama",
+    "artist_orig": "ASMRZ"
+  },
+  "전야": {
+    "intl": "The Eve",
+    "artist_orig": "EXO"
+  },
+  "해피나루송": {
+    "artist_orig": "Unknown"
+  },
+  "ＷＷＷ": {
+    "intl": "",
+    "artist_orig": "HIMEHINA"
+  },
+  "ｼｭｶﾞｰﾚｽ×ﾌﾚﾝﾄﾞ": {
+    "artist_orig": "NonSuger",
+    "intl": "Sugarless×Friend",
+    "artist_intl": "",
+    "remap": ""
+  }
+}

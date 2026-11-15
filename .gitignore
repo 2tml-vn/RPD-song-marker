@@ -35,8 +35,11 @@ Thumbs.db
 *.tmp
 *.temp
 *.bak
-songs.json
-songs.json
-songs.json
+
+# Scratch artifacts (kept on disk, never committed)
+/*.mp3
+/tmplp1c343q.tmp-Frag1
+/(usb)
+
 /__pycache__
 /state
