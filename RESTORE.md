@@ -8,7 +8,10 @@ STEP 0 — exists only outside the repo (your head/notes):
 
 ## 1. Sign in and clone
 Sign into GitHub (GitHub Desktop, or browser sign-in for command-line git), then:
-    git clone https://github.com/2tml-vn/RPD-song-marker.git
+    git clone https://github.com/2tml-vn/RPD-song-marker.git D:\rpd
+IMPORTANT: clone into exactly D:\rpd — the userscript loads its code from the
+project folder via hardcoded file:///D:/rpd/... paths (see step 7). If you
+clone somewhere else, you must edit those paths (step 7).
 RESTORE.md is inside the clone — every step below comes with it.
 
 ## 2. Install tools
@@ -39,10 +42,17 @@ Registers the jrpd:// protocol handler the browser panel's Start button uses:
 path and script path — re-run it if the project folder ever moves.)
 
 ## 7. Browser side
-Install both userscripts into Tampermonkey (or your userscript manager)
-from the repo files:
+Install exactly ONE userscript into Tampermonkey:
     - JRPD Local Link-1.0.user.js
-    - jrpd_marker.user.js
+That tiny loader @requires the real code (jrpd_state, jrpd_utils,
+jrpd_cleanup, jrpd_results, jrpd_songs, jrpd_marker) straight from the
+project folder via file:///D:/rpd/... paths. Do NOT install
+jrpd_marker.user.js separately — the loader already pulls it in.
+Notes:
+  - Tampermonkey needs local-file access enabled for this to work
+    (browser extensions page > Tampermonkey > "Allow access to file URLs").
+  - If you cloned to a path other than D:\rpd, edit the @require file:///
+    lines in JRPD Local Link-1.0.user.js to match — they are hardcoded.
 
 ## 8. Use it
 Open YouTube/Bilibili, click the panel's Start button.
