@@ -440,32 +440,81 @@ function identifyRowWithAcr(ts, btn) {
     });
 }
 
+// ---- Background re-identify jobs (one at a time) ----
+// ts -> jobId while a job runs. The slot is occupied as "pending" the
+// moment a start request is fired, so a re-rendered row can never
+// double-start a job.
+const identifyJobsByTs = {};
+
 /**
- * Re-identify a result row with all 3 engines (Shazam + AHA + ACRCloud).
- * Shows the 3 results side-by-side and lets the user pick one to apply.
- * Uses the server's local audio file; nothing is written until the user
- * chooses a result (applied via /update_result).
- * @param {string} ts - Timestamp of the row to identify
- * @param {HTMLElement} [btn] - The button element (shows spinner while busy)
+ * Ts of the row whose re-identify job is currently running, or null.
+ * The registry holds at most one entry (one job at a time).
+ * @returns {string|null}
  */
-function restoreIdentifyBtn(btn) {
-    if (!btn) return;
-    btn.dataset.busy = "";
-    btn.textContent = btn.dataset.origText || "🔍";
-    btn.style.opacity = "0.7";
-    btn.disabled = false;
+function identifyActiveJobTs() {
+    for (const ts in identifyJobsByTs) return ts;
+    return null;
 }
 
+/**
+ * Render a re-identify button's state from the job registry: the running
+ * row's button is busy ⏳ and clicking it cancels the job, every other
+ * row's button is disabled until the job ends (one job at a time).
+ * @param {HTMLElement} btn - The .acrBtn button (must carry data-acr-ts)
+ * @param {string} ts - Timestamp of the row the button belongs to
+ */
+function applyAcrBtnState(btn, ts) {
+    const activeTs = identifyActiveJobTs();
+    if (activeTs === ts) {
+        btn.dataset.busy = "1";
+        btn.textContent = "⏳";
+        btn.title = `Cancel re-identify (${ts})`;
+        btn.style.opacity = "1";
+        btn.disabled = false; // clickable = cancel
+    } else if (activeTs) {
+        btn.dataset.busy = "";
+        btn.textContent = "🔍";
+        btn.title = `Wait for ${activeTs} to finish`;
+        btn.style.opacity = "0.7";
+        btn.disabled = true;
+    } else {
+        btn.dataset.busy = "";
+        btn.textContent = "🔍";
+        btn.title = `Re-identify with Shazam + AHA + ACRCloud (${ts})`;
+        btn.style.opacity = "0.7";
+        btn.disabled = false;
+    }
+}
+
+/**
+ * Re-apply the registry state to every live re-identify button. Rows may
+ * be re-rendered while a job runs (auto-detect poll), so job start/end
+ * must refresh buttons instead of trusting one captured element.
+ */
+function refreshAcrButtons() {
+    document.querySelectorAll(".acrBtn[data-acr-ts]").forEach(btn => {
+        applyAcrBtnState(btn, btn.getAttribute("data-acr-ts"));
+    });
+}
+
+/**
+ * Re-identify a result row with all 3 engines (Shazam + AHA + ACRCloud).
+ * The job runs in the background — no blocking panel; the page (and the
+ * video) stay fully usable. When the job finishes, the video is paused
+ * and the results modal pops up (pollIdentifyAllJob). Uses the server's
+ * local audio file; nothing is written until the user chooses a result
+ * (applied via /update_result).
+ * @param {string} ts - Timestamp of the row to identify
+ * @param {HTMLElement} [btn] - The button element (busy while the job runs)
+ */
 function identifyRowWithAll(ts, btn) {
     if (!ts) return;
-    if (btn) {
-        if (btn.dataset.busy === "1") return;
-        btn.dataset.busy = "1";
-        btn.dataset.origText = btn.textContent;
-        btn.textContent = "⏳";
-        btn.style.opacity = "1";
-        btn.disabled = true;
-    }
+    // One job at a time; also blocks a second start while the first
+    // request is still in flight ("pending" occupies the registry slot).
+    if (identifyActiveJobTs()) return;
+    identifyJobsByTs[ts] = "pending";
+    refreshAcrButtons();
+    showToast(`Re-identifying ${ts} in background…`, "#1565c0");
     reviewFetch(getReviewServerUrl() + `/identify_all_start?ts=${encodeURIComponent(ts)}`)
     .then(r => {
         if (!r.ok) throw new Error("HTTP " + r.status);
@@ -473,10 +522,18 @@ function identifyRowWithAll(ts, btn) {
     })
     .then(res => {
         if (res.status === "ok" && res.job) {
-            pollIdentifyAllJob(ts, res.job, res.total || 0, btn);
+            if (identifyJobsByTs[ts] !== "pending") {
+                // Cancelled while the start request was in flight —
+                // also cancel the freshly created server job.
+                reviewFetch(getReviewServerUrl() + `/identify_all_cancel?job=${encodeURIComponent(res.job)}`).catch(() => {});
+                return;
+            }
+            identifyJobsByTs[ts] = res.job;
+            pollIdentifyAllJob(ts, res.job);
         } else {
             showToast("Identify failed: " + (res.msg || "unknown error"), "#c62828");
-            restoreIdentifyBtn(btn);
+            delete identifyJobsByTs[ts];
+            refreshAcrButtons();
         }
     })
     .catch(e => {
@@ -487,57 +544,39 @@ function identifyRowWithAll(ts, btn) {
         } else {
             showToast(`Identify failed for ${ts}`, "#c62828");
         }
-        restoreIdentifyBtn(btn);
+        delete identifyJobsByTs[ts];
+        refreshAcrButtons();
     });
 }
 
 /**
- * Poll a background /identify_all job and drive the progress modal.
- * When the job finishes, the progress modal is replaced by the results modal.
+ * Poll a background /identify_all job with no UI — the page stays fully
+ * usable while it runs. When the job finishes, the video is paused and
+ * the results modal pops up (the only moment the video pauses); errors
+ * and cancellations only toast. Cancellation goes through the busy row
+ * button (cancelIdentifyJob): once the registry no longer holds this
+ * jobId, polling stops silently.
  * @param {string} ts - Timestamp of the row
  * @param {string} jobId - Job id from /identify_all_start
- * @param {number} total - Window count from /identify_all_start
- * @param {HTMLElement} [btn] - Row button (busy until the job ends)
  */
-function pollIdentifyAllJob(ts, jobId, total, btn) {
-    let userCancelled = false;
-    const prog = showIdentifyProgressModal(ts, total, () => {
-        userCancelled = true;
-        reviewFetch(getReviewServerUrl() + `/identify_all_cancel?job=${encodeURIComponent(jobId)}`).catch(() => {});
-    });
-    updateIdentifyProgress(prog, { window: 0, total: total, found: {}, done: false });
+function pollIdentifyAllJob(ts, jobId) {
     let finished = false;
     let failures = 0; // consecutive failed polls before giving up (6 x 500ms)
 
-    const finish = (js, err) => {
+    const end = () => {
         if (finished) return;
         finished = true;
         clearInterval(timer);
-        try { prog.overlay.remove(); } catch (e) {}
-        restoreIdentifyBtn(btn);
-        if (err) {
-            console.error("JRPD: identify_all_job poll failed", err);
-            showToast(`Identify failed for ${ts}`, "#c62828");
-        } else if (js.job_error) {
-            showToast("Identify failed: " + js.job_error, "#c62828");
-        } else if (js.cancelled) {
-            // Cancelled by the user — nothing left to show.
-        } else if (js.results) {
-            showIdentifyAllModal(ts, js.results);
-        } else {
-            showToast("Identify failed: no results", "#c62828");
-        }
+        // Job is over (or gone): free the registry slot and re-render all
+        // live buttons from it — covers a row button detached mid-job by
+        // a results re-render.
+        if (identifyJobsByTs[ts] === jobId) delete identifyJobsByTs[ts];
+        refreshAcrButtons();
     };
 
     const timer = setInterval(() => {
         if (finished) return;
-        // Overlay detached (cancel click or a later modal/page rebuild):
-        // isConnected works for every attach point — fullscreen element,
-        // documentElement, shadow roots. document.body.contains() used to
-        // falsely report "gone" for overlays living outside <body>, which
-        // killed this loop ~500ms after opening and froze the modal on
-        // "querying…" while the server job ran to completion.
-        const detached = !prog.overlay.isConnected;
+        if (identifyJobsByTs[ts] !== jobId) { end(); return; } // cancelled
         reviewFetch(getReviewServerUrl() + `/identify_all_job?job=${encodeURIComponent(jobId)}`)
         .then(r => {
             if (!r.ok) throw new Error("HTTP " + r.status);
@@ -547,198 +586,58 @@ function pollIdentifyAllJob(ts, jobId, total, btn) {
             if (finished) return;
             if (js.status !== "ok") throw new Error(js.msg || "unknown job");
             failures = 0;
-            if (js.job_error) { finish(js); return; }
-            if (!detached) updateIdentifyProgress(prog, js);
-            if (js.done) finish(js);
+            if (js.job_error) {
+                end();
+                showToast("Identify failed: " + js.job_error, "#c62828");
+            } else if (js.cancelled) {
+                end(); // user cancelled — nothing left to show
+            } else if (js.done && js.results) {
+                end();
+                // The one moment the video pauses: the results panel is up.
+                jrpdPauseVideoForResults();
+                showIdentifyAllModal(ts, js.results);
+            } else if (js.done) {
+                end();
+                showToast("Identify failed: no results", "#c62828");
+            }
         })
         .catch(e => {
             failures++;
             // Tolerate transient blips; give up after ~3s of them.
-            if (failures >= 6) finish(null, e);
+            if (failures >= 6) {
+                end();
+                console.error("JRPD: identify_all_job poll failed", e);
+                showToast(`Identify failed for ${ts}`, "#c62828");
+            }
         });
     }, 500);
 }
 
 /**
- * Inject the shimmer keyframes for the progress bar once.
- * Styles inside the userscript sandbox aren't always picked up from
- * CSS text, so a real <style> tag in <head> is the reliable route.
+ * Pause the page video so the re-identify results modal can be reviewed
+ * with the video frozen. Only called on the final results path — errors
+ * and cancellations never pause.
  */
-function ensureIdentProgressKeyframes() {
-    if (document.getElementById("jrpd-ident-prog-style")) return;
-    const style = document.createElement("style");
-    style.id = "jrpd-ident-prog-style";
-    style.textContent =
-        "@keyframes jrpdIdentShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}" +
-        "@keyframes jrpdIdentPulse{0%,100%{opacity:1}50%{opacity:.55}}";
-    document.head.appendChild(style);
-}
-
-/**
- * Show a progress modal for a running /identify_all job.
- * @param {string} ts - Timestamp of the row
- * @param {number} total - Total window count
- * @param {Function} onCancel - Called when the user cancels
- * @returns {Object} Handles {overlay, fill, label, eng} for updateIdentifyProgress
- */
-function showIdentifyProgressModal(ts, total, onCancel) {
-    ensureIdentProgressKeyframes();
-    document.querySelectorAll(".jrpd-identprog-modal-overlay").forEach(el => el.remove());
-    const overlay = document.createElement("div");
-    overlay.className = "jrpd-identprog-modal-overlay";
-    overlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10001; display: flex; align-items: center; justify-content: center;";
-
-    const modal = document.createElement("div");
-    modal.style.cssText = "background: #1e1e30; color: #eee; padding: 18px 20px; border-radius: 10px; min-width: 380px; max-width: 480px; box-shadow: 0 4px 24px rgba(0,0,0,0.8); font-size: 12px; line-height: 1.6;";
-
-    const title = document.createElement("h3");
-    title.style.cssText = "margin: 0 0 10px 0; color: #82b1ff; font-size: 14px;";
-    title.textContent = `🔍 Re-identifying ${ts}…`;
-    modal.appendChild(title);
-
-    const barOuter = document.createElement("div");
-    barOuter.style.cssText = "background: #333; border-radius: 5px; height: 12px; overflow: hidden; margin-bottom: 6px;";
-    const fill = document.createElement("div");
-    // Shimmer + min-width make the bar visibly "alive" even while a long
-    // window is still in progress (nothing ticks between polls).
-    fill.style.cssText = "height: 100%; width: 0%; border-radius: 5px; transition: width 0.3s; overflow: hidden;" +
-        "background: linear-gradient(90deg, #1565c0 0%, #42a5f5 35%, #7e57c2 65%, #42a5f5 100%); background-size: 200% 100%;" +
-        "animation: jrpdIdentShimmer 1.6s linear infinite;";
-    barOuter.appendChild(fill);
-    modal.appendChild(barOuter);
-
-    const label = document.createElement("div");
-    label.style.cssText = "color: #aaa; margin-bottom: 8px; animation: jrpdIdentPulse 1.2s ease-in-out infinite;";
-    label.textContent = `Preparing…`;
-    modal.appendChild(label);
-
-    const eng = {};
-    [["shazam", "🎵 Shazam"], ["aha", "🅰️ AHA Music"], ["acrcloud", "☁️ ACRCloud"]].forEach(([key, name]) => {
-        const row = document.createElement("div");
-        row.style.cssText = "color: #ccc; margin-left: 4px;";
-        row.textContent = `⏳ ${name}: waiting…`;
-        modal.appendChild(row);
-        eng[key] = { row: row, name: name };
-    });
-
-    const btnBar = document.createElement("div");
-    btnBar.style.cssText = "display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;";
-    const cancelBtn = document.createElement("button");
-    cancelBtn.textContent = "Cancel";
-    cancelBtn.style.cssText = "padding: 6px 14px; background: #555; color: white; border: none; border-radius: 4px; cursor: pointer;";
-    const doCancel = () => {
-        try { if (onCancel) onCancel(); } catch (e) {}
-        overlay.remove();
-    };
-    cancelBtn.onclick = doCancel;
-    btnBar.appendChild(cancelBtn);
-    modal.appendChild(btnBar);
-
-    overlay.appendChild(modal);
-    overlay.addEventListener("mousedown", (e) => { if (e.target === overlay) doCancel(); });
-    (typeof jrpdOverlayParent === "function" ? jrpdOverlayParent() : document.body).appendChild(overlay);
-    return { overlay: overlay, fill: fill, label: label, eng: eng };
-}
-
-/**
- * Update the progress modal from an /identify_all_job payload.
- * Renders the current scan position (ts @ audio-second), extraction vs
- * querying stage, and each engine's live status from the job.
- * @param {Object} prog - Handles from showIdentifyProgressModal
- * @param {Object} js - Job status ({window, windows_done, total, stage, scan_sec, engines, found, done})
- */
-function updateIdentifyProgress(prog, js) {
+function jrpdPauseVideoForResults() {
     try {
-        const win = js.window || 0;
-        const doneCount = (js.windows_done != null) ? js.windows_done : win;
-        const total = js.total || 0;
-        const engStatus = js.engines || {};
-        const found = js.found || {};
-        const running = !js.done;
-
-        // Monotonic fill on completed windows; never return to 0 mid-run.
-        let pct = total > 0 ? Math.min(100, Math.round((doneCount / total) * 100)) : 0;
-        // While running, keep a small visual minimum so the shimmer is visible.
-        if (running && doneCount === 0) pct = 3;
-        prog.fill.style.width = pct + "%";
-
-        // Headline: stage + position within the audio.
-        let stageTxt;
-        if (js.done) {
-            stageTxt = `Done · ${doneCount}/${total || "?"} windows`;
-        } else {
-            const stage = js.stage === "extracting" ? "extracting snippet" : "querying engines";
-            const scanSec = js.scan_sec != null ? ` @ ${formatScanClock(js.scan_sec)}` : "";
-            stageTxt = `Window ${win}/${total || "?"}${scanSec} · ${stage}…`;
-        }
-        prog.label.textContent = stageTxt;
-        prog.label.style.animation = js.done ? "none" : prog.label.style.animation || "";
-
-        // Per-engine live lines. Old {window,found}-only payloads keep working.
-        Object.keys(prog.eng).forEach(key => {
-            const slot = prog.eng[key];
-            const st = (engStatus[key] && engStatus[key].status) || "";
-            if (st) {
-                renderEngineStatus(slot, st, engStatus[key]);
-            } else if (found[key]) {
-                renderEngineStatus(slot, "matched", { window: null });
-            } else if (js.done) {
-                renderEngineStatus(slot, "no-match", {});
-            } else {
-                renderEngineStatus(slot, "running", {});
-            }
-        });
+        const video = document.querySelector('video.html5-main-video') || document.querySelector('video');
+        if (video && !video.paused) video.pause();
     } catch (e) {
-        console.error("JRPD: updateIdentifyProgress failed", e);
+        console.error("JRPD: pause video for results failed", e);
     }
 }
 
 /**
- * One engine line of the progress modal.
- * @param {Object} slot - {row, name} handles
- * @param {string} status - waiting|running|matched|no-match|error|disabled|rate_limited|quota_exceeded
- * @param {Object} [info] - extra payload ({window})
+ * Cancel a running background identify job (click on the busy ⏳ button).
+ * @param {string} ts - Timestamp of the row whose job is running
  */
-function renderEngineStatus(slot, status, info) {
-    const mark = {
-        "waiting": "⏳", "running": "⏳", "matched": "✅",
-        "no-match": "—", "error": "⚠️", "disabled": "🚫",
-        "rate_limited": "⏸", "quota_exceeded": "⛔",
-    }[status] || "⏳";
-    let text;
-    switch (status) {
-        case "waiting": text = `⏳ ${slot.name}: waiting…`; break;
-        case "running": text = `⏳ ${slot.name}: querying…`; break;
-        case "matched": {
-            const w = info && info.window;
-            text = `✅ ${slot.name}: matched${w ? ` (window ${w})` : ""}`;
-            break;
-        }
-        case "no-match": text = `— ${slot.name}: no match`; break;
-        case "error": text = `⚠️ ${slot.name}: failed (retrying next window)`; break;
-        case "disabled": text = `🚫 ${slot.name}: disabled in config`; break;
-        case "rate_limited": text = `⏸ ${slot.name}: rate-limited (HTTP 429) — paused this check`; break;
-        case "quota_exceeded": text = `⛔ ${slot.name}: quota exceeded (3003) — stopped until restart`; break;
-        default: text = `⏳ ${slot.name}: …`;
-    }
-    slot.row.textContent = text;
-    slot.row.style.color = status === "matched" ? "#9ccc65"
-        : status === "error" ? "#ff8a80"
-        : status === "rate_limited" ? "#ffb74d"
-        : status === "quota_exceeded" ? "#e57373"
-        : status === "no-match" || status === "disabled" ? "#888" : "#ccc";
-    // Small pulse on running rows so something is visibly moving.
-    slot.row.style.animation = (status === "running") ? "jrpdIdentPulse 1.2s ease-in-out infinite" : "";
-}
-
-/**
- * Format seconds as m:ss for the scan-position readout.
- * @param {number} sec
- * @returns {string}
- */
-function formatScanClock(sec) {
-    const s = Math.max(0, Math.round(sec));
-    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+function cancelIdentifyJob(ts) {
+    const jobId = identifyJobsByTs[ts];
+    if (!jobId || jobId === "pending") return; // nothing cancellable yet
+    reviewFetch(getReviewServerUrl() + `/identify_all_cancel?job=${encodeURIComponent(jobId)}`).catch(() => {});
+    delete identifyJobsByTs[ts];
+    showToast(`Re-identify cancelled (${ts})`, "#f57c00");
+    refreshAcrButtons(); // also stops the poller via its registry check
 }
 
 /**
@@ -2032,15 +1931,22 @@ function createResultRow(entry) {
     };
     row.appendChild(clearBtn);
 
-    // Re-identify button (all 3 engines: Shazam + AHA + ACRCloud, pick result)
+    // Re-identify button (all 3 engines: Shazam + AHA + ACRCloud, pick result).
+    // The job runs in the background, one at a time: while this row's job
+    // runs, clicking the ⏳ button cancels it; other rows' buttons are
+    // disabled until it ends.
     const acrBtn = document.createElement("button");
-    acrBtn.textContent = "🔍";
-    acrBtn.title = `Re-identify with Shazam + AHA + ACRCloud (${entry.ts})`;
     acrBtn.className = "acrBtn";
+    acrBtn.setAttribute("data-acr-ts", entry.ts);
     acrBtn.style.cssText = "padding: 1px 4px; border: none; border-radius: 3px; cursor: pointer; font-size: 11px; flex-shrink: 0; background: transparent; opacity: 0.7;";
+    applyAcrBtnState(acrBtn, entry.ts);
     acrBtn.onclick = (e) => {
         e.stopPropagation();
-        identifyRowWithAll(entry.ts, acrBtn);
+        if (acrBtn.dataset.busy === "1") {
+            cancelIdentifyJob(entry.ts);
+        } else {
+            identifyRowWithAll(entry.ts, acrBtn);
+        }
     };
     row.appendChild(acrBtn);
 
