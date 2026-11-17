@@ -112,6 +112,9 @@
   "Air Mata Perasaan yang Tak Tersampaikan": {
     "artist_orig": "JKT48"
   },
+  "All Eyes On Me": {
+    "artist_orig": "LEVEL NINE & T.T. STAR"
+  },
   "Allergy Season": {
     "artist_orig": "dreeSyance"
   },
@@ -1213,6 +1216,9 @@
   "INTERNET YAMERO": {
     "artist_orig": "NEEDY GIRL OVERDOSE, KOTOKO & Aiobahn +81"
   },
+  "INTERNET YAMERO (feat. KOTOKO)": {
+    "remap": "INTERNET YAMERO"
+  },
   "Into the New World": {
     "artist_orig": "Girls' Generation",
     "intl": "",
@@ -2256,6 +2262,9 @@
     "artist_orig": "Hearts2Hearts",
     "see_artist": true
   },
+  "RUMA": {
+    "artist_orig": "Kairikibear"
+  },
   "Rumble Bassline": {
     "artist_orig": "Maelo Music RD"
   },
@@ -3262,6 +3271,9 @@
   "たこルカ★マグロフィーバー": {
     "intl": "Tako Luka★Maguro Fever",
     "artist_orig": "samfree"
+  },
+  "ただ風を追いかけて": {
+    "artist_orig": "ロビン, HOYO-MiX & Chevy"
   },
   "だから僕は音楽を辞めた": {
     "intl": "That's Why I Gave Up on Music",
@@ -4292,6 +4304,10 @@
     "intl": "Supatto! Spy & Spice",
     "artist_orig": "ツキカゲ"
   },
+  "スピカ": {
+    "artist_orig": "ロクデナシ",
+    "intl": "Spica"
+  },
   "スプリットダンス": {
     "intl": "Split Dance",
     "artist_orig": "えいぷ"
@@ -5193,6 +5209,10 @@
     "artist_intl": "",
     "remap": ""
   },
+  "ラブレター": {
+    "artist_orig": "YOASOBI",
+    "intl": "Loveletter"
+  },
   "ラプラスショコラ": {
     "artist_orig": "Kai",
     "intl": "Laplace's Chocolat"
@@ -5300,6 +5320,13 @@
   },
   "ロミオとシンデレラ (feat. 桃井愛莉, 日野森雫 & 初音ミク)": {
     "remap": "ロミオとシンデレラ"
+  },
+  "ローリンガール": {
+    "artist_orig": "wowaka",
+    "intl": "Rolling Girl"
+  },
+  "ローリンガール feat.初音ミク": {
+    "remap": "ローリンガール"
   },
   "ロールプレイングゲーム": {
     "intl": "Roleplaying Game",
@@ -5418,6 +5445,13 @@
   "乙女どもよ。": {
     "intl": "Otomedomoyo",
     "artist_orig": "CHiCO with HoneyWorks"
+  },
+  "乙女解剖": {
+    "artist_orig": "DECO*27",
+    "intl": "Otome Kaibou"
+  },
+  "乙女解剖 (TeddyLoid Alllies Remix)": {
+    "remap": "乙女解剖"
   },
   "乙姫心で恋宮殿": {
     "intl": "Otohime Heart de Love Kyuuden"
@@ -5740,6 +5774,9 @@
   "唯一、愛ノ詠": {
     "intl": "Yuiitsu, Ai no Uta",
     "artist_orig": "梅とら"
+  },
+  "唯有追赶风的方向": {
+    "artist_orig": "知更鸟, Chevy, HOYO-MiX"
   },
   "唱": {
     "intl": "Show",
@@ -6637,6 +6674,10 @@
   "街": {
     "intl": "City",
     "artist_orig": "Vivid BAD SQUAD"
+  },
+  "被害妄想携帯女子(笑)": {
+    "artist_orig": "GUMI",
+    "intl": "Higai Mousou Keitai Joshi (Wara)"
   },
   "裏表ラバーズ": {
     "intl": "Uraomote Lovers",
