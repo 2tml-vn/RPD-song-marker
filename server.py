@@ -306,8 +306,8 @@ async def handle_results_file(request: web.Request) -> web.Response:
     return await _json_response(result)
 
 
-async def handle_review_done(request: web.Request) -> web.Response:
-    """Handle /review_done endpoint - opens results in configured editor."""
+async def handle_open_editor(request: web.Request) -> web.Response:
+    """Handle /open_editor endpoint - opens results.txt in configured editor."""
     if state.results_file_path:
         try:
             results_path = Path(state.results_file_path)
@@ -318,11 +318,20 @@ async def handle_review_done(request: web.Request) -> web.Response:
                 else:
                     subprocess.Popen(f'start notepad++ "{results_path}"', shell=True)
                     logger.info("[OPEN] results.txt opened via notepad++ command")
+            else:
+                logger.warning("[OPEN] results.txt does not exist yet")
         except OSError as e:
             logger.warning(f"[OPEN] Could not open results in editor: {e}")
         except Exception as e:
             logger.warning(f"[OPEN] Unexpected error: {e}")
+    else:
+        logger.warning("[OPEN] No results file path available")
 
+    return await _status_response()
+
+
+async def handle_review_done(request: web.Request) -> web.Response:
+    """Handle /review_done endpoint - ends the review loop."""
     state.review_done_kind = "done"
     if state.main_loop and state.review_done_event:
         state.main_loop.call_soon_threadsafe(state.review_done_event.set)
@@ -1986,6 +1995,7 @@ def create_app() -> web.Application:
     app.router.add_get('/status', handle_status)
     app.router.add_get('/results_file', handle_results_file)
     app.router.add_get('/review_done', handle_review_done)
+    app.router.add_get('/open_editor', handle_open_editor)
     app.router.add_get('/close_review', handle_close_review)
     app.router.add_get('/quit_session', handle_quit_session)
     app.router.add_get('/song_lists', handle_song_lists)

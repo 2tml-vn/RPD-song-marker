@@ -1028,43 +1028,6 @@ function getResultsPanelLines() {
     return lines.map(l => String(l || "").replace(/\r\n?/g, "\n").trim()).filter(l => l.length > 0);
 }
 
-/**
- * Split lines into chunks where each chunk is strictly less than maxChars.
- * Lines are never broken mid-text; a single over-long line becomes its own chunk.
- * @param {string[]} lines
- * @param {number} maxChars
- * @returns {string[]}
- */
-function splitLinesIntoChunks(lines, maxChars = 1000) {
-    const clean = (Array.isArray(lines) ? lines : [])
-        .map(l => String(l == null ? "" : l).replace(/\r\n?/g, "\n").trim())
-        .filter(l => l.length > 0)
-        .map(l => l.replace(/\n+/g, " "));
-    const chunks = [];
-    let current = "";
-    for (const line of clean) {
-        const candidate = current ? current + "\n" + line : line;
-        if (candidate.length < maxChars) {
-            current = candidate;
-        } else {
-            if (current) chunks.push(current);
-            if (line.length < maxChars) {
-                current = line;
-            } else {
-                // Over-long single line: keep whole on its own chunk
-                chunks.push(line);
-                current = "";
-            }
-        }
-    }
-    if (current) chunks.push(current);
-    return chunks;
-}
-
-function jrpdSleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 function createResultsPanel() {
     if (document.getElementById("jrpd-results-panel")) return;
 
@@ -1164,45 +1127,6 @@ function createResultsPanel() {
         });
     };
     controlsGroup.appendChild(copyBtn);
-
-    const chunkCopyBtn = document.createElement("button");
-    chunkCopyBtn.textContent = "📑";
-    chunkCopyBtn.title = "Copy results in parts (<1000 chars each)";
-    chunkCopyBtn.style.cssText = "padding: 2px 6px; background: #0f3460; color: #eee; border: 1px solid #444; border-radius: 3px; cursor: pointer; font-size: 13px;";
-    chunkCopyBtn.onclick = async () => {
-        const lines = getResultsPanelLines();
-        if (!lines.length) {
-            showToast("Nothing to copy", "#ff9800");
-            return;
-        }
-        const chunks = splitLinesIntoChunks(lines, 1000);
-        if (!chunks.length) {
-            showToast("Nothing to copy", "#ff9800");
-            return;
-        }
-        const delayMs = 1200;
-        chunkCopyBtn.disabled = true;
-        const origText = chunkCopyBtn.textContent;
-        try {
-            for (let i = 0; i < chunks.length; i++) {
-                chunkCopyBtn.textContent = `${i + 1}/${chunks.length}`;
-                const chunkText = String(chunks[i] || "").replace(/\r\n?/g, "\n").replace(/\n{2,}/g, "\n");
-                await navigator.clipboard.writeText(chunkText);
-                if (i < chunks.length - 1) {
-                    showToast(`Copied part ${i + 1}/${chunks.length} (${chunks[i].length} chars)...`, "#1565c0");
-                    await jrpdSleep(delayMs);
-                }
-            }
-            showToast(`Copied ${chunks.length} part${chunks.length > 1 ? "s" : ""}! Last part (${chunks[chunks.length - 1].length} chars) in clipboard`, "#4caf50");
-        } catch (err) {
-            console.error("JRPD: Failed to copy chunk: ", err);
-            showToast("Failed to copy parts", "#f44336");
-        } finally {
-            chunkCopyBtn.disabled = false;
-            chunkCopyBtn.textContent = origText;
-        }
-    };
-    controlsGroup.appendChild(chunkCopyBtn);
     
     const reloadBtn = document.createElement("button");
     reloadBtn.textContent = "↻";
@@ -1210,6 +1134,17 @@ function createResultsPanel() {
     reloadBtn.style.cssText = "padding: 2px 6px; background: #0f3460; color: #eee; border: 1px solid #444; border-radius: 3px; cursor: pointer; font-size: 13px;";
     reloadBtn.onclick = () => { reviewLastMtime = 0; lastRenderedLinesJson = ""; fetchResultsFile({ forceFullRender: true }); };
     controlsGroup.appendChild(reloadBtn);
+
+    const openEditorBtn = document.createElement("button");
+    openEditorBtn.textContent = "📝";
+    openEditorBtn.title = "Open results.txt in Notepad++";
+    openEditorBtn.style.cssText = "padding: 2px 6px; background: #0f3460; color: #eee; border: 1px solid #444; border-radius: 3px; cursor: pointer; font-size: 13px;";
+    openEditorBtn.onclick = () => {
+        reviewFetch(getReviewServerUrl() + "/open_editor")
+            .then(() => showToast("Opened results.txt in editor", "#1565c0"))
+            .catch(() => showToast("Failed to open editor (server not reachable?)", "#f44336"));
+    };
+    controlsGroup.appendChild(openEditorBtn);
 
     const doneBtn = document.createElement("button");
     doneBtn.textContent = "Done";
