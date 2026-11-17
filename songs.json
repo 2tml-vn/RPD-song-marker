@@ -152,6 +152,9 @@
   "As Marcas Desse Amor": {
     "artist_orig": "Banda Universos"
   },
+  "Aspire": {
+    "artist_orig": "Liella!"
+  },
   "Astral Rainbows": {
     "artist_orig": "Anthony Alleeson"
   },
@@ -739,6 +742,9 @@
   "Dream Land!Dream World!": {
     "artist_orig": "A・ZU・NA"
   },
+  "DREAMY COLOR": {
+    "artist_orig": "Aqours"
+  },
   "DRIP": {
     "artist_orig": "BABYMONSTER"
   },
@@ -797,6 +803,14 @@
   },
   "Eutopia": {
     "artist_orig": "鐘 嵐珠"
+  },
+  "Eutopia (TV size)": {
+    "intl": "Eutopia",
+    "artist_orig": "鐘 嵐珠"
+  },
+  "Eutopia - TV size": {
+    "intl": "Eutopia",
+    "artist_orig": "遠藤ナオキ"
   },
   "Everybody Move": {
     "artist_orig": "ビジー・シグナル",
@@ -961,6 +975,9 @@
     "artist_intl": "",
     "remap": ""
   },
+  "GEMSTONE \"DE‐A‐I\"": {
+    "artist_orig": "Aqours"
+  },
   "Genuine Revelation": {
     "artist_orig": "旧fine／天祥院 英智、乱 凪砂、巴 日和、青葉 つむぎ"
   },
@@ -993,6 +1010,9 @@
   },
   "Go In": {
     "artist_orig": "Yordee"
+  },
+  "Go Our Way!": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
   },
   "Go Wild": {
     "artist_orig": "轟はじめ"
@@ -1338,6 +1358,9 @@
   "Koi No Hime Hime Pettanko": {
     "artist_orig": "Yukari Tamura"
   },
+  "KOKORO Magic \"A to Z\"": {
+    "artist_orig": "Aqours"
+  },
   "KOKORO NO TAMAGO": {
     "artist_orig": "Buono!"
   },
@@ -1495,6 +1518,9 @@
   },
   "Love U my friends": {
     "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
+  "Love U my friends (Off Vocal)": {
+    "remap": "Love U my friends"
   },
   "LOVE&JOY": {
     "artist_orig": "山本希望"
@@ -1977,6 +2003,9 @@
   "On your mark": {
     "artist_orig": "蓮ノ空女学院スクールアイドルクラブ"
   },
+  "On your mark (104期 Ver.)": {
+    "remap": "On your mark"
+  },
   "One Night Carnival": {
     "artist_orig": "氣志團"
   },
@@ -2032,6 +2061,12 @@
   },
   "Paparazzi": {
     "artist_orig": "Girls' Generation"
+  },
+  "Paradise Chime": {
+    "artist_orig": "You Watanabe (CV: Shuka Saito)"
+  },
+  "Paradise Live": {
+    "artist_orig": "μ's"
   },
   "Paradise Lost": {
     "artist_orig": "茅原実里"
@@ -2271,6 +2306,13 @@
   "Russian Easter Festival, Overture, Op. 36": {
     "artist_orig": "ロンドン交響楽団 & アンタル・ドラティ"
   },
+  "SAKURA-saku KOKORO-saku": {
+    "artist_orig": "Aqours"
+  },
+  "SAKURA-saku KOKORO-saku - Off Vocal": {
+    "intl": "SAKURA-saku KOKORO-saku",
+    "artist_orig": "Aqours"
+  },
   "Samba de Night Fever": {
     "artist_orig": "ONE N' ONLY"
   },
@@ -2338,8 +2380,14 @@
     "artist_intl": "",
     "remap": ""
   },
+  "Shocking Party [第3話挿入歌]": {
+    "remap": "Shocking Party"
+  },
   "SHOOT!": {
     "artist_orig": "RO-KYU-BU!"
+  },
+  "Shooting Voice!!": {
+    "artist_orig": "Liella!"
   },
   "Side Quest King": {
     "artist_orig": "HOYO-MiX & Jam Hsiao"
@@ -2852,6 +2900,9 @@
   "WonChu Kiss Me!": {
     "artist_orig": "SAKURA*TRICK, 高山春香(CV:戸松遥), 園田優(CV:井口裕香), 野田コトネ(CV:相坂優歌), 南しずく(CV:五十嵐裕美), 池野楓(CV:渕上舞) & 飯塚ゆず(CV:戸田めぐみ)"
   },
+  "Wonder zone": {
+    "artist_orig": "μ's"
+  },
   "Wonderful Happiness": {
     "artist_orig": "Knights"
   },
@@ -2903,6 +2954,9 @@
   },
   "Your Idol": {
     "artist_orig": "KPop Demon Hunters"
+  },
+  "Zanyo": {
+    "artist_orig": "Cerise Bouquet"
   },
   "Zma Da Yar Dasi Mri Stargi": {
     "artist_orig": "Saleh Dilyar",
@@ -3535,7 +3589,6 @@
     "artist_orig": "Pastel*Palettes"
   },
   "もぎゅっと\"love\"で接近中!": {
-    "intl": "Mogyutto “love” de Sekkin Chuu!",
     "artist_orig": "μ's"
   },
   "もってけ!セーラーふく": {
@@ -4167,6 +4220,9 @@
     "intl": "SHIAWASE√KOYORINIUM",
     "artist_orig": "博衣こより"
   },
+  "シェキラ☆☆☆": {
+    "artist_orig": "Liella!"
+  },
   "シカ色デイズ": {
     "intl": "Shikairo Days",
     "artist_orig": "鹿乃子のこ, 虎視虎子, 虎視餡子 & 馬車芽めめ"
@@ -4355,6 +4411,10 @@
     "intl": "Zombies",
     "artist_orig": "DECO*27"
   },
+  "タカラモノズ": {
+    "intl": "Takaramonozu",
+    "artist_orig": "μ's"
+  },
   "タチアガレ!": {
     "intl": "Tachiagare!",
     "artist_orig": "Wake Up, Girls!"
@@ -4371,6 +4431,10 @@
   "ダイアモンド": {
     "intl": "Diamond",
     "artist_orig": "Kasumi Nakasu"
+  },
+  "ダイスキだったらダイジョウブ!": {
+    "artist_orig": "Aqours",
+    "intl": "Daisuki dattara Daijoubu!"
   },
   "ダイダイダイダイダイキライ": {
     "intl": "DaiDaiDaiDaiDaikirai",
@@ -4809,7 +4873,6 @@
     "remap": "ヒロイン育成計画"
   },
   "ビタミンSUMMER!": {
-    "intl": "Vitamin SUMMER!",
     "artist_orig": "Liella!"
   },
   "ビターチョコデコレーション": {
@@ -4887,6 +4950,13 @@
   },
   "フォニイ (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & MEIKO)": {
     "remap": "フォニイ"
+  },
+  "フォーチュンムービー": {
+    "intl": "Fortune Movie",
+    "artist_orig": "スリーズブーケ"
+  },
+  "フォーチュンムービー (Off Vocal)": {
+    "remap": "フォーチュンムービー"
   },
   "フューエル": {
     "intl": "FUEL",
@@ -5532,7 +5602,6 @@
     "intl": "Boku wa Boku o Suki ni Naru"
   },
   "僕らのLIVE 君とのLIFE": {
-    "intl": "Bokura no LIVE Kimi to no LIFE",
     "artist_orig": "μ's"
   },
   "僕らは今のなかで": {
@@ -5798,15 +5867,25 @@
   "夏に去りし君を想フ (feat. 初音ミク)": {
     "remap": "夏に去りし君を想フ"
   },
+  "夏の終わりの雨音が": {
+    "artist_orig": "高海千歌 & 松浦果南",
+    "intl": "Natsu no Owari no Amaoto ga"
+  },
   "夏への扉 Never end ver.": {
     "intl": "The Door Towards Summer Never end ver."
+  },
+  "夏めきペイン": {
+    "intl": "Natsumeki Pain",
+    "artist_orig": "蓮ノ空女学院スクールアイドルクラブ"
+  },
+  "夏めきペイン (104期Ver.)": {
+    "artist_orig": "蓮ノ空女学院スクールアイドルクラブ"
   },
   "夏恋花火": {
     "intl": "Natsu Koi Hanabi",
     "artist_orig": "シャノ & 40mP"
   },
   "夏色えがおで1,2,Jump!": {
-    "intl": "Natsuiro Egao de 1,2,Jump!",
     "artist_orig": "μ's"
   },
   "夜の踊り子": {
@@ -5975,6 +6054,10 @@
     "intl": "Tokonatsu☆Sunshine",
     "artist_orig": "澁谷かのん, 唐 可可, 嵐 千砂都 & 平安名すみれ"
   },
+  "平成ギャルズ!!!!": {
+    "artist_orig": "Ruri&To",
+    "intl": "Heisei Galz!!!!"
+  },
   "幸福刑": {
     "intl": "Koufuku Kei",
     "artist_orig": "LonePi"
@@ -6005,7 +6088,6 @@
     "intl": "Mattete Ai no Uta"
   },
   "微熱からMystery": {
-    "intl": "Binetsu kara Mystery",
     "artist_orig": "lily white & μ's"
   },
   "心予報": {
@@ -6110,6 +6192,9 @@
     "artist_orig": "Aqours",
     "artist_intl": "",
     "remap": ""
+  },
+  "想いよひとつになれ (Solo Ver.) - Solo Ver.": {
+    "remap": "想いよひとつになれ"
   },
   "想いよひとつになれ【第11話挿入歌】 (TVサイズ)": {
     "remap": "想いよひとつになれ"
@@ -6282,15 +6367,25 @@
     "intl": "Tsukuyomi Kurage"
   },
   "未体験HORIZON": {
-    "intl": "Mitaiken HORIZON",
     "artist_orig": "Aqours"
   },
   "未完成ドリーム！": {
     "intl": "Mikansei Dream!",
     "artist_orig": "スクールアイドルミュージカル"
   },
+  "未来の僕らは知ってるよ": {
+    "artist_orig": "Aqours",
+    "intl": "Mirai no Bokura wa Shitteru yo"
+  },
+  "未来の僕らは知ってるよ【TVアニメ2期オープニング主題歌 (TVサイズ)】": {
+    "artist_orig": "Aqours"
+  },
+  "未来ハーモニー": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会",
+    "intl": "Mirai Harmony"
+  },
   "未熟DREAMER": {
-    "intl": "Mijuku DREAMER"
+    "artist_orig": "Aqours"
   },
   "来来☆2winkイリュージョン": {
     "intl": "Rairai 2wink Illusion",
@@ -6343,6 +6438,9 @@
   "水彩世界": {
     "artist_orig": "スリーズブーケ",
     "intl": "Suisai Sekai"
+  },
+  "永久hours": {
+    "artist_orig": "Aqours"
   },
   "永遠プレッシャー": {
     "artist_orig": "AKB48"
@@ -6484,6 +6582,10 @@
     "artist_orig": "M!LK",
     "intl": "Maji Destiny"
   },
+  "眩耀夜行": {
+    "artist_orig": "スリーズブーケ",
+    "intl": "Genyo Yako"
+  },
   "知らないLove*教えてLove": {
     "intl": "Shiranai Love*Oshiete Love"
   },
@@ -6520,9 +6622,7 @@
     "artist_orig": "CHiCO with HoneyWorks"
   },
   "私のSymphony": {
-    "intl": "Watashi no Symphony",
-    "artist_orig": "Liella!",
-    "artist_intl": ""
+    "artist_orig": "Liella!"
   },
   "私のSymphony ～2022Ver.～": {
     "intl": "Watashi no Symphony",
@@ -6665,7 +6765,6 @@
     "remap": "虚無さん"
   },
   "虹色Passions!": {
-    "intl": "Nijiiro Passions!",
     "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
   },
   "蟾蜍": {
