@@ -7,7 +7,6 @@
 // @match        *://*.bilibili.com/*
 // @require      file:///D:/rpd/jrpd_state.js
 // @require      file:///D:/rpd/jrpd_utils.js
-// @require      file:///D:/rpd/jrpd_cleanup.js
 // @require      file:///D:/rpd/jrpd_results.js
 // @require      file:///D:/rpd/jrpd_songs.js
 // @grant        GM_xmlhttpRequest
@@ -300,10 +299,8 @@
 
         if (isVideoPage() && document.querySelector('video') && document.body) {
             injectControls();
-            createCleanupPanel();
             createResultsPanel();
-            
-            
+
             // Poll server status
             jrpdFetch(getServerBaseUrl() + "/status")
                 .then(r => r.json())
@@ -314,8 +311,6 @@
                     // Review Mode Detection
                     if (data.is_review_mode && !isReviewMode) {
                         isReviewMode = true;
-                        const cleanupPanel = document.getElementById("jrpd-cleanup-panel");
-                        if (cleanupPanel) cleanupPanel.style.display = "none";
                         openResultsPanel();
                         console.log("JRPD: Entered Review Mode");
                     }
@@ -333,63 +328,17 @@
                         loopVideo.currentTime = currentGapStart;
                     }
 
-                    // Review mode does not run the remote-seek / cleanup flow
+                    // Review mode does not run the marking-mode status flow
                     if (isReviewMode) return;
-
-                    // Remote Seek
-                    if (data.seek_ts !== undefined && data.seek_ts !== -1 && data.seek_ts !== lastSeekTs) {
-                        const video = getVideoElement();
-                        if (video) {
-                            console.log(`JRPD: Remote Seek Request for ${data.seek_ts}`);
-                            video.currentTime = data.seek_ts;
-                            setTimeout(() => { 
-                                if (Math.abs(video.currentTime - data.seek_ts) > 1) video.currentTime = data.seek_ts;
-                            }, 100);
-                            lastSeekTs = data.seek_ts;
-                            currentGapStart = data.seek_ts;
-                            currentGapEnd = getGapEndSeconds(cleanupMarks, currentGapStart, video.duration);
-                            showToast(`Seeking to ${formatTime(data.seek_ts)}`, "#f57c00");
-
-                            const list = document.getElementById("jrpd-candidate-list");
-                            if (list) list.style.opacity = "1.0";
-                        }
-                    }
-
-                    // Candidates UI
-                    if (JSON.stringify(data.candidates) !== JSON.stringify(currentCandidates)) {
-                        currentCandidates = data.candidates || [];
-                        updateCandidates(currentCandidates);
-                    }
 
                     // Status Messages
                     if (data.status_msg && data.status_msg !== lastStatusMsg) {
                         showToast(data.status_msg, "#0288d1");
                         lastStatusMsg = data.status_msg;
                     }
-
-                    // Update cleanup marks (never override a panel-selected loop gap)
-                    if (data.marks) {
-                        cleanupMarks = data.marks || [];
-                        const video2 = getVideoElement();
-                        if (video2 && currentGapStart !== -1 && reviewActiveGapTs === null) {
-                            currentGapEnd = getGapEndSeconds(cleanupMarks, currentGapStart, video2.duration);
-                        }
-                    }
-
-                    // Cleanup gap loop. Never loop an ended video: it must stay ended.
-                    const video = getVideoElement();
-                    if (video && !video.ended && currentCandidates.length > 0 && currentGapStart >= 0 && currentGapEnd > currentGapStart && video.currentTime >= currentGapEnd) {
-                        console.log(`JRPD: Looping gap ${currentGapStart} -> ${currentGapEnd}`);
-                        video.currentTime = currentGapStart;
-                    }
                 })
                 .catch(e => {
                     if (typeof updateStartBtn === "function") updateStartBtn(false);
-                    if (currentCandidates.length > 0) {
-                        console.error("JRPD: Server disconnected during cleanup.");
-                        currentCandidates = [];
-                        updateCandidates([]);
-                    }
                 });
         }
     }, 1000);

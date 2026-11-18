@@ -18,9 +18,9 @@ from typing import Optional, Dict, Any, List
 
 from aiohttp import web
 
-from config import PORT, MISIDENTIFIED_SONGS_FILE, MISSED_SONGS_FILE, SONG_OVERRIDES_FILE, EDITOR_PATH, RUNS_DIR
-from audio_utils import format_display_name, strip_extra_info, format_timestamp_for_youtube
-from song_db import SONG_OVERRIDES, MISSED_SONGS, MISIDENTIFIED_SONGS, save_song_overrides, load_song_overrides, _atomic_write_json
+from config import PORT, SONG_OVERRIDES_FILE, EDITOR_PATH, RUNS_DIR
+from audio_utils import format_display_name, format_timestamp_for_youtube
+from song_db import SONG_OVERRIDES, save_song_overrides, load_song_overrides, _atomic_write_json
 
 # Note: load_song_overrides() is called by the main script, not here
 
@@ -132,9 +132,6 @@ class ServerState:
     def __init__(self):
         self.main_loop = None
         self.mark_queue = None
-        self.selection_queue = None
-        self.current_seek_ts = -1
-        self.cleanup_candidates: List[str] = []
         self.results: Dict[str, str] = {}
         self.results_keys: Dict[str, str] = {}  # row ts -> registered song key (exact row ownership)
         self.is_finished = False
@@ -149,8 +146,6 @@ class ServerState:
 
     def reset(self):
         """Reset state for a new session."""
-        self.current_seek_ts = -1
-        self.cleanup_candidates = []
         self.results = {}
         self.results_keys = {}
         self.is_finished = False
@@ -260,16 +255,12 @@ async def handle_status(request: web.Request) -> web.Response:
             else:
                 unidentified_count = sum(1 for v in state.results.values() if v == "Unidentified")
                 if unidentified_count > 0:
-                    status_msg = f"Starting cleanup for {unidentified_count} gaps"
+                    status_msg = f"Marking finished — {unidentified_count} unidentified (edit in review panel)"
                 else:
                     status_msg = "All identified! Finishing..."
 
-        import shared_utils
         response = {
-            "seek_ts": state.current_seek_ts,
-            "candidates": state.cleanup_candidates,
             "status_msg": status_msg,
-            "marks": sorted(state.results.keys(), key=shared_utils.parse_ts),
             "is_review_mode": state.is_session_done
         }
         return await _json_response(response)
@@ -370,17 +361,14 @@ async def handle_quit_session(request: web.Request) -> web.Response:
     """Handle /quit_session endpoint — abort the session, delete local audio.
 
     Removes the session's audio file, partial download leftovers and snippet
-    temp files. Text/JSON outputs (results.txt, progress.json,
-    unidentified.json) are untouched.
+    temp files. Text/JSON outputs (results.txt, progress.json) are untouched.
 
     Wakes the main loop so label_marks_complete.py exits: mid-identification
     via the quit_requested flag, review mode via review_done_event (kind
-    "quit"), and the cleanup gap loop via a "q" selection.
+    "quit").
     """
     _delete_session_audio()
     state.quit_requested = True
-    if state.selection_queue and state.main_loop:
-        state.main_loop.call_soon_threadsafe(state.selection_queue.put_nowait, "q")
     if state.main_loop and state.review_done_event:
         state.review_done_kind = "quit"
         state.main_loop.call_soon_threadsafe(state.review_done_event.set)
@@ -392,23 +380,9 @@ async def handle_quit_session(request: web.Request) -> web.Response:
 
 async def handle_song_lists(request: web.Request) -> web.Response:
     """Handle /song_lists endpoint."""
-    result = {"misidentified": [], "missed": [], "songs": []}
+    result = {"songs": []}
     try:
         # Use cached file reads to avoid redundant I/O
-        misident_data = _file_cache.get(MISIDENTIFIED_SONGS_FILE)
-        if misident_data:
-            for key in sorted(misident_data.keys(), key=lambda x: x.lower()):
-                data = misident_data[key]
-                display = format_display_name(key, data.get('intl'), data.get('artist_orig'), data.get('artist_intl'))
-                result["misidentified"].append({"display": display, "key": key})
-
-        missed_data = _file_cache.get(MISSED_SONGS_FILE)
-        if missed_data:
-            for key in sorted(missed_data.keys(), key=lambda x: x.lower()):
-                data = missed_data[key]
-                display = format_display_name(key, data.get('intl'), data.get('artist_orig'), data.get('artist_intl'))
-                result["missed"].append({"display": display, "key": key})
-
         songs_data = _file_cache.get(SONG_OVERRIDES_FILE)
         if songs_data:
             for key in sorted(songs_data.keys(), key=lambda x: x.lower()):
@@ -536,25 +510,6 @@ async def handle_add_song_and_update(request: web.Request) -> web.Response:
     return await _json_response(result)
 
 
-async def handle_review_seek(request: web.Request) -> web.Response:
-    """Handle /review_seek endpoint."""
-    ts = request.query.get('ts')
-    if ts is not None:
-        try:
-            state.current_seek_ts = int(float(ts))
-        except (ValueError, TypeError) as e:
-            logger.warning(f"Invalid seek timestamp: {ts} - {e}")
-    return await _status_response()
-
-
-async def handle_select(request: web.Request) -> web.Response:
-    """Handle /select endpoint."""
-    choice = request.query.get('choice')
-    if choice and state.main_loop and state.selection_queue:
-        state.main_loop.call_soon_threadsafe(state.selection_queue.put_nowait, choice)
-    return await _status_response()
-
-
 async def handle_get_song_data(request: web.Request) -> web.Response:
     """Handle /get_song_data endpoint."""
     key = request.query.get('key')
@@ -578,7 +533,7 @@ def _exact_display_to_key(display):
     display like "A (something) (EN name) - artist" can't be parsed from text;
     the display format belongs to the server.)
     """
-    stores = (SONG_OVERRIDES, MISSED_SONGS, MISIDENTIFIED_SONGS)
+    stores = (SONG_OVERRIDES,)
     for store in stores:
         for key, data in store.items():
             try:
@@ -624,8 +579,7 @@ async def handle_song_key_from_display(request: web.Request) -> web.Response:
 
     1) Row key binding (exact): if progress.json recorded the row's key, it wins.
     2) Exact match: rebuild each known key's display and compare.
-    3) Heuristic fallback: song part before " - ", then paren-stripped
-       (server-side strip_extra_info, which honors the exceptions list).
+    3) Heuristic fallback: song part before " - ".
     """
     ts = (request.query.get('ts') or '').strip()
     bound = state.results_keys.get(ts) if ts else None
@@ -641,17 +595,12 @@ async def handle_song_key_from_display(request: web.Request) -> web.Response:
     if key:
         return web.json_response({"key": key, "exact": True}, headers=_cors_headers())
 
-    # Heuristic fallback: song part before " - ", then paren-stripped
+    # Heuristic fallback: song part before " - "
     song_part = display.split(' - ')[0].strip()
     if song_part:
-        for store in (SONG_OVERRIDES, MISSED_SONGS, MISIDENTIFIED_SONGS):
+        for store in (SONG_OVERRIDES,):
             if song_part in store:
                 return web.json_response({"key": song_part, "exact": False}, headers=_cors_headers())
-        stripped = strip_extra_info(song_part)
-        if stripped and stripped != song_part:
-            for store in (SONG_OVERRIDES, MISSED_SONGS, MISIDENTIFIED_SONGS):
-                if stripped in store:
-                    return web.json_response({"key": stripped, "exact": False}, headers=_cors_headers())
 
     return web.json_response({"key": song_part or None, "exact": False}, headers=_cors_headers())
 
@@ -1005,7 +954,7 @@ def merge_results_txt(progress_file: Path, youtube_out: Path) -> int:
 
     Rules (results.txt mtime strictly newer than progress.json):
       - a blank file line never overwrites the "Unidentified" row label
-        (gap cleanup / unidentified.json export key off that label);
+        (the review flow keys off that label);
       - rows whose file text equals the progress value rendered into file
         text are already in sync and untouched;
       - everything else is adopted as-is (song text, "Processing...",
@@ -1067,11 +1016,11 @@ _AUDIO_EXTS = ('m4a', 'opus', 'webm', 'mp3', 'mp4', 'ogg', 'wav', 'mka')
 # Audio artifacts removable by /quit_session: the audio file itself (matched
 # by "audio.*", which also covers audio.m4s and audio.*.progress.json download
 # checkpoints) plus partial download leftovers. None of these patterns can
-# match the user outputs results.txt / progress.json / unidentified.json; the
-# protected-names check below is belt-and-braces. .yt_dlp_cache is skipped,
-# same as _remove_partial_downloads() in audio_utils.
+# match the user outputs results.txt / progress.json; the protected-names
+# check below is belt-and-braces. .yt_dlp_cache is skipped, same as
+# _remove_partial_downloads() in audio_utils.
 _AUDIO_ARTIFACT_PATTERNS = ("audio.*", "*.aria2", "*.part", "*.ytdl", "*.temp")
-_QUIT_PROTECTED_FILES = {"results.txt", "progress.json", "unidentified.json"}
+_QUIT_PROTECTED_FILES = {"results.txt", "progress.json"}
 
 
 def _find_audio_file() -> Optional[Path]:
@@ -1106,8 +1055,8 @@ def _delete_session_audio() -> int:
 
     Fired by /quit_session when the review panel Quit button is clicked.
     Removes the downloaded audio, partial download leftovers and temp
-    identification snippets. User outputs (results.txt, progress.json,
-    unidentified.json), the song DB json files and .yt_dlp_cache are never
+    identification snippets. User outputs (results.txt, progress.json),
+    the song DB json files and .yt_dlp_cache are never
     touched. Returns the number of files deleted.
     """
     deleted = 0
@@ -2002,8 +1951,6 @@ def create_app() -> web.Application:
     app.router.add_get('/get_song_data', handle_get_song_data)
     app.router.add_get('/update_result', handle_update_result)
     app.router.add_get('/add_song_and_update', handle_add_song_and_update)
-    app.router.add_get('/review_seek', handle_review_seek)
-    app.router.add_get('/select', handle_select)
     app.router.add_get('/song_key_from_display', handle_song_key_from_display)
     app.router.add_get('/acr_identify', handle_acr_identify)
     app.router.add_get('/aha_identify', handle_acr_identify)  # alias: same ACRCloud -> AHA flow

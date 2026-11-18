@@ -5,9 +5,9 @@ Resolves detected song names using overrides and external APIs.
 import json
 import logging
 from typing import Optional, Any
-from audio_utils import strip_extra_info, clean_artist_name, format_display_name
+from audio_utils import format_display_name
 from song_db import (
-    SONG_OVERRIDES, WRONG_MATCHES,
+    SONG_OVERRIDES,
     lookup_song_override, auto_register_song,
     save_song_overrides, lookup_in_priority_order
 )
@@ -52,23 +52,11 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None, 
     """
     # Raw registration: the engine-reported title is kept as-is and used as the
     # lookup key / registration name. No paren/version stripping on the key.
-    # (strip_extra_info is still applied to Shazam EN / en_hint intl titles.)
-    artist = clean_artist_name(artist)
+    # Shazam EN / en_hint intl titles are also kept raw.
+    # Artist name is kept fully raw (no CV-tag stripping or space collapsing).
     logger.info("[RESOLVE] Input: title_clean='%s' artist='%s' track_id=%s en_hint=%s", title_clean, artist, track_id, en_hint)
 
-    # 1. Check wrong_matches.json — random garbage, discard immediately
-    if title_clean in WRONG_MATCHES:
-        wm_entry = WRONG_MATCHES[title_clean]
-        wm_artist = wm_entry.get('artist') if isinstance(wm_entry, dict) else None
-        if not wm_artist or (artist and wm_artist == artist):
-            logger.info("[RESOLVE] [1-WRONG_MATCH] '%s' (artist='%s') → returning Unidentified", title_clean, artist)
-            return "Unidentified"
-        else:
-            logger.debug("[RESOLVE] [1-WRONG_MATCH] '%s' found but artist mismatch (expected='%s', got='%s') → continuing", title_clean, wm_artist, artist)
-    else:
-        logger.debug("[RESOLVE] [1-WRONG_MATCH] '%s' not in wrong_matches", title_clean)
-
-    # 3. Check songs.json, missed.json, misidentified.json in priority order
+    # 2. Check songs.json, missed.json, misidentified.json in priority order
     orig_key, override_data, source = lookup_in_priority_order(title_clean, artist)
     logger.info("[RESOLVE] [3-OVERRIDE] Priority lookup: orig_key='%s' source='%s' found=%s", orig_key, source, override_data is not None)
     
@@ -124,11 +112,11 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None, 
                     en_title = extract_en_title(en_data)
                     logger.debug("[RESOLVE] [3-OVERRIDE] Shazam EN returned: '%s'", en_title)
                     if en_title and en_title.lower() != ori_song.lower():
-                        int_song = strip_extra_info(en_title)
-                        logger.debug("[RESOLVE] [3-OVERRIDE] After strip_extra_info: int_song='%s'", int_song)
-                        # Skip if stripped intl ended up same as original
+                        int_song = en_title
+                        logger.debug("[RESOLVE] [3-OVERRIDE] int_song='%s'", int_song)
+                        # Skip if intl ended up same as original
                         if int_song and int_song.lower() == ori_song.lower():
-                            logger.debug("[RESOLVE] [3-OVERRIDE] intl same as original after strip, discarding")
+                            logger.debug("[RESOLVE] [3-OVERRIDE] intl same as original, discarding")
                             int_song = None
                     else:
                         logger.debug("[RESOLVE] [3-OVERRIDE] Shazam EN title matches original or is empty, skipping")
@@ -162,7 +150,7 @@ async def resolve_song_name(title_clean, artist, track_id=None, shazam_en=None, 
                 en_title = extract_en_title(en_data)
                 logger.debug("[RESOLVE] No override. Shazam EN returned: '%s'", en_title)
                 if en_title and en_title.lower() != title_clean.lower():
-                    en_name = strip_extra_info(en_title)
+                    en_name = en_title
             except Exception as e:
                 logger.debug("[RESOLVE] No override. Shazam EN API failed: %s", e)
 

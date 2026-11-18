@@ -1177,7 +1177,7 @@ function createResultsPanel() {
     quitBtn.title = "Quit: stops the Python process, deletes local audio (results.txt / progress.json kept)";
     quitBtn.style.cssText = "padding: 2px 8px; background: #c62828; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold;";
     quitBtn.onclick = () => {
-        if (!confirm("Quit session and delete the local audio file?\n(results.txt, progress.json and unidentified.json are kept)")) return;
+        if (!confirm("Quit session and delete the local audio file?\n(results.txt, progress.json are kept)")) return;
         // Save panel position, then the same teardown as Done: disarm gap loops.
         savePanelPrefs({
             width: panel.offsetWidth,
@@ -1806,7 +1806,6 @@ function createResultRow(entry) {
 
         video.currentTime = startSec;
         video.play();
-        lastSeekTs = startSec;
 
         // Loop end = next mark's ts, read from the live row order. Reading the
         // DOM (not a snapshot captured at row creation) stays correct after

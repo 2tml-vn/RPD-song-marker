@@ -12,7 +12,6 @@ from typing import Optional
 import acrcloud
 import aha_api
 from config import ACR_CONFIG, AHA_CONFIG
-from audio_utils import strip_extra_info
 from song_resolver import resolve_song_name
 import shared_utils
 
@@ -209,7 +208,7 @@ async def _recognize_aha_snippet(
 
             title_clean = shared_utils.clean_title(aha_result['title'])
             artist = aha_result['artist']
-            en_hint = strip_extra_info(aha_result.get('en_title')) if aha_result.get('en_title') else None
+            en_hint = aha_result.get('en_title')
 
             logger.debug(" [AHA] Calling resolve_song_name with title_clean='%s' artist='%s' en_hint=%s", title_clean, artist, en_hint)
             aha_match = await resolve_song_name(title_clean, artist, None, shazam_en, en_hint=en_hint)
@@ -287,7 +286,7 @@ async def _recognize_acrcloud_snippet(
 
             title_clean = shared_utils.clean_title(acr_result['title'])
             artist = acr_result['artist']
-            en_hint = strip_extra_info(acr_result.get('en_title')) if acr_result.get('en_title') else None
+            en_hint = acr_result.get('en_title')
 
             logger.debug(" [ACRCloud] Calling resolve_song_name with title_clean='%s' artist='%s' en_hint=%s", title_clean, artist, en_hint)
             acr_match = await resolve_song_name(title_clean, artist, None, shazam_en, en_hint=en_hint)

@@ -16,6 +16,7 @@
   "+♂(プラス男子) feat.鏡音レン [feat. 鏡音レン]": {
     "remap": "+♂"
   },
+  "1, 2, Fanclub": {},
   "1.Five": {
     "artist_orig": "Gene Tolyshev"
   },
@@ -71,6 +72,9 @@
   "A Horny Money World 〜伝説の夜〜": {
     "intl": "A Horny Money World 〜legendary night〜",
     "artist_orig": "宝鐘マリン"
+  },
+  "A Little Love": {
+    "artist_orig": "5yncri5e!"
   },
   "A song for You! You? You!!": {
     "artist_orig": "μ's"
@@ -294,6 +298,9 @@
   "BIZNESS": {
     "artist_orig": "XLOV"
   },
+  "Black Out See Saw": {
+    "artist_orig": "ALKALOIDとあんさんぶるスターズ！！"
+  },
   "blender": {
     "artist_orig": "Vivid BAD SQUAD"
   },
@@ -335,6 +342,9 @@
   },
   "BLUE CLAPPER": {
     "artist_orig": "hololive IDOL PROJECT"
+  },
+  "Bomb Rush Blush": {
+    "artist_orig": "Splatoon"
   },
   "Boom": {
     "artist_orig": "Team ahamo(天宮こころ/橘ひなの/アルス・アルマル/夏色まつり/尾丸ポルカ)"
@@ -378,6 +388,7 @@
   "Bubble": {
     "artist_orig": "STAYC"
   },
+  "Buka Dikit Joss": {},
   "Bunny Girl": {
     "artist_orig": "AKASAKI"
   },
@@ -441,6 +452,9 @@
   "CELEBRATE!!": {
     "artist_orig": "Trickstar, あんさんぶるスターズ!!"
   },
+  "Celestial Highway": {
+    "artist_orig": "Melipo Music"
+  },
   "CH4NGE": {
     "artist_orig": "Giga"
   },
@@ -458,6 +472,9 @@
   },
   "CHANGE! MY WORLD": {
     "artist_orig": "Dressing Pafe"
+  },
+  "Chase the Light!": {
+    "artist_orig": "Fear, and Loathing in Las Vegas"
   },
   "CHASE!": {
     "artist_orig": "優木せつ菜"
@@ -478,6 +495,7 @@
     "artist_orig": "ILLIT",
     "intl": "Cherish"
   },
+  "Cherry Pop": {},
   "Cheshire": {
     "artist_orig": "ITZY"
   },
@@ -562,6 +580,7 @@
   "Crazy Roulette": {
     "artist_orig": "Crazy:B"
   },
+  "Crazy ∞ nighT": {},
   "Crazy:B & UNDEAD 「U.S.A.」 あんさんぶるスターズ!! COVER SONG SERIES 01": {
     "artist_orig": "Crazy:B, UNDEAD & あんさんぶるスターズ!!",
     "intl": "",
@@ -645,7 +664,7 @@
     "artist_orig": "Aqours"
   },
   "Dazzling Game": {
-    "artist_orig": "Liella!, 澁谷かのん, ウィーン・マルガレーテ & 鬼塚冬毬"
+    "artist_orig": "Liella! & TomaKanoTe"
   },
   "Dazzling White Town": {
     "artist_orig": "Saint Snow"
@@ -706,6 +725,7 @@
   "Disco Stick": {
     "artist_orig": "Will Taylor (UK)"
   },
+  "Discommunication alien": {},
   "DISCOTHEQUE": {
     "artist_orig": "水樹奈々"
   },
@@ -795,6 +815,7 @@
   "Ensemble Taiso!! - Otona no honne ver.": {
     "remap": "Ensemble Taiso!!"
   },
+  "Envy Baby": {},
   "erase or zero": {
     "artist_orig": "HzEdge(クリスタルP)"
   },
@@ -861,8 +882,12 @@
   "Fantastic Departure!": {
     "artist_orig": "Aqours"
   },
+  "Fantastic future": {},
   "Far Beyond These Castle Walls": {
     "artist_orig": "Terry Brown"
+  },
+  "Far-Out": {
+    "artist_orig": "スカラビア寮"
   },
   "Feel This Moment": {
     "artist_orig": "SuperFitness"
@@ -885,6 +910,7 @@
   "Fire Bird": {
     "artist_orig": "朝香果林"
   },
+  "Fire Dance": {},
   "Floor Killer": {
     "artist_orig": "Merm4id"
   },
@@ -990,6 +1016,9 @@
   "Ghostic Treat House": {
     "artist_orig": "fine／天祥院 英智、日々樹 渉、姫宮 桃李、伏見 弓弦"
   },
+  "GIFT": {
+    "artist_orig": "花束P"
+  },
   "Gimme×Gimme": {
     "artist_orig": "八王子P & Giga"
   },
@@ -1061,7 +1090,8 @@
     "artist_orig": "Jessi"
   },
   "G線上のシンデレラ": {
-    "artist_orig": "松浦果南, 黒澤ダイヤ & 小原鞠莉"
+    "artist_orig": "松浦果南, 黒澤ダイヤ & 小原鞠莉",
+    "intl": "G Senjou no Cinderella"
   },
   "HACK": {
     "artist_orig": "Shuta Sueyoshi"
@@ -1144,6 +1174,7 @@
   "Hop? Stop? Nonstop!": {
     "artist_orig": "Aqours"
   },
+  "Horny Money World": {},
   "HOT LIMIT": {
     "artist_orig": "T.M.Revolution",
     "see_artist": true
@@ -1279,6 +1310,7 @@
   "Jingle Cowbells": {
     "artist_orig": "NivramaG"
   },
+  "JOLLIE JOLLIE": {},
   "Journey": {
     "artist_orig": "初音ミク, 星乃一歌, 花里みのり, 小豆沢こはね, 天馬司 & 宵崎奏"
   },
@@ -1453,6 +1485,9 @@
   "Little Romance": {
     "artist_orig": "Knights/朱桜 司、月永 レオ、瀬名 泉、朔間 凛月、鳴上 嵐"
   },
+  "Lock on!": {
+    "artist_orig": "Snow Man"
+  },
   "LOCK YOUR GAZE": {
     "artist_orig": "MODE/D"
   },
@@ -1513,6 +1548,9 @@
   "LOVE PARFAIT": {
     "artist_orig": "The Shinbi House"
   },
+  "Love Pulsar": {
+    "artist_orig": "Guilty Kiss"
+  },
   "Love Shot": {
     "artist_orig": "EXO"
   },
@@ -1521,6 +1559,9 @@
   },
   "Love U my friends (Off Vocal)": {
     "remap": "Love U my friends"
+  },
+  "Love wing bell": {
+    "artist_orig": "μ's"
   },
   "LOVE&JOY": {
     "artist_orig": "山本希望"
@@ -1577,6 +1618,7 @@
   "M@GICAL CURE! LOVE SHOT!": {
     "artist_orig": "SAWTOWNE & 初音ミク"
   },
+  "M@GICAL☆CURE! LOVE SHOT!": {},
   "M@STERPIECE": {
     "artist_orig": "765PRO ALLSTARS",
     "intl": "",
@@ -1618,6 +1660,9 @@
     "intl": "",
     "artist_intl": "",
     "remap": ""
+  },
+  "Make Debut!": {
+    "artist_orig": "ウマ娘 プリティーダービー"
   },
   "Make it!": {
     "artist_orig": "i☆Ris"
@@ -1743,6 +1788,7 @@
   "Money Counting Machine": {
     "artist_orig": "artelligencemusic"
   },
+  "Monitoring": {},
   "MONSTER GENERATiON": {
     "artist_orig": "IDOLiSH7"
   },
@@ -1765,6 +1811,7 @@
   "More Super Love": {
     "artist_orig": "小野大輔"
   },
+  "MORE! JUMP! MORE!": {},
   "mosi mosi?": {
     "artist_orig": "楽音"
   },
@@ -1793,7 +1840,9 @@
   "Move on now! 〜美月ソロ Ver.〜(Short Size)": {
     "remap": "Move on now!"
   },
-  "Move Your Body Till You Die!": {},
+  "Move Your Body Till You Die!": {
+    "artist_orig": "毒島 メイソン"
+  },
   "Mr Music": {
     "artist_orig": "れるりり, ロンチーノ=ペペ & かごめP"
   },
@@ -1874,12 +1923,16 @@
   "NEO SKY, NEO MAP!": {
     "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
   },
+  "Neo Traveler": {
+    "artist_orig": "パンダドラゴン"
+  },
   "Nepali Flute Musicसदाबहार सुमधुर नेपाली धुन Nostalgic Nepali Folk Morning Flute": {
     "artist_orig": "Bishram Relaxing"
   },
   "nerve": {
     "artist_orig": "BiS"
   },
+  "Nerve": {},
   "NEW DANCE": {
     "artist_orig": "XG"
   },
@@ -1910,6 +1963,7 @@
   "Night Of Fire": {
     "artist_orig": "NIKO"
   },
+  "NIGHT OF FIRE": {},
   "nightcord": {
     "artist_orig": "deaya",
     "remap": "キャットラビング"
@@ -1975,6 +2029,7 @@
   "Ocean": {
     "artist_orig": "ジョン・バトラー・トリオ"
   },
+  "oddloop": {},
   "Offshore Waves": {
     "artist_orig": "Blue Sense"
   },
@@ -1996,6 +2051,9 @@
   },
   "OKP Cipher": {
     "artist_orig": "アバンギャルディ"
+  },
+  "OMG": {
+    "artist_orig": "Merm4id"
   },
   "on the rocks": {
     "artist_orig": "OSTER project"
@@ -2026,6 +2084,9 @@
   },
   "Or the Beautiful Golden Drop": {
     "artist_orig": "Knights"
+  },
+  "ORANGE RIUM": {
+    "artist_orig": "でんぱ組"
   },
   "OTAHEN アンセム": {
     "intl": "OTAHEN Anthem",
@@ -2157,6 +2218,12 @@
   "Presence": {
     "artist_orig": "DappyTKeys"
   },
+  "Private Wars": {
+    "artist_orig": "A-RISE"
+  },
+  "Private Wars [第1話挿入歌]": {
+    "remap": "Private Wars"
+  },
   "promise": {
     "artist_orig": "広瀬香美"
   },
@@ -2256,6 +2323,7 @@
   "Revival": {
     "artist_orig": "A.C.N., Aron Scott & Xantra"
   },
+  "Rhapsody of Blue Sky": {},
   "Right Beside You": {
     "artist_orig": "ソフィー・B・ホーキンス"
   },
@@ -2319,6 +2387,7 @@
   "Satellite Eyes": {
     "artist_orig": "Eclipse Voyager"
   },
+  "Sayonara Crawl": {},
   "Scapegoat": {
     "artist_orig": "Azari"
   },
@@ -2374,6 +2443,7 @@
   "Shining Star": {
     "artist_orig": "i☆Ris"
   },
+  "Shiny Smily Story": {},
   "Shocking Party": {
     "artist_orig": "A-RISE",
     "intl": "",
@@ -2395,6 +2465,7 @@
   "Silent Oath": {
     "artist_orig": "Knights"
   },
+  "Silent Sword": {},
   "Sin Dios No Soy Nada": {
     "artist_orig": "Códigos Tumbados"
   },
@@ -2444,6 +2515,7 @@
   "specialist": {
     "artist_orig": "アトラスサウンドチーム"
   },
+  "Specialist": {},
   "SPECIALZ": {
     "artist_orig": "King Gnu"
   },
@@ -2565,6 +2637,7 @@
   "SUNNY DAY SONG": {
     "artist_orig": "μ's"
   },
+  "Sunny Day Song": {},
   "Sunset カンフー": {
     "intl": "Sunset Kung Fu",
     "artist_orig": "TrySail"
@@ -2615,6 +2688,7 @@
   "SWINGIN' PARONIRIA": {
     "artist_orig": "UNDEAD"
   },
+  "Synchrogazer": {},
   "Synthetica": {
     "artist_orig": "Augustine Kizis"
   },
@@ -2785,6 +2859,9 @@
   "V": {
     "artist_orig": "HIMEHINA"
   },
+  "Vampire": {
+    "artist_orig": "DECO*27"
+  },
   "VAVAVA!バーチャル大分": {
     "intl": "VAVAVA!Virtual OOITA",
     "artist_orig": "白銀ノエル"
@@ -2837,6 +2914,12 @@
   },
   "We Survive": {
     "artist_orig": "KOTOKO"
+  },
+  "WE WILL!!": {
+    "artist_orig": "Liella!"
+  },
+  "Weekender Girl": {
+    "artist_orig": "八王子P"
   },
   "What a Wonderful Dream!!": {
     "artist_orig": "Liella!"
@@ -2979,6 +3062,9 @@
   "رقصة الرمال - Dance of the Sands": {
     "artist_orig": "1M MUSIC"
   },
+  "∞まわる∞": {
+    "intl": "∞Mawaru∞"
+  },
   "「Crazy ∞ nighT」": {
     "intl": "",
     "artist_orig": "ひとしずくP × やま△"
@@ -3063,6 +3149,9 @@
   "えれくとりっく・えんじぇぅ feat.鏡音リン、鏡音レン": {
     "remap": "えれくとりっく・えんじぇぅ"
   },
+  "おいでシャンプー": {
+    "intl": "Oide Shampoo"
+  },
   "おこちゃま戦争": {
     "intl": "Okochama Sensou",
     "artist_orig": "Giga"
@@ -3082,6 +3171,12 @@
   "おつかれSUMMER": {
     "artist_orig": "HALCALI",
     "intl": "Otsukare Summer"
+  },
+  "おつかれサマー!": {
+    "intl": "Otsukare SUMMER"
+  },
+  "おともだち": {
+    "artist_orig": "ファントムシータ"
   },
   "おどるポンポコリン": {
     "intl": "Odoru Ponpokorin",
@@ -3212,6 +3307,9 @@
     "intl": "Let's eat food",
     "artist_orig": "Mega Shinnosuke"
   },
+  "ごめんね、SUMMER": {
+    "intl": "Gomen ne, Summer"
+  },
   "さくゆいたいそう": {
     "intl": "Sakuyui Exercise",
     "artist_orig": "さくゆい"
@@ -3245,6 +3343,10 @@
   "しょーがいゼッタイそーあい宣言♥": {
     "intl": "Shougai Zettai Souai Sengen♥",
     "artist_orig": "Special for Princess!"
+  },
+  "じゃぱかわんだほ～": {
+    "artist_orig": "パンダドラゴン",
+    "intl": "Japakawandaho-"
   },
   "すき、きらい": {
     "intl": "Love, Hate",
@@ -3311,6 +3413,9 @@
     "artist_intl": "",
     "remap": ""
   },
+  "せいしゅんしもべティック": {
+    "intl": "Seishun Simobetic"
+  },
   "そして最後のページには": {
     "artist_orig": "μ's",
     "intl": "Soshite Saigo no Page ni wa"
@@ -3322,6 +3427,7 @@
     "intl": "Sore wa Bokutachi no Kiseki",
     "artist_orig": "μ's"
   },
+  "それは残像の消失点": {},
   "たこルカ★マグロフィーバー": {
     "intl": "Tako Luka★Maguro Fever",
     "artist_orig": "samfree"
@@ -3367,6 +3473,7 @@
     "intl": "Tokubechu Shite",
     "artist_orig": "=LOVE"
   },
+  "とっとこハム太郎": {},
   "とても素敵な六月でした": {
     "intl": "It was a very nice June",
     "artist_orig": "25時、ナイトコードで。"
@@ -3540,6 +3647,9 @@
   "まつり": {
     "intl": "Matsuri",
     "artist_orig": "藤井 風"
+  },
+  "まほろばアスタリスク": {
+    "intl": "Mahoroba Asterisk"
   },
   "まるかいて地球": {
     "intl": "Marukaite Chikyuu",
@@ -3758,6 +3868,7 @@
     "intl": "Animale Fanfare",
     "artist_orig": "ヤマギシコージ"
   },
+  "アフレぐ！〜Aufregendes leben〜": {},
   "アユミ☆マジカルショータイム": {
     "intl": "Ayumi☆Magical Showtime",
     "artist_orig": "キノシタ"
@@ -3804,6 +3915,10 @@
     "intl": "In Raid",
     "artist_orig": "VOLTACTION"
   },
+  "インレイド Dance Remix": {
+    "artist_orig": "VOLTACTION",
+    "intl": "In Raid"
+  },
   "ウィマーマ・サーガ": {
     "intl": "UiMa-Ma Saga",
     "artist_orig": "しぐれうい"
@@ -3825,6 +3940,9 @@
   "エアロピクルス": {
     "artist_orig": "コメアニメ",
     "intl": "Aeropickles"
+  },
+  "エイエ戦サー": {
+    "intl": "Eieisa"
   },
   "エイリアンエイリアン": {
     "intl": "Alien Alien",
@@ -3880,6 +3998,9 @@
   "オトナモード ～みくる ver.～": {
     "artist_orig": "もな",
     "intl": "Otona mode"
+  },
+  "オトノケ": {
+    "intl": "Otonoke"
   },
   "オトモダチフィルム": {
     "intl": "Otomodachi Film"
@@ -3965,6 +4086,9 @@
     "intl": "Calendar Girl",
     "artist_orig": "STAR☆ANIS"
   },
+  "カンフーミラクル～愛～": {
+    "intl": "Kung Fu Miracle Ai"
+  },
   "ガチ夢中!": {
     "artist_orig": "超特急",
     "intl": "Gachi Muchu!"
@@ -4013,12 +4137,19 @@
     "intl": "Just Wanna xxxx With You",
     "artist_orig": "ファントムシータ"
   },
+  "キミなんだから": {
+    "intl": "Kimi Nanda Kara"
+  },
   "キャットフード": {
     "artist_orig": "初音　ミク"
   },
   "キャットラビング": {
     "intl": "Cat Loving",
     "artist_orig": "香椎モイミ"
+  },
+  "キャリィ": {
+    "artist_orig": "加賀美ハヤト",
+    "intl": "Carrie"
   },
   "キャンディークッキーチョコレート": {
     "intl": "CandyCookieChocolate",
@@ -4027,6 +4158,7 @@
   "キャンディークッキーチョコレート (feat. 初音ミク & 重音テト)": {
     "remap": "キャンディークッキーチョコレート"
   },
+  "キャンパスライフ～生まれて来てよかった～": {},
   "キュートなキューたい": {
     "artist_orig": "CUTIE STREET",
     "intl": "CUTIE SPHERE",
@@ -4040,6 +4172,9 @@
   "キラフル ミラクル キラメイジャー": {
     "intl": "Kiraful Miracle Kiramager",
     "artist_orig": "出口たかし"
+  },
+  "キラフルミラクルキラメイジャー": {
+    "intl": "Kiraful Miracle Kiramager"
   },
   "キラメクMiLieへ": {
     "intl": "Kirameku MiLie e",
@@ -4114,6 +4249,10 @@
   },
   "コットンキャンディえいえいおー!": {
     "intl": "Cotton Candy Ei-Ei-Oh!",
+    "artist_orig": "黒澤ルビィ"
+  },
+  "コットンキャンディえいえいおー！": {
+    "intl": "Cotton Candy Ei Ei Oh!",
     "artist_orig": "黒澤ルビィ"
   },
   "コツコツPON": {
@@ -4385,6 +4524,7 @@
     "artist_intl": "",
     "remap": ""
   },
+  "ズズシャンパンコール": {},
   "セカイはまだ始まってすらいない": {
     "intl": "The World Hasn't Even Started Yet",
     "artist_orig": "ワンダーランズ×ショウタイム"
@@ -4406,6 +4546,10 @@
   "ソングオブザデッド": {
     "intl": "Song of the Dead",
     "artist_orig": "KANA-BOON"
+  },
+  "ゾクゾク": {
+    "artist_orig": "Phamtom Siita",
+    "intl": "Zoku Zoku"
   },
   "ゾンビ": {
     "intl": "Zombies",
@@ -4435,6 +4579,9 @@
   "ダイスキだったらダイジョウブ!": {
     "artist_orig": "Aqours",
     "intl": "Daisuki dattara Daijoubu!"
+  },
+  "ダイダイ ダイダイ ダイキライ": {
+    "intl": "Daidaidaidaidaikirai"
   },
   "ダイダイダイダイダイキライ": {
     "intl": "DaiDaiDaiDaiDaikirai",
@@ -4495,6 +4642,9 @@
   "チキチキバンバン": {
     "intl": "CIKI CIKI BAM BAM",
     "artist_orig": "QUEENDOM"
+  },
+  "チキ・チキ・バン・バン": {
+    "intl": "Chitty Chitty Bang Bang"
   },
   "チグハグ": {
     "artist_orig": "THE SUPER FRUIT",
@@ -4647,6 +4797,10 @@
     "intl": "Dream Parade",
     "artist_orig": "i☆Ris"
   },
+  "ド！ド！ド！ (104期Ver.)": {
+    "intl": "Do! Do! Do! (104th Version)",
+    "artist_orig": "みらくらぱーく！"
+  },
   "ニア": {
     "intl": "Near",
     "artist_orig": "夏代孝明"
@@ -4792,6 +4946,9 @@
     "artist_intl": "",
     "remap": ""
   },
+  "パイパイ仮面でどうかしらん？": {
+    "intl": "How about Paipai Mask?"
+  },
   "パジャマパーティーズのうた": {
     "intl": "Pajama Parties no Uta",
     "artist_orig": "パジャマパーティーズ"
@@ -4890,6 +5047,7 @@
     "intl": "Bibitto Love",
     "artist_orig": "CHiCO with HoneyWorks & まふまふ"
   },
+  "ビビッとLOVE": {},
   "ビビデバ": {
     "intl": "BIBBIDIBA",
     "artist_orig": "星街すいせい",
@@ -5085,6 +5243,9 @@
     "intl": "Maji LOVE 1000%",
     "artist_orig": "ST☆RISH"
   },
+  "マジックパーテーション": {
+    "intl": "Magic Partition"
+  },
   "マジック・メイド": {
     "intl": "Magic Maid",
     "artist_orig": "MIMI"
@@ -5194,6 +5355,10 @@
   "モア!ジャンプ!モア! (feat. 花里みのり, 桐谷遥, 桃井愛莉, 日野森雫 & 初音ミク)": {
     "remap": "モア!ジャンプ!モア!"
   },
+  "モア！ジャンプ！モア！": {
+    "intl": "More!Jump!More!",
+    "artist_orig": "MORE MORE JUMP！"
+  },
   "モエチャッカファイア": {
     "intl": "Moechakkafire",
     "artist_orig": "弌誠"
@@ -5264,7 +5429,8 @@
     "intl": "Love Song ni Osowareru"
   },
   "ラブノベルス": {
-    "intl": "Love Novels"
+    "intl": "Love Novels",
+    "artist_orig": "BiBi"
   },
   "ラブポーション": {
     "intl": "LovePotion",
@@ -5337,6 +5503,7 @@
     "intl": "Ruma",
     "artist_orig": "かいりきベア"
   },
+  "ルンがピカッと光ったら": {},
   "ループザルーム": {
     "intl": "Loop the Room",
     "artist_orig": "rusino"
@@ -5411,7 +5578,8 @@
     "artist_orig": "鈴代紗弓, 蟹沢萌子, 夏吉ゆうこ, 長谷川里桃 & 中川梨花"
   },
   "ワンチャン僕の女神様っ!!!": {
-    "artist_orig": "ぽこた"
+    "artist_orig": "ぽこた",
+    "intl": "wanchan boku no megamisama!!!"
   },
   "ワンルームシュガーライフ": {
     "intl": "One Room Sugar Life",
@@ -5425,6 +5593,10 @@
     "artist_orig": "ryo (supercell)",
     "artist_intl": "",
     "remap": ""
+  },
+  "ワールドワイドフェスティバル": {
+    "intl": "Worldwide Festival",
+    "artist_orig": "八王子P"
   },
   "ワールドワイドワンダー": {
     "intl": "Worldwide Wander",
@@ -5523,8 +5695,15 @@
   "乙女解剖 (TeddyLoid Alllies Remix)": {
     "remap": "乙女解剖"
   },
+  "乙女詞華集": {
+    "artist_orig": "スリーズブーケ",
+    "intl": "Otome Anthology"
+  },
   "乙姫心で恋宮殿": {
     "intl": "Otohime Heart de Love Kyuuden"
+  },
+  "二人セゾン": {
+    "intl": "Futari Saison"
   },
   "交织together": {
     "artist_orig": "泠鸢yousa/hanser"
@@ -5539,11 +5718,16 @@
     "artist_intl": "",
     "remap": ""
   },
+  "今すぐ輪廻": {},
   "今宵月の館にて": {
     "intl": "Koyoi Tsuki no Yakata ni te",
     "artist_orig": "あんさんぶるスターズ！！"
   },
   "今度 いつ 君に会えるのかな": {
+    "intl": "Kondo itsu kimi ni aeru no kana",
+    "artist_orig": "長谷川白紙"
+  },
+  "今度いつ君に会えるのかな": {
     "intl": "Kondo itsu kimi ni aeru no kana",
     "artist_orig": "長谷川白紙"
   },
@@ -5574,6 +5758,9 @@
   "但願人長久": {
     "artist_orig": "フェイ・ウォン"
   },
+  "侍ファーストラップ ~銀幕BANG!!~": {
+    "intl": "Samurai First Lap -GinmakuBANG!!-"
+  },
   "俺こそオンリーワン": {
     "intl": "Orekoso Only One",
     "artist_orig": "森崎ウィン"
@@ -5597,6 +5784,7 @@
     "intl": "Boku No Weak Point",
     "artist_orig": "SPRINT・ING!, あんさんぶるスターズ!!"
   },
+  "僕は...": {},
   "僕は僕を好きになる": {
     "artist_orig": "乃木坂46",
     "intl": "Boku wa Boku o Suki ni Naru"
@@ -5658,7 +5846,8 @@
     "artist_orig": "ピーナッツくん"
   },
   "刀ピークリスマスのテーマソング2023": {
-    "intl": "TouPea Christmas 2023"
+    "intl": "TouPea Christmas 2023",
+    "artist_orig": "ピーナッツくん"
   },
   "刀ピークリスマスのテーマソング2024": {
     "intl": "TouPea Christmas no Theme Song 2024",
@@ -5896,6 +6085,10 @@
     "intl": "Yomosugara Kimi Omou",
     "artist_orig": "TOKOTOKO(西沢さんP)"
   },
+  "夢がここからはじまるよ": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会",
+    "intl": "Yume ga Koko Kara Hajimaru yo"
+  },
   "夢にかけるRainbow": {
     "intl": "Yume ni Kakeru Rainbow",
     "artist_orig": "エンジェルスターズ"
@@ -5934,6 +6127,9 @@
     "intl": "Tenkamuteki Meteor Ranger!",
     "artist_orig": "RYUSEITAI"
   },
+  "天使のしっぽ": {
+    "intl": "Tenshi no Shippo"
+  },
   "天使のクローバー": {
     "intl": "Tenshi no Clover",
     "artist_orig": "MORE MORE JUMP!"
@@ -5956,6 +6152,9 @@
   "太陽系デスコ": {
     "intl": "Solar System Disco",
     "artist_orig": "ナユタン星人"
+  },
+  "失敗作少女": {
+    "intl": "Shippaisaku Shoujo"
   },
   "女々しくて": {
     "intl": "Memeshikute",
@@ -6090,6 +6289,13 @@
   "微熱からMystery": {
     "artist_orig": "lily white & μ's"
   },
+  "心のプラカード": {
+    "intl": "Kokoro no Placard"
+  },
+  "心キラララ": {
+    "intl": "Kokoro Kirarara",
+    "artist_orig": "澁谷かのん (CV.伊達さゆり)"
+  },
   "心予報": {
     "intl": "Kokoroyohou",
     "artist_orig": "Eve"
@@ -6159,10 +6365,14 @@
     "artist_orig": "君に、胸キュン。",
     "intl": "Renai Kekkai Keihou"
   },
+  "恋愛脳": {
+    "intl": "Renai Nou"
+  },
   "恋愛裁判": {
     "intl": "Love Trial",
     "artist_orig": "40mP"
   },
+  "恋華-Lovers Flower-": {},
   "恋餃子": {
     "artist_orig": "STAiNY"
   },
@@ -6201,6 +6411,10 @@
   },
   "愛♡スクリ～ム!": {
     "artist_orig": "AiScReam"
+  },
+  "愛♡スクリ～ム！": {
+    "artist_orig": "AiScReam",
+    "intl": "Ai Scream!"
   },
   "愛くださいませ": {
     "artist_orig": "≠ME",
@@ -6384,6 +6598,10 @@
     "artist_orig": "虹ヶ咲学園スクールアイドル同好会",
     "intl": "Mirai Harmony"
   },
+  "未来予報ハレルヤ!": {
+    "artist_orig": "Liella!",
+    "intl": "Mirai Yohou Hallelujah!"
+  },
   "未熟DREAMER": {
     "artist_orig": "Aqours"
   },
@@ -6503,6 +6721,9 @@
   "無理すぎ♡オタクハート": {
     "intl": "Murisugi Otakuheart",
     "artist_orig": "いずれ菖蒲か杜若"
+  },
+  "無限大少女∀": {
+    "intl": "Mugendai Shoujo ∀"
   },
   "熱異常": {
     "intl": "Heat abnormal",
@@ -6675,10 +6896,12 @@
   "純恋愛のインゴット - Pure Love Ingot": {
     "remap": "純恋愛のインゴット"
   },
+  "素顔のピクセル": {},
   "終わらないシンフォニア": {
     "intl": "Owaranai Symphonia",
     "artist_orig": "フィーネ"
   },
+  "絶対アイドル辞めないで =LOVE": {},
   "絶対敵対メチャキライヤー": {
     "intl": "Unfriendly Hater",
     "artist_orig": "メドミア"
@@ -6848,6 +7071,9 @@
   "金色千夜夢舞台": {
     "intl": "Konjiki Senya Yumebutai"
   },
+  "錯覚CROSSROADS": {
+    "artist_orig": "BiBi"
+  },
   "閃光": {
     "intl": "Senkou",
     "artist_orig": "[Alexandros]"
@@ -6889,7 +7115,7 @@
     "artist_orig": "Mrs. GREEN APPLE"
   },
   "青空Jumping Heart": {
-    "intl": "",
+    "intl": "Aozora Jumping Heart",
     "artist_orig": "Aqours",
     "artist_intl": "",
     "remap": ""
@@ -6897,6 +7123,9 @@
   "青空のラプソディ": {
     "intl": "Rhapsody of Blue Sky",
     "artist_orig": "fhána"
+  },
+  "革命性：オウサマ伝染病": {
+    "intl": "Kakumeisei: Ousama Densenbyou"
   },
   "革命道中": {
     "intl": "On The Way",
@@ -6917,6 +7146,9 @@
   "骸骨楽団とリリア": {
     "intl": "Gaikotsu Gakudan to Lilia"
   },
+  "高嶺の花子さん": {
+    "intl": "Takaneno Hanakosan"
+  },
   "魅惑劇": {
     "intl": "Miwakugeki",
     "artist_orig": "Valkyrie"
@@ -6925,6 +7157,7 @@
     "intl": "Devilish Girl",
     "artist_orig": "ファントムシータ"
   },
+  "魔性少女 -ファントムシータ": {},
   "魔法みたいなミュージック!": {
     "intl": "Music Like Magic!",
     "artist_orig": "OSTER project"
@@ -6948,6 +7181,7 @@
   "해피나루송": {
     "artist_orig": "Unknown"
   },
+  "＋♂": {},
   "ＷＷＷ": {
     "intl": "",
     "artist_orig": "HIMEHINA"

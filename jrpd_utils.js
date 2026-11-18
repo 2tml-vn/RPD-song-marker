@@ -144,24 +144,6 @@ function parseTimestampToSeconds(ts) {
 }
 
 /**
- * Find the end of a gap between marks.
- * @param {string[]} marksArr - Array of timestamp strings
- * @param {number} startSec - Start position in seconds
- * @param {number} [videoDuration] - Total video duration in seconds
- * @returns {number} End position in seconds, or -1 if not found
- */
-function getGapEndSeconds(marksArr, startSec, videoDuration) {
-    const sortedMarks = (marksArr || [])
-        .map(parseTimestampToSeconds)
-        .filter((val) => !Number.isNaN(val))
-        .sort((a, b) => a - b);
-    for (const mark of sortedMarks) {
-        if (mark > startSec) return mark;
-    }
-    return videoDuration || -1;
-}
-
-/**
  * Record a mark at the current video position.
  * Sends the mark to the backend server.
  * @returns {Promise<void>}
@@ -323,10 +305,7 @@ async function doFinish() {
     try { reviewActiveGapTs = null; } catch (e) {}
     try { currentGapStart = -1; } catch (e) {}
     try { currentGapEnd = -1; } catch (e) {}
-    try { currentCandidates = []; } catch (e) {}
-    try { cleanupMarks = []; } catch (e) {}
     try { if (typeof updateReviewActiveButton === "function") updateReviewActiveButton(null); } catch (e) {}
-    try { if (typeof updateCandidates === "function") updateCandidates([]); } catch (e) {}
     // Cross-platform video ID extraction
     const hostname = window.location.hostname;
     let videoId = 'default';
@@ -508,7 +487,7 @@ function jrpdReparentOverlaysForFullscreen() {
                     Array.prototype.forEach.call(jrpdLastFsContainer.children || [], function(el) {
                         if (!el) return;
                         var isBodyOverlay = false;
-                        if (el.id === "jrpd-results-panel" || el.id === "jrpd-unified-panel" || el.id === "jrpd-cleanup-panel") {
+                        if (el.id === "jrpd-results-panel" || el.id === "jrpd-unified-panel") {
                             isBodyOverlay = true;
                         } else if (el.classList && (el.classList.contains("jrpd-modal-overlay") || el.classList.contains("jrpd-identprog-modal-overlay") || el.classList.contains("jrpd-identall-modal-overlay") || el.classList.contains("jrpd-acr-modal-overlay") || el.classList.contains("jrpd-toast"))) {
                             isBodyOverlay = true;

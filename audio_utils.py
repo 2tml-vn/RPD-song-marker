@@ -414,68 +414,9 @@ def _run_yt_dlp(cmd: list, timeout: int = 300):
     return SimpleNamespace(returncode=returncode, stdout=combined, stderr=combined)
 
 # Pre-compiled regex patterns for performance
-_CV_TAG_PATTERN = re.compile(r'\s*\([Cc][Vv][.．][^)]*\)')
 _MULTI_SPACE_PATTERN = re.compile(r' +')
-# Only strip hyphenated tags that look like version/size markers
-# (e.g. "-New Arrange Ver.-", "-TV Size-", "-ショート ver.-").
-# A generic "-...-" pattern must NOT be used here: it corrupts legitimate
-# hyphenated titles such as "KU-RU-KU-RU Cruller!" (eats "-RU-") or
-# "Bling-Bang-Bang-Born" (eats "-Bang-"). Single-word segments without a
-# version keyword ("-RU-", "-Bang-", "-judgelight-") are always preserved.
-_HYPHEN_TAG_PATTERN = re.compile(
-    r'\s*-(?=[^-]*\s[^-]*-)[^-]*?(?:\bver\b\.?|\bversion\b|\bTV\s*size\b|\bsize\b|\bshort\b|ショート)[^-]*?-',
-    re.IGNORECASE
-)
-_TRAILING_DASH_PATTERN = re.compile(r'\s+-.*$')
-_NESTED_PARENS_PATTERN = re.compile(r'\s*\((?:[^()]|\([^()]*\))*\)')
-_SQUARE_BRACKETS_PATTERN = re.compile(r'\s*\[[^\]]*\]')
-_JP_BRACKETS_PATTERN = re.compile(r'\s*【[^】]*】')
-_FEAT_PATTERN = re.compile(r'\s+feat\..*$', re.IGNORECASE)
 _DISPLAY_OPTIONAL_PATTERN = re.compile(r'\[([^\]]*)\]')
 _DISPLAY_VAR_PATTERN = re.compile(r'\{(\w+)\}')
-
-
-def clean_artist_name(text):
-    """Remove (CV.xxx) tags from artist names (case-insensitive)."""
-    if not text:
-        return text
-    # Only handle regex errors - let other errors propagate
-    text = _CV_TAG_PATTERN.sub('', text)
-    text = _MULTI_SPACE_PATTERN.sub(' ', text)
-    return text.strip()
-
-
-def strip_extra_info(text):
-    """
-    Removes all bracket content (...), [...], 【...】, hyphenated -ver- tags,
-    " -" and everything after it, and bare 'feat.' suffixes from song titles.
-    Handles one level of nested parentheses.
-    
-    Exception: If the text exactly matches an entry in song_name_parentheses_exceptions.json,
-    the text is returned unchanged (parentheses are preserved).
-    """
-    if not text:
-        return text
-    
-    # Check if this song name is in the exceptions list (parentheses should be preserved)
-    # Import here to avoid circular imports (song_db imports from audio_utils)
-    from song_db import SONG_NAME_PARENS_EXCEPTIONS
-    if text in SONG_NAME_PARENS_EXCEPTIONS:
-        logger.debug(f"[strip_extra_info] Preserving parentheses for exception: '{text}'")
-        return text
-    # 1. Remove -{text}- patterns (e.g., "-New Arrange Ver.-", "-TV Size-", etc.)
-    text = _HYPHEN_TAG_PATTERN.sub('', text)
-    # 2. Remove " -" and everything after it
-    text = _TRAILING_DASH_PATTERN.sub('', text)
-    # 3. Remove all (...) content (handles one level of nesting)
-    text = _NESTED_PARENS_PATTERN.sub('', text)
-    # 4. Remove all [...] content
-    text = _SQUARE_BRACKETS_PATTERN.sub('', text)
-    # 5. Remove all 【...】 content
-    text = _JP_BRACKETS_PATTERN.sub('', text)
-    # 6. Remove bare "feat." not in any brackets (e.g., "Song feat.Artist1、Artist2")
-    text = _FEAT_PATTERN.sub('', text)
-    return text.strip()
 
 
 def format_display_name(ori_song, int_song=None, ori_artist=None, int_artist=None, info=None):

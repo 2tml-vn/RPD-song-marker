@@ -124,7 +124,7 @@ def test_merge_never_adopts_older_txt_backwards(tmp_path):
 
 def test_merge_keeps_unidentified_label_for_blank_row(tmp_path):
     # A blank results.txt line is also how an auto-"Unidentified" row renders;
-    # the label must survive for gap cleanup / unidentified.json export.
+    # the label must survive for the review flow.
     progress, youtube = _make_outputs(
         tmp_path,
         results={"10:34": "Unidentified"},

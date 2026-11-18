@@ -37,10 +37,7 @@ from shazamio import Shazam
 from config import PORT, RUNS_DIR, runtime
 import shared_utils
 from audio_utils import ensure_audio, format_timestamp_for_youtube
-from song_db import (
-    load_all_databases, save_missed_songs,
-    MISSED_SONGS, auto_register_song, get_missed_candidates, format_missed_entry
-)
+from song_db import load_all_databases
 from identifier import identify_song
 from server import start_server
 import server
@@ -123,9 +120,7 @@ async def main():
     server.state.main_loop = asyncio.get_running_loop()
     server.state.review_done_event = asyncio.Event()
     MARK_QUEUE = asyncio.Queue()
-    SELECTION_QUEUE = asyncio.Queue()
     server.state.mark_queue = MARK_QUEUE
-    server.state.selection_queue = SELECTION_QUEUE
 
     threading.Thread(target=start_server, daemon=True).start()
 
@@ -243,86 +238,12 @@ async def main():
             except asyncio.CancelledError:
                 pass
 
-            unidentified_keys = [k for k in sorted(server.state.results.keys(), key=shared_utils.parse_ts) if server.state.results[k] == "Unidentified"]
-            if MISSED_SONGS and unidentified_keys:
-                candidate_pairs = get_missed_candidates()
-                server.state.cleanup_candidates = [display for display, key in candidate_pairs]
-
-                quit_cleanup = False
-                for k in unidentified_keys:
-                    if quit_cleanup:
-                        break
-                    start_sec = shared_utils.parse_ts(k)
-                    logger.info(f"[CLEANUP] Current Gap: {k}")
-                    server.state.current_seek_ts = int(start_sec)
-                    choice = await SELECTION_QUEUE.get()
-                    if choice == 'q':
-                        quit_cleanup = True
-                        break
-                    if choice == 's':
-                        continue
-                    try:
-                        if str(choice).startswith('+'):
-                            raw = str(choice)[1:].strip()
-                            try:
-                                add_data = json.loads(raw)
-                                song_key = add_data.get('key', '').strip()
-                                if song_key:
-                                    entry = {}
-                                    if add_data.get('intl', '').strip():
-                                        entry['intl'] = add_data['intl'].strip()
-                                    if add_data.get('artist_orig', '').strip():
-                                        entry['artist_orig'] = add_data['artist_orig'].strip()
-                                    if add_data.get('artist_intl', '').strip():
-                                        entry['artist_intl'] = add_data['artist_intl'].strip()
-                                    MISSED_SONGS[song_key] = entry
-                                    save_missed_songs()
-                                    auto_register_song(song_key, entry.get('intl'), entry.get('artist_orig'), entry.get('artist_intl'))
-                                    display = format_missed_entry(song_key, entry)
-                                    server.state.results[k] = display
-                                    server.state.results_keys[k] = song_key
-                                    logger.info(f"✓ Added & Assigned: {display}")
-                                    candidate_pairs = get_missed_candidates()
-                                    server.state.cleanup_candidates = [d for d, _ in candidate_pairs]
-                                    save_state()
-                                    continue
-                            except json.JSONDecodeError:
-                                logger.warning(f"[CLEANUP] Invalid JSON in add: {raw}")
-                                continue
-                        val = int(choice)
-                        if 0 <= val < len(candidate_pairs):
-                            display, song_key = candidate_pairs[val]
-                            server.state.results[k] = display
-                            server.state.results_keys[k] = song_key
-                            data = MISSED_SONGS.get(song_key, {})
-                            auto_register_song(song_key, data.get('intl'), data.get('artist_orig'), data.get('artist_intl'))
-                            logger.info(f"✓ Assigned: {display}")
-                            save_state()
-                    except Exception as e:
-                        logger.error(f"Error during cleanup selection: {e}")
-
-                server.state.cleanup_candidates = []
-                server.state.current_seek_ts = -1
-
-            unidentified_data = {}
-            sorted_keys = sorted(server.state.results.keys(), key=shared_utils.parse_ts)
-            for i, m in enumerate(sorted_keys):
-                if server.state.results[m] == "Unidentified":
-                    next_m = sorted_keys[i+1] if i+1 < len(sorted_keys) else "END"
-                    unidentified_data[m] = {"end": next_m, "name": ""}
-            if unidentified_data:
-                unidentified_file = video_dir / "unidentified.json"
-                with unidentified_file.open("w", encoding="utf-8") as f:
-                    json.dump(unidentified_data, f, ensure_ascii=False, indent=2)
-                logger.info(f"[EXPORT] Created {unidentified_file.name}")
-
             logger.info("=" * 60)
             logger.info(" SESSION COMPLETE - ENTERING REVIEW MODE")
             logger.info("=" * 60)
             logger.info("[REVIEW] Results panel active in browser. Server staying alive.")
             logger.info("[REVIEW] Press Ctrl+C or click Done/Copy in panel to exit.")
             server.state.is_session_done = True
-            server.state.current_seek_ts = -1
 
             try:
                 await server.state.review_done_event.wait()

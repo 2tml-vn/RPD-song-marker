@@ -45,7 +45,7 @@ path and script path — re-run it if the project folder ever moves.)
 Install exactly ONE userscript into Tampermonkey:
     - JRPD Local Link-1.0.user.js
 That tiny loader @requires the real code (jrpd_state, jrpd_utils,
-jrpd_cleanup, jrpd_results, jrpd_songs, jrpd_marker) straight from the
+jrpd_results, jrpd_songs, jrpd_marker) straight from the
 project folder via file:///D:/rpd/... paths. Do NOT install
 jrpd_marker.user.js separately — the loader already pulls it in.
 Notes:

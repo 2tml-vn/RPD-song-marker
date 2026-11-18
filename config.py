@@ -61,10 +61,6 @@ DISPLAY_FORMAT = "{ori_song}[ ({int_song})][ ({info})] - {ori_artist}[ ({int_art
 # --- File Paths ---
 BASE_DIR = Path(__file__).parent
 SONG_OVERRIDES_FILE = BASE_DIR / "songs.json"
-WRONG_MATCHES_FILE = BASE_DIR / "wrong_matches.json"
-MISSED_SONGS_FILE = BASE_DIR / "missed_songs.json"
-MISIDENTIFIED_SONGS_FILE = BASE_DIR / "misidentified_songs.json"
-SONG_NAME_PARENS_EXCEPTIONS_FILE = BASE_DIR / "song_name_parentheses_exceptions.json"
 RUNS_DIR = BASE_DIR / "runs"
 
 # --- Logging Configuration ---

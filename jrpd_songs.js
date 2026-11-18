@@ -31,8 +31,6 @@ let panelCollapsedState = { unified: false };
 
 /** Category color definitions */
 const CATEGORY_COLORS = {
-misident: { color: '#c62828', border: '#ef5350', icon: '⚠️', name: 'Misidentified' },
-missed: { color: '#f57f17', border: '#ffca28', icon: '❌', name: 'Missed' },
 songs: { color: '#2e7d32', border: '#66bb6a', icon: '🎵', name: 'Database' }
 };
 
@@ -490,12 +488,8 @@ function filterSongPanel(searchText) {
     const list = document.getElementById("jrpd-unified-list");
     if (!list) return;
     
-    // Combine all songs with category tags
-    const allSongs = [
-        ...(songListsCache.misidentified || []).map(s => ({...s, category: 'misident'})),
-        ...(songListsCache.missed || []).map(s => ({...s, category: 'missed'})),
-        ...(songListsCache.songs || []).map(s => ({...s, category: 'songs'}))
-    ];
+    // All songs come from the songs.json database
+    const allSongs = (songListsCache.songs || []).map(s => ({...s, category: 'songs'}));
     
     // Filter by display name and category text
     const filtered = allSongs.filter(song => {
@@ -514,9 +508,7 @@ function filterSongPanel(searchText) {
 
 /**
  * Populate the song panels with data from the server.
- * @param {Object} data - The song lists data containing misidentified, missed, and songs arrays
- * @param {Array} [data.misidentified] - Array of misidentified songs
- * @param {Array} [data.missed] - Array of missed songs
+ * @param {Object} data - The song lists data containing the songs array
  * @param {Array} [data.songs] - Array of songs from database
  * @returns {void}
  */
@@ -525,12 +517,8 @@ function populateSongPanels(data) {
     const unifiedSearch = document.getElementById("jrpd-unified-search");
     if (!unifiedList) return;
 
-    // Combine all songs with category tags
-    const allSongs = [
-        ...(data.misidentified || []).map(s => ({...s, category: 'misident'})),
-        ...(data.missed || []).map(s => ({...s, category: 'missed'})),
-        ...(data.songs || []).map(s => ({...s, category: 'songs'}))
-    ];
+    // All songs come from the songs.json database
+    const allSongs = (data.songs || []).map(s => ({...s, category: 'songs'}));
 
     // Skip the rebuild when the panel already shows this exact data —
     // rebuilding hundreds of song items on every open causes visible lag.
