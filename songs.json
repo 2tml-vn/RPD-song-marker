@@ -473,6 +473,9 @@
   "CHANGE! MY WORLD": {
     "artist_orig": "Dressing Pafe"
   },
+  "Chankapana - sabi ver.": {
+    "artist_orig": "NEWS"
+  },
   "Chase the Light!": {
     "artist_orig": "Fear, and Loathing in Las Vegas"
   },
@@ -694,6 +697,9 @@
   "DEEP BLUE TOWNへおいでよ": {
     "artist_orig": "team うみフレ"
   },
+  "Deep Dive": {
+    "artist_orig": "轟はじめ"
+  },
   "Deep into you": {
     "artist_orig": "Neptu, あんさんぶるスターズ!!"
   },
@@ -717,6 +723,9 @@
   },
   "Din Don Dan": {
     "artist_orig": "Ryu☆"
+  },
+  "Dinosaur Park": {
+    "artist_orig": "アウル・シティー"
   },
   "Disc 1: Agile Reef Vol. I": {
     "artist_orig": "Dravier",
@@ -1692,6 +1701,9 @@
   "Melenoy Dance": {
     "artist_orig": "SINGEL RAIDERS"
   },
+  "MELLOMELLOID (feat. Hatsune Miku)": {
+    "artist_orig": "Kairiki bear, Hatsune Miku"
+  },
   "Mellow Addiction": {
     "artist_orig": "MELLOW DEAR US"
   },
@@ -1754,6 +1766,9 @@
   },
   "Minor Hypnosis": {
     "artist_orig": "Onur Tuna"
+  },
+  "MIRACLE NEW STORY": {
+    "artist_orig": "Liella!"
   },
   "MIRACLE WAVE": {
     "artist_orig": "Aqours"
@@ -2164,6 +2179,9 @@
   },
   "Pikkaan! (feat. Rina Matsuda & Hikaru Morita)": {
     "remap": "Pikkaan!"
+  },
+  "Play-With-Fire / Hiasobi (feat. Hatsune Miku)": {
+    "artist_orig": "Camellia, Hatsune Miku"
   },
   "Playboy": {
     "artist_orig": "7 Icons"
@@ -2715,6 +2733,9 @@
   "TAO HUA AN|桃花庵": {
     "artist_orig": "封茗囧菌"
   },
+  "TEKITO-RYOKU": {
+    "artist_orig": "Kuzuha"
+  },
   "Temodemo no Namida -Air Mata Perasaan yang Tak Tersampaikan-": {
     "remap": "Air Mata Perasaan yang Tak Tersampaikan"
   },
@@ -2920,6 +2941,9 @@
   },
   "Weekender Girl": {
     "artist_orig": "八王子P"
+  },
+  "Welcome to 僕らのセカイ": {
+    "artist_orig": "Liella!"
   },
   "What a Wonderful Dream!!": {
     "artist_orig": "Liella!"
@@ -3443,6 +3467,9 @@
     "intl": "Datte Datte Aa Mujou",
     "artist_orig": "μ's"
   },
+  "だってだって噫無情 (TVアニメ「ラブライブ!」2期オープニング主題歌)": {
+    "remap": "だってだって噫無情"
+  },
   "ちがう!!!": {
     "artist_orig": "サイゼP",
     "intl": "Chigau!!!",
@@ -3737,6 +3764,10 @@
   "らぶきゅん♡うぉんてっど": {
     "artist_orig": "きゅるりんってしてみて",
     "intl": "Love-kyun♡Wanted"
+  },
+  "るてしキスキしてる": {
+    "artist_orig": "μ's",
+    "intl": "Ruteshi Kisuki Shiteru"
   },
   "れもん☆れもねーど": {
     "intl": "Lemon☆Lemonade",
@@ -4209,6 +4240,9 @@
     "intl": "KumaKuma ResQ",
     "artist_orig": "レスQベアズ & あんさんぶるスターズ!!"
   },
+  "クマクマレスＱ": {
+    "artist_orig": "レスQベアズ/あんさんぶるスターズ！！"
+  },
   "クリームソーダとシャンデリア": {
     "intl": "Creamsoda and Chandelier",
     "artist_orig": "Mei & Henrii"
@@ -4290,6 +4324,10 @@
   },
   "コールボーイ": {
     "intl": "Call Boy"
+  },
+  "ゴーゴー幽霊船": {
+    "artist_orig": "米津玄師",
+    "intl": "Go Go Yuureisen"
   },
   "ゴーストルール": {
     "intl": "Ghost Rule",
@@ -4443,6 +4481,10 @@
   },
   "ジャンキーナイトタウンオーケストラ": {
     "artist_orig": "すりぃ"
+  },
+  "ジョーショーキリュー": {
+    "artist_orig": "みらくらぱーく!",
+    "intl": "Joushou Kiryuu"
   },
   "ジングルベルがとまらない": {
     "intl": "Jingle Bells ga Tomaranai",
@@ -4650,6 +4692,10 @@
     "artist_orig": "THE SUPER FRUIT",
     "intl": "Chiguhagu"
   },
+  "チャンカパーナ": {
+    "artist_orig": "NEWS",
+    "intl": "Chancapana"
+  },
   "チュルリラ・チュルリラ・ダッダッダ!": {
     "intl": "Chururira Chururira Daddadda!",
     "artist_orig": "ワンダーランズ×ショウタイム"
@@ -4702,6 +4748,9 @@
   "テオ": {
     "intl": "Teo",
     "artist_orig": "Omoi"
+  },
+  "テキトーリョク": {
+    "artist_orig": "葛葉"
   },
   "テトリス": {
     "intl": "Tetoris",
@@ -4982,8 +5031,11 @@
     "remap": ""
   },
   "ヒアソビ": {
-    "intl": "PlayFire / Hiasobi",
+    "intl": "Hiasobi",
     "artist_orig": "かめりあ"
+  },
+  "ヒアソビ (feat. 初音ミク)": {
+    "remap": "ヒアソビ"
   },
   "ヒカリスペクトル": {
     "artist_orig": "Ra*bits",
@@ -5330,7 +5382,7 @@
   },
   "メズマライザー": {
     "intl": "Mesmerizer",
-    "artist_orig": "サツキ, 初音ミク & 重音テト"
+    "artist_orig": "サツキ"
   },
   "メランコリック": {
     "intl": "Melancholic",
@@ -5347,6 +5399,10 @@
   "メロウ": {
     "intl": "Mellow",
     "artist_orig": "須田景凪"
+  },
+  "メロメロイド": {
+    "artist_orig": "かいりきベア",
+    "intl": "MELLOMELLOID"
   },
   "モア!ジャンプ!モア!": {
     "intl": "More! Jump! More!",
@@ -5498,6 +5554,9 @@
   "ルカルカ★ナイトフィーバー": {
     "intl": "Luka Luka ★ Night Fever",
     "artist_orig": "samfree"
+  },
+  "ルカルカ★ナイトフィーバー [*]": {
+    "remap": "ルカルカ★ナイトフィーバー"
   },
   "ルマ": {
     "intl": "Ruma",
@@ -6811,7 +6870,8 @@
     "intl": "Shiranai Love*Oshiete Love"
   },
   "硝子の花園": {
-    "intl": "Garasu no Hanazono"
+    "intl": "Garasu no Hanazono",
+    "artist_orig": "絢瀬絵里(CV.南條愛乃), 東條希(CV.楠田亜衣奈) & μ's"
   },
   "神っぽいな": {
     "intl": "Kamippoi na",
@@ -6887,7 +6947,7 @@
   },
   "約束の絆": {
     "intl": "Yakusoku no Kizuna",
-    "artist_orig": "妖夢討伐隊[栗山未来、名瀬美月、新堂愛]"
+    "artist_orig": "妖夢討伐隊"
   },
   "純恋愛のインゴット": {
     "intl": "Pure Love Ingot",
@@ -7016,6 +7076,9 @@
     "intl": "Hokoritakaki idol",
     "artist_orig": "mona(CV:夏川椎菜)"
   },
+  "誇り高きアイドル (feat. Kotoha)": {
+    "remap": "誇り高きアイドル"
+  },
   "貴方の恋人になりたい": {
     "intl": "Anata No Koibito Ni Naritai",
     "artist_orig": "チョーキューメイ"
@@ -7054,6 +7117,10 @@
   "逆光": {
     "intl": "Backlight",
     "artist_orig": "Ado"
+  },
+  "運命の君": {
+    "artist_orig": "Mega Shinnosuke",
+    "intl": "Unmei No Kimi"
   },
   "酔いどれ知らず": {
     "intl": "Yoidore Shirazu",
@@ -7115,10 +7182,7 @@
     "artist_orig": "Mrs. GREEN APPLE"
   },
   "青空Jumping Heart": {
-    "intl": "Aozora Jumping Heart",
-    "artist_orig": "Aqours",
-    "artist_intl": "",
-    "remap": ""
+    "artist_orig": "Aqours"
   },
   "青空のラプソディ": {
     "intl": "Rhapsody of Blue Sky",
