@@ -352,6 +352,9 @@
   "Booo!": {
     "artist_orig": "TOKOTOKO(西沢さんP)"
   },
+  "BooooM!!!": {
+    "artist_orig": "宝鐘マリン"
+  },
   "Boooooom Boooooom Bee!!": {
     "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
   },
@@ -391,6 +394,9 @@
   "Buka Dikit Joss": {},
   "Bunny Girl": {
     "artist_orig": "AKASAKI"
+  },
+  "BURIKI NO DANCE": {
+    "artist_orig": "Hinata Electric Works"
   },
   "Burning Desires": {
     "artist_orig": "Sān-Z & HOYO-MiX"
@@ -635,6 +641,9 @@
   "Dance in the Apocalypse": {
     "artist_orig": "Eden"
   },
+  "Dance of corpse": {
+    "artist_orig": "Kikuo"
+  },
   "Dancing Clouds": {
     "artist_orig": "Chillout Sound Festival"
   },
@@ -855,6 +864,12 @@
   "EXCITE": {
     "artist_orig": "ミウラダイチ"
   },
+  "Execution Clap": {
+    "artist_orig": "TRAP CHICK"
+  },
+  "Execution Clap (feat. Kasane Teto)": {
+    "remap": "Execution Clap"
+  },
   "EZ DO DANCE": {
     "artist_orig": "TRF"
   },
@@ -1036,6 +1051,9 @@
   },
   "Girls": {
     "artist_orig": "GARNiDELiA"
+  },
+  "girls": {
+    "artist_orig": "メイリア"
   },
   "GIRLS' LEGEND U": {
     "artist_orig": "ウマ娘 プリティーダービー"
@@ -2149,6 +2167,12 @@
   },
   "PARANOIA STREET": {
     "artist_orig": "Crazy:B/天城 燐音、HiMERU、桜河 こはく、椎名 ニキ"
+  },
+  "Parasol Cider": {
+    "artist_orig": "MORE MORE JUMP!"
+  },
+  "Parasol Cider (feat. Hanasato Minori&Kiritani Haruka&Momoi Airi&Hinomori Shizuku&Megurine Luka)": {
+    "remap": "Parasol Cider"
   },
   "PASSION": {
     "artist_orig": "GARNiDELiA"
@@ -3357,8 +3381,15 @@
     "artist_orig": "わんだふるぷりきゅあ!, aim & 後本萌葉"
   },
   "しかばねの踊り": {
-    "intl": "Dance of Corpse",
+    "intl": "Shikabane no Odori",
     "artist_orig": "きくお"
+  },
+  "しかばねの踊り (Feat. 初音ミク)": {
+    "remap": "しかばねの踊り"
+  },
+  "しかばねの踊り (尸骸之舞)": {
+    "intl": "Dance of corpse",
+    "artist_orig": "きくお (Kikuo)"
   },
   "しゅわりん☆どり～みん": {
     "intl": "Shuwarin☆Dreaming",
@@ -4009,6 +4040,9 @@
   "エンヴィーベイビー": {
     "intl": "Envy Baby",
     "artist_orig": "25時、ナイトコードで。"
+  },
+  "エンヴィーベイビー (feat. 宵崎奏, 朝比奈まふゆ, 東雲絵名, 暁山瑞希 & 鏡音リン)": {
+    "remap": "エンヴィーベイビー"
   },
   "オシリスダンス": {
     "intl": "Osiris Dance",
@@ -4664,7 +4698,8 @@
   },
   "ダーリンダーリン": {
     "artist_orig": "めろくる & 夏色花梨",
-    "intl": "Darling Darling"
+    "intl": "Darling Darling",
+    "see_artist": true
   },
   "ダーリンダーリン (feat. 夏色花梨)": {
     "remap": "ダーリンダーリン"
@@ -5713,6 +5748,9 @@
     "intl": "Fukashigi no KARTE",
     "artist_orig": "桜島麻衣(CV:瀬戸麻沙美), 古賀朋絵(CV:東山奈央), 双葉理央(CV:種﨑敦美), 豊浜のどか(CV:内田真礼), 梓川かえで(CV:久保ユリカ) & 牧之原翔子(CV:水瀬いのり)"
   },
+  "不幸人間強制収容所": {
+    "artist_orig": "重音テト/DANZI"
+  },
   "不眠之夜": {
     "artist_orig": "张杰 & HOYO-MiX"
   },
@@ -5992,7 +6030,7 @@
   },
   "可変三連MIXをおぼえるうた": {
     "intl": "Kahen Sanren Mix wo Oboeru Uta",
-    "artist_orig": "iLiFE!"
+    "artist_orig": "Medansy"
   },
   "可愛くてごめん": {
     "intl": "Kawaikute Gomen",
@@ -6288,6 +6326,10 @@
   "小悪魔だってかまわない!": {
     "intl": "Koakumadattekamawanai!",
     "artist_orig": "めいちゃん"
+  },
+  "少女ふぜゐ": {
+    "artist_orig": "みきとP",
+    "intl": "Shoujo Fuzei"
   },
   "少女レイ": {
     "intl": "Shoujo Rei",
@@ -6587,6 +6629,9 @@
   "星期五的早安": {
     "remap": "金曜日のおはよう",
     "artist_orig": "张昕[女]"
+  },
+  "春を告げる": {
+    "artist_orig": "yama"
   },
   "春嵐": {
     "artist_orig": "john",
@@ -6982,6 +7027,9 @@
     "artist_orig": "宝鐘マリン",
     "artist_intl": "",
     "remap": ""
+  },
+  "群青": {
+    "artist_orig": "YOASOBI"
   },
   "聚光": {
     "artist_orig": "兰音Reine"
