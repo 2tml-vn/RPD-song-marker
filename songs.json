@@ -41,6 +41,9 @@
     "remap": "刀ピークリスマスのテーマソング2022",
     "artist_orig": "Mafeepuolyz"
   },
+  "37.5℃のファンタジー": {
+    "artist_orig": "スリーズブーケ"
+  },
   "4 Walls": {
     "artist_orig": "f(x)"
   },
@@ -524,6 +527,9 @@
   "chocolate box": {
     "artist_orig": "dezzy(一億円P)"
   },
+  "Chu! Chocolate": {
+    "artist_orig": "スリーズブーケ"
+  },
   "Click": {
     "artist_orig": "ME:I"
   },
@@ -637,6 +643,9 @@
   },
   "Daisuke feat. KAHORI from 1 LOVE": {
     "remap": "Daisuke"
+  },
+  "DAISUKI FULL POWER": {
+    "artist_orig": "Liella!"
   },
   "Dance in the Apocalypse": {
     "artist_orig": "Eden"
@@ -777,6 +786,9 @@
   "Dream Believers": {
     "artist_orig": "蓮ノ空女学院スクールアイドルクラブ"
   },
+  "Dream Believers (104期 Ver.)": {
+    "remap": "Dream Believers"
+  },
   "Dream Land!Dream World!": {
     "artist_orig": "A・ZU・NA"
   },
@@ -839,6 +851,9 @@
   },
   "Error404♡": {
     "artist_orig": "CUTIE STREET"
+  },
+  "Eternalize Love!!": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
   },
   "Eutopia": {
     "artist_orig": "鐘 嵐珠"
@@ -1012,6 +1027,9 @@
   },
   "Gam Gam": {
     "artist_orig": "Max Monti, Mauro Pilato, Mauro Pilato & Max Monti"
+  },
+  "GAME ON!": {
+    "artist_orig": "Aqours"
   },
   "Gameboy": {
     "artist_orig": "KATSEYE"
@@ -1253,6 +1271,9 @@
     "artist_orig": "Herd & Fitz",
     "discard": true
   },
+  "ICE LIMIT": {
+    "artist_orig": "AiScReam"
+  },
   "ICONIC HEART": {
     "artist_orig": "Hearts2Hearts"
   },
@@ -1392,6 +1413,9 @@
   "KING": {
     "artist_orig": "Kanaria"
   },
+  "KING (feat. 天馬司 & 神代類)": {
+    "artist_orig": "ワンダーランズ×ショウタイム"
+  },
   "KiRa-KiRa Sensation!": {
     "artist_orig": "μ's"
   },
@@ -1444,6 +1468,9 @@
   },
   "Kyutama Dancing! (TV Edit)": {
     "remap": "Kyutama Dancing!"
+  },
+  "L!L!L! (Love the Life We Live)": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
   },
   "LADY CRAZY": {
     "artist_orig": "HIMEHINA"
@@ -1831,6 +1858,9 @@
   "MONTAGEM XONADA": {
     "artist_orig": "MXZI, dj Samir & DJ Javi26"
   },
+  "Moon": {
+    "artist_orig": "Kasa Remixoff & Jony Like"
+  },
   "Moon (Ian Ludvig Remix)": {
     "artist_orig": "Maiki"
   },
@@ -2112,6 +2142,9 @@
   "OPEN DREAM LAND!": {
     "artist_orig": "SoLaMi♡SMILE"
   },
+  "OPEN THE G☆TE!!!": {
+    "artist_orig": "Liella!"
+  },
   "Opus": {
     "artist_orig": "エリック・プライズ"
   },
@@ -2157,7 +2190,7 @@
     "artist_orig": "Girls' Generation"
   },
   "Paradise Chime": {
-    "artist_orig": "You Watanabe (CV: Shuka Saito)"
+    "artist_orig": "You Watanabe"
   },
   "Paradise Live": {
     "artist_orig": "μ's"
@@ -3494,6 +3527,10 @@
     "intl": "That's Why I Gave Up on Music",
     "artist_orig": "ヨルシカ"
   },
+  "だから僕らは鳴らすんだ!": {
+    "artist_orig": "Liella!",
+    "intl": "Dakara Bokura wa Narasunda!"
+  },
   "だってだって噫無情": {
     "intl": "Datte Datte Aa Mujou",
     "artist_orig": "μ's"
@@ -3575,6 +3612,10 @@
   "なんじゃモンじゃ! ニンジャ祭り!": {
     "artist_orig": "伊勢大貴",
     "intl": "Nan Ja Mon Ja! Ninja Matsuri!"
+  },
+  "なんどだって約束！": {
+    "intl": "Nando datte YAKUSOKU!",
+    "artist_orig": "Aqours"
   },
   "にぎにぎにじたうん!": {
     "intl": "Niginigi Nijitown!",
@@ -3811,6 +3852,17 @@
   "わたしの一番かわいいところ": {
     "intl": "Watashi no Ichiban Kawaiitokoro",
     "artist_orig": "FRUITS ZIPPER"
+  },
+  "わちゅごなどぅー": {
+    "intl": "What You Gonna Do?",
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
+  },
+  "わちゅごなどぅー (2年生＋侑 Ver.)": {
+    "intl": "What You Gonna Do?",
+    "artist_orig": "高咲 侑 (CV.矢野妃菜喜)、上原歩夢 (CV.大西亜玖璃)、宮下 愛 (CV.村上奈津実)、優木せつ菜 (CV.楠木ともり)、鐘 嵐珠 (CV.法元明菜)"
+  },
+  "わちゅごなどぅー (Off Vocal)": {
+    "artist_orig": "虹ヶ咲学園スクールアイドル同好会"
   },
   "わーいわいわい わいわいわい!": {
     "artist_orig": "わいわいわい",
@@ -4432,7 +4484,8 @@
     "artist_orig": "博衣こより"
   },
   "シェキラ☆☆☆": {
-    "artist_orig": "Liella!"
+    "artist_orig": "Liella!",
+    "intl": "Shekira"
   },
   "シカ色デイズ": {
     "intl": "Shikairo Days",
@@ -4593,6 +4646,11 @@
   "スリリング・ワンウェイ": {
     "intl": "Thrilling・One Way",
     "artist_orig": "Aqours"
+  },
+  "スーパースター!!": {
+    "artist_orig": "Liella!",
+    "intl": "Superstar!!",
+    "see_artist": true
   },
   "スーパーヒーロー": {
     "artist_orig": "Guiano",
@@ -5362,6 +5420,9 @@
   },
   "マーシャル・マキシマイザー (feat. 小豆沢こはね, 白石杏, 東雲彰人, 青柳冬弥 & 巡音ルカ)": {
     "remap": "マーシャル・マキシマイザー"
+  },
+  "ミはμ’sicのミ": {
+    "artist_orig": "μ's"
   },
   "ミスター": {
     "intl": "Mister",
@@ -6145,6 +6206,10 @@
     "intl": "Maware! Setsugetsuka",
     "artist_intl": "",
     "remap": ""
+  },
+  "夏、終わらないで。": {
+    "intl": "Natsu, Owaranaide.",
+    "artist_orig": "BiBi"
   },
   "夏に去りし君を想フ": {
     "artist_orig": "baker",

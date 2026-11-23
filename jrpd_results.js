@@ -2,6 +2,9 @@
 // Handles results display, editing, and playback controls
 
 let reviewFontSize = 11;
+// Collapsed = title bar + START (when offline) + action buttons + ✕ only.
+// The results list and the secondary header controls are hidden.
+let resultsPanelCollapsed = false;
 const PREFS_KEY = "jrpd-review-prefs";
 
 // ---- Server URL helpers (YouTube loopback vs Bilibili LAN) ----
@@ -101,10 +104,15 @@ function isResultsPanelVisible() {
     return !!panel && panel.style.display !== "none";
 }
 
-function openResultsPanel(persist = true) {
+/**
+ * @param {boolean} persist - Whether to persist the visible/collapsed state.
+ * @param {boolean|null} collapse - Force a state on open (null = keep current).
+ */
+function openResultsPanel(persist = true, collapse = null) {
     const panel = document.getElementById("jrpd-results-panel");
     if (!panel) return;
     panel.style.display = "flex";
+    if (collapse !== null) setResultsPanelCollapsed(collapse, persist);
     if (persist) savePanelPrefs({ panelVisible: true });
     updatePanelToggleButton();
     fetchResultsFile();
@@ -120,7 +128,7 @@ function closeResultsPanel() {
 
 function toggleResultsPanel() {
     if (isResultsPanelVisible()) closeResultsPanel();
-    else openResultsPanel();
+    else openResultsPanel(true, true); // opening from the control-bar button starts collapsed
 }
 
 function updatePanelToggleButton() {
@@ -134,6 +142,75 @@ function loadPanelPrefs() {
         if (raw) return JSON.parse(raw);
     } catch (e) {}
     return {};
+}
+
+/**
+ * Height to write to prefs. While collapsed the measured panel height is only
+ * the header + action bar, so the remembered expanded height is used instead
+ * (a normal expand must not restore a compact panel).
+ */
+function jrpdPanelPersistHeight(panel) {
+    if (resultsPanelCollapsed) {
+        const h = parseInt(panel.dataset.expandedHeight, 10);
+        return !isNaN(h) && h > 0 ? h : panel.offsetHeight;
+    }
+    // Prefer the CSS height: offsetHeight also counts the 1px border, which
+    // otherwise makes the panel grow slightly on every save/reload.
+    const h = parseInt(panel.style.height, 10);
+    return !isNaN(h) && h > 0 ? h : panel.offsetHeight;
+}
+
+/**
+ * Collapse the results panel to its title bar + action buttons, or expand it.
+ * @param {boolean} collapsed - True for compact mode, false for the full panel.
+ * @param {boolean} persist - Whether to save the state in prefs.
+ */
+function setResultsPanelCollapsed(collapsed, persist = true) {
+    const panel = document.getElementById("jrpd-results-panel");
+    if (!panel) return;
+    collapsed = !!collapsed;
+
+    if (collapsed && !resultsPanelCollapsed) {
+        // Use the CSS height, not offsetHeight (which includes the border), so
+        // repeated collapse/expand cycles don't grow the panel by 2px each time.
+        const h = parseInt(panel.style.height, 10);
+        if (!isNaN(h) && h > 0) {
+            panel.dataset.expandedHeight = String(h);
+        } else if (panel.offsetHeight > 0) {
+            panel.dataset.expandedHeight = String(panel.offsetHeight);
+        }
+    }
+    resultsPanelCollapsed = collapsed;
+
+    const list = document.getElementById("jrpd-results-list");
+    if (list) list.style.display = collapsed ? "none" : "";
+
+    const secondary = panel.querySelector(".jrpd-secondary-controls");
+    if (secondary) secondary.style.display = collapsed ? "none" : "flex";
+
+    const toggleBtn = panel.querySelector(".jrpd-collapse-btn");
+    if (toggleBtn) {
+        toggleBtn.textContent = collapsed ? "▢" : "—";
+        toggleBtn.title = collapsed ? "Expand results panel" : "Collapse panel (keeps the action buttons)";
+    }
+
+    if (collapsed) {
+        panel.style.height = "auto";
+        panel.style.minHeight = "0";
+    } else {
+        const saved = parseInt(panel.dataset.expandedHeight, 10);
+        panel.style.height = (!isNaN(saved) && saved > 0 ? saved : 400) + "px";
+        panel.style.minHeight = "200px";
+    }
+
+    // Vertical resize handles are meaningless while compact and could persist
+    // the compact height as the panel's normal height.
+    panel.querySelectorAll(".jrpd-resize-handle").forEach((h) => {
+        const d = h.getAttribute("data-dir") || "";
+        h.style.display = collapsed && /[ns]/.test(d) ? "none" : "";
+    });
+
+    if (persist) savePanelPrefs({ panelCollapsed: collapsed });
 }
 
 function toggleFlagMark(ts) {
@@ -1047,6 +1124,7 @@ function createResultsPanel() {
 
     panel.style.width = savedWidth + "px";
     panel.style.height = savedHeight + "px";
+    panel.dataset.expandedHeight = String(savedHeight);
     
     if (savedLeft != null) {
         panel.style.left = savedLeft + "px";
@@ -1069,6 +1147,15 @@ function createResultsPanel() {
     const controlsGroup = document.createElement("div");
     controlsGroup.style.cssText = "display: flex; gap: 5px; align-items: center;";
 
+    // Collapse / expand toggle — stays visible in both states.
+    const collapseBtn = document.createElement("button");
+    collapseBtn.className = "jrpd-collapse-btn";
+    collapseBtn.title = "Collapse panel (keeps the action buttons)";
+    collapseBtn.textContent = "—";
+    collapseBtn.style.cssText = "padding: 2px 6px; background: #0f3460; color: #eee; border: 1px solid #444; border-radius: 3px; cursor: pointer; font-size: 13px;";
+    collapseBtn.onclick = () => setResultsPanelCollapsed(!resultsPanelCollapsed);
+    controlsGroup.appendChild(collapseBtn);
+
     // Start button (visible only while the JRPD server is offline)
     const startBtn = document.createElement("button");
     startBtn.id = "jrpd-start-btn";
@@ -1078,11 +1165,17 @@ function createResultsPanel() {
     startBtn.onclick = jrpdStartClicked;
     controlsGroup.appendChild(startBtn);
 
+    // These controls are hidden while the panel is collapsed.
+    const secondaryControls = document.createElement("div");
+    secondaryControls.className = "jrpd-secondary-controls";
+    secondaryControls.style.cssText = "display: flex; gap: 5px; align-items: center;";
+    controlsGroup.appendChild(secondaryControls);
+
     // Font size dropdown
     const fontSelect = document.createElement("select");
     fontSelect.title = "Font size";
     fontSelect.style.cssText = "padding: 1px 2px; background: #0f3460; color: #eee; border: 1px solid #444; border-radius: 3px; font-size: 11px; cursor: pointer;";
-    [9, 10, 11, 12, 14, 16].forEach(sz => {
+    [8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24].forEach(sz => {
         const opt = document.createElement("option");
         opt.value = String(sz);
         opt.textContent = sz + "px";
@@ -1103,7 +1196,7 @@ function createResultsPanel() {
         }
         savePanelPrefs({ fontSize: reviewFontSize });
     };
-    controlsGroup.appendChild(fontSelect);
+    secondaryControls.appendChild(fontSelect);
     
     const copyBtn = document.createElement("button");
     copyBtn.textContent = "📋";
@@ -1126,14 +1219,14 @@ function createResultsPanel() {
             showToast("Failed to copy results", "#f44336");
         });
     };
-    controlsGroup.appendChild(copyBtn);
+    secondaryControls.appendChild(copyBtn);
     
     const reloadBtn = document.createElement("button");
     reloadBtn.textContent = "↻";
     reloadBtn.title = "Reload results.txt";
     reloadBtn.style.cssText = "padding: 2px 6px; background: #0f3460; color: #eee; border: 1px solid #444; border-radius: 3px; cursor: pointer; font-size: 13px;";
     reloadBtn.onclick = () => { reviewLastMtime = 0; lastRenderedLinesJson = ""; fetchResultsFile({ forceFullRender: true }); };
-    controlsGroup.appendChild(reloadBtn);
+    secondaryControls.appendChild(reloadBtn);
 
     const openEditorBtn = document.createElement("button");
     openEditorBtn.textContent = "📝";
@@ -1144,7 +1237,7 @@ function createResultsPanel() {
             .then(() => showToast("Opened results.txt in editor", "#1565c0"))
             .catch(() => showToast("Failed to open editor (server not reachable?)", "#f44336"));
     };
-    controlsGroup.appendChild(openEditorBtn);
+    secondaryControls.appendChild(openEditorBtn);
 
     const doneBtn = document.createElement("button");
     doneBtn.textContent = "Done";
@@ -1153,7 +1246,7 @@ function createResultsPanel() {
     doneBtn.onclick = () => {
         savePanelPrefs({ 
             width: panel.offsetWidth, 
-            height: panel.offsetHeight,
+            height: jrpdPanelPersistHeight(panel),
             left: panel.offsetLeft, 
             top: panel.offsetTop 
         });
@@ -1170,7 +1263,7 @@ function createResultsPanel() {
             showToast("Panel state saved", "#2e7d32");
         }
     };
-    controlsGroup.appendChild(doneBtn);
+    secondaryControls.appendChild(doneBtn);
 
     const quitBtn = document.createElement("button");
     quitBtn.textContent = "Quit";
@@ -1181,7 +1274,7 @@ function createResultsPanel() {
         // Save panel position, then the same teardown as Done: disarm gap loops.
         savePanelPrefs({
             width: panel.offsetWidth,
-            height: panel.offsetHeight,
+            height: jrpdPanelPersistHeight(panel),
             left: panel.offsetLeft,
             top: panel.offsetTop
         });
@@ -1195,7 +1288,7 @@ function createResultsPanel() {
             .then(() => showToast("Session quit — local audio deleted", "#c62828"))
             .catch(() => showToast("Quit failed (server not reachable?)", "#f44336"));
     };
-    controlsGroup.appendChild(quitBtn);
+    secondaryControls.appendChild(quitBtn);
 
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "✕";
@@ -1210,6 +1303,7 @@ function createResultsPanel() {
     // Action toolbar (UNDO / MARK / FINISH) — mirrors the player control-bar
     // buttons so marking works even when the control bar is hidden.
     const actionBar = document.createElement("div");
+    actionBar.className = "jrpd-results-action-bar";
     actionBar.style.cssText = "display: flex; gap: 6px; padding: 6px 10px; border-bottom: 1px solid #333; background: #16213e; flex-shrink: 0;";
 
     const mkActionBtn = (text, bgColor, onClick) => {
@@ -1256,10 +1350,14 @@ function createResultsPanel() {
     let resizeTimer = null;
     if (typeof ResizeObserver !== "undefined") {
         new ResizeObserver(() => {
+            // A collapsed panel changes height only because of the collapse;
+            // don't let that compact height become the saved normal height.
+            if (resultsPanelCollapsed) return;
             if (resizeTimer) clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => {
+                if (resultsPanelCollapsed) return;
                 const w = panel.offsetWidth;
-                const h = panel.offsetHeight;
+                const h = jrpdPanelPersistHeight(panel);
                 if (w > 0 && h > 0) savePanelPrefs({ width: w, height: h });
             }, 500);
         }).observe(panel);
@@ -1297,10 +1395,17 @@ function createResultsPanel() {
             jrpdEnableDirectionalResize(panel, {
                 minWidth: 280,
                 minHeight: 200,
-                onResizeEnd: (r) => savePanelPrefs({ width: r.width, height: r.height, left: r.left, top: r.top })
+                onResizeEnd: (r) => savePanelPrefs({
+                    width: r.width,
+                    height: resultsPanelCollapsed ? jrpdPanelPersistHeight(panel) : r.height,
+                    left: r.left,
+                    top: r.top
+                })
             });
         }
     } catch (e) {}
+    // Restore the last collapse/expand state (control-bar opens force collapse).
+    if (prefs.panelCollapsed === true) setResultsPanelCollapsed(true, false);
     updatePanelToggleButton();
 
     if (isVisibleByDefault) {
